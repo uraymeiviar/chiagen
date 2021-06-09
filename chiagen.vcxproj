@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{5ee95a6a-a0f8-4b4d-8391-82c715393a1c}</ProjectGuid>
+    <RootNamespace>chiagen</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <EnableASAN>true</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PlatformToolset>v142</PlatformToolset>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgManifestInstall>false</VcpkgManifestInstall>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgManifestInstall>false</VcpkgManifestInstall>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_GLFW_WIN32</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableModules>true</EnableModules>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src\chiapos;$(ProjectDir)\src\libs;$(ProjectDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
+      <UACUIAccess>false</UACUIAccess>
+      <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalDependencies>gmpd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\lib\libpng;$(SolutionDir)\lib\bzip2;$(SolutionDir)\lib\zlib;$(SolutionDir)\lib\brotli;$(SolutionDir)\lib\gmp;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_GLFW_WIN32</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableModules>true</EnableModules>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src\chiapos;$(ProjectDir)\src\libs;$(ProjectDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <CallingConvention>FastCall</CallingConvention>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
+      <UACUIAccess>false</UACUIAccess>
+      <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalDependencies>gmp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\lib\libpng;$(SolutionDir)\lib\bzip2;$(SolutionDir)\lib\zlib;$(SolutionDir)\lib\brotli;$(SolutionDir)\lib\gmp;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <TerminalServerAware>true</TerminalServerAware>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableModules>true</EnableModules>
+      <EnableModules>true</EnableModules>
+    </ClCompile>
+    <Link>
+      <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
+    </Link>
+    <Link>
+      <UACUIAccess>true</UACUIAccess>
+    </Link>
+    <Link>
+      <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
+    </Link>
+    <Link>
+      <UACUIAccess>true</UACUIAccess>
+      <SubSystem>Windows</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <SubSystem>Windows</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\chiapos\b17.cpp" />
+    <ClCompile Include="src\chiapos\b3\blake3.c" />
+    <ClCompile Include="src\chiapos\b3\blake3_avx2.c" />
+    <ClCompile Include="src\chiapos\b3\blake3_avx512.c" />
+    <ClCompile Include="src\chiapos\b3\blake3_dispatch.c" />
+    <ClCompile Include="src\chiapos\b3\blake3_portable.c" />
+    <ClCompile Include="src\chiapos\b3\blake3_sse41.c" />
+    <ClCompile Include="src\chiapos\bitfield.cpp" />
+    <ClCompile Include="src\chiapos\bitfield_index.cpp" />
+    <ClCompile Include="src\chiapos\bits.cpp" />
+    <ClCompile Include="src\chiapos\calculate_bucket.cpp" />
+    <ClCompile Include="src\chiapos\chacha8.c" />
+    <ClCompile Include="src\chiapos\disk.cpp" />
+    <ClCompile Include="src\chiapos\encoding.cpp" />
+    <ClCompile Include="src\chiapos\entry_sizes.cpp" />
+    <ClCompile Include="src\chiapos\phases.cpp" />
+    <ClCompile Include="src\chiapos\plotter_disk.cpp" />
+    <ClCompile Include="src\chiapos\prover_disk.cpp" />
+    <ClCompile Include="src\chiapos\sort_manager.cpp" />
+    <ClCompile Include="src\chiapos\util.cpp" />
+    <ClCompile Include="src\chiapos\verifier.cpp" />
+    <ClCompile Include="src\cli.cpp" />
+    <ClCompile Include="src\gui.cpp" />
+    <ClCompile Include="src\Job.cpp" />
+    <ClCompile Include="src\JobCreatePlot.cpp" />
+    <ClCompile Include="src\Keygen.cpp" />
+    <ClCompile Include="src\libs\fse\debug.c" />
+    <ClCompile Include="src\libs\fse\entropy_common.c" />
+    <ClCompile Include="src\libs\fse\fseU16.c" />
+    <ClCompile Include="src\libs\fse\fse_compress.c" />
+    <ClCompile Include="src\libs\fse\fse_decompress.c" />
+    <ClCompile Include="src\libs\fse\hist.c" />
+    <ClCompile Include="src\libs\fse\huf_compress.c" />
+    <ClCompile Include="src\libs\fse\huf_decompress.c" />
+    <ClCompile Include="src\libs\glad\src\glad.c" />
+    <ClCompile Include="src\libs\glfw\src\context.c" />
+    <ClCompile Include="src\libs\glfw\src\egl_context.c" />
+    <ClCompile Include="src\libs\glfw\src\init.c" />
+    <ClCompile Include="src\libs\glfw\src\input.c" />
+    <ClCompile Include="src\libs\glfw\src\monitor.c" />
+    <ClCompile Include="src\libs\glfw\src\osmesa_context.c" />
+    <ClCompile Include="src\libs\glfw\src\vulkan.c" />
+    <ClCompile Include="src\libs\glfw\src\wgl_context.c" />
+    <ClCompile Include="src\libs\glfw\src\win32_init.c" />
+    <ClCompile Include="src\libs\glfw\src\win32_joystick.c" />
+    <ClCompile Include="src\libs\glfw\src\win32_monitor.c" />
+    <ClCompile Include="src\libs\glfw\src\win32_thread.c" />
+    <ClCompile Include="src\libs\glfw\src\win32_time.c" />
+    <ClCompile Include="src\libs\glfw\src\win32_window.c" />
+    <ClCompile Include="src\libs\glfw\src\window.c" />
+    <ClCompile Include="src\libs\ImFrame\ImFrame.cpp" />
+    <ClCompile Include="src\libs\ImFrame\ImfUtilities.cpp" />
+    <ClCompile Include="src\libs\ImFrame\nfd\src\nfd_win.cpp" />
+    <ClCompile Include="src\libs\ImFrame\stb\stb_image.cpp" />
+    <ClCompile Include="src\libs\ImFrame\stb\stb_image_resize.cpp" />
+    <ClCompile Include="src\libs\ImFrame\WinPC\WinPCUtilities.cpp" />
+    <ClCompile Include="src\libs\Imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="src\libs\Imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\libs\Imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="src\libs\Imgui\imgui.cpp" />
+    <ClCompile Include="src\libs\Imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\libs\Imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\libs\Imgui\imgui_tables.cpp" />
+    <ClCompile Include="src\libs\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\libs\Imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="src\libs\Implot\implot.cpp" />
+    <ClCompile Include="src\libs\Implot\implot_demo.cpp" />
+    <ClCompile Include="src\libs\Implot\implot_items.cpp" />
+    <ClCompile Include="src\libs\relic\arch\relic_arch_x64.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_add.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_cmp.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_div.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_factor.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_gcd.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_inv.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_lcm.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mem.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mod.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mul.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mxp.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_prime.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_rec.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_shift.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_smb.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_sqr.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_srt.c" />
+    <ClCompile Include="src\libs\relic\bn\relic_bn_util.c" />
+    <ClCompile Include="src\libs\relic\dv\relic_dv_mem.c" />
+    <ClCompile Include="src\libs\relic\dv\relic_dv_util.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_add.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_cmp.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_curve.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_dbl.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_map.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_mul.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_mul_fix.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_mul_sim.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_neg.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_norm.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_param.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_pck.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_psi.c" />
+    <ClCompile Include="src\libs\relic\ep\relic_ep_util.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_add.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_cmp.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_exp.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_inv.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_mul.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_param.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_prime.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_rdc.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_shift.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_sqr.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_srt.c" />
+    <ClCompile Include="src\libs\relic\fp\relic_fp_util.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_add_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_div_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_mod_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_mul_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_shift_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_sqr_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_add_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_inv_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_mul_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_rdc_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_shift_low.c" />
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_sqr_low.c" />
+    <ClCompile Include="src\libs\relic\md\blake2s-ref.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_blake2s.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_hmac.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_kdf.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_mgf.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_sha224.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_sha256.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_sha384.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_sha512.c" />
+    <ClCompile Include="src\libs\relic\md\relic_md_xmd.c" />
+    <ClCompile Include="src\libs\relic\md\sha224-256.c" />
+    <ClCompile Include="src\libs\relic\md\sha384-512.c" />
+    <ClCompile Include="src\libs\relic\rand\relic_rand_call.c" />
+    <ClCompile Include="src\libs\relic\rand\relic_rand_core.c" />
+    <ClCompile Include="src\libs\relic\rand\relic_rand_hashd.c" />
+    <ClCompile Include="src\libs\relic\rand\relic_rand_rdrnd.c" />
+    <ClCompile Include="src\libs\relic\rand\relic_rand_udev.c" />
+    <ClCompile Include="src\libs\relic\relic_conf.c" />
+    <ClCompile Include="src\libs\relic\relic_core.c" />
+    <ClCompile Include="src\libs\relic\relic_err.c" />
+    <ClCompile Include="src\libs\relic\relic_util.c" />
+    <ClCompile Include="src\libs\uint128_t\uint128_t.cpp" />
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\chiapos\b17.hpp" />
+    <ClInclude Include="src\chiapos\b3\blake3.h" />
+    <ClInclude Include="src\chiapos\b3\blake3_impl.h" />
+    <ClInclude Include="src\chiapos\bitfield.hpp" />
+    <ClInclude Include="src\chiapos\bitfield_index.hpp" />
+    <ClInclude Include="src\chiapos\bits.hpp" />
+    <ClInclude Include="src\chiapos\calculate_bucket.hpp" />
+    <ClInclude Include="src\chiapos\chacha8.h" />
+    <ClInclude Include="src\chiapos\disk.hpp" />
+    <ClInclude Include="src\chiapos\encoding.hpp" />
+    <ClInclude Include="src\chiapos\entry_sizes.hpp" />
+    <ClInclude Include="src\chiapos\phases.hpp" />
+    <ClInclude Include="src\chiapos\picosha2.hpp" />
+    <ClInclude Include="src\chiapos\plotter_disk.hpp" />
+    <ClInclude Include="src\chiapos\pos_constants.hpp" />
+    <ClInclude Include="src\chiapos\prover_disk.hpp" />
+    <ClInclude Include="src\chiapos\sort_manager.hpp" />
+    <ClInclude Include="src\chiapos\thread_pool.hpp" />
+    <ClInclude Include="src\chiapos\util.hpp" />
+    <ClInclude Include="src\chiapos\verifier.hpp" />
+    <ClInclude Include="src\cli.hpp" />
+    <ClInclude Include="src\data.hpp" />
+    <ClInclude Include="src\gui.hpp" />
+    <ClInclude Include="src\Job.hpp" />
+    <ClInclude Include="src\JobCreatePlot.h" />
+    <ClInclude Include="src\Keygen.hpp" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftconfig.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftheader.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftmodule.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftoption.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftstdlib.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\integer-types.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\mac-support.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\config\public-macros.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\freetype.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftadvanc.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbbox.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbdf.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbitmap.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbzip2.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftcache.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftchapters.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftcid.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftcolor.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftdriver.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\fterrdef.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\fterrors.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftfntfmt.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftgasp.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftglyph.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftgxval.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftgzip.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftimage.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftincrem.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftlcdfil.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftlist.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftlzw.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmac.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmm.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmodapi.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmoderr.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftotval.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftoutln.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftparams.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftpfr.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftrender.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsizes.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsnames.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftstroke.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsynth.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsystem.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\fttrigon.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\fttypes.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ftwinfnt.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\t1tables.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\ttnameid.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\tttables.h" />
+    <ClInclude Include="src\libs\freetype\include\freetype\tttags.h" />
+    <ClInclude Include="src\libs\freetype\include\ft2build.h" />
+    <ClInclude Include="src\libs\fse\bitstream.h" />
+    <ClInclude Include="src\libs\fse\compiler.h" />
+    <ClInclude Include="src\libs\fse\debug.h" />
+    <ClInclude Include="src\libs\fse\error_private.h" />
+    <ClInclude Include="src\libs\fse\error_public.h" />
+    <ClInclude Include="src\libs\fse\fse.h" />
+    <ClInclude Include="src\libs\fse\fseU16.h" />
+    <ClInclude Include="src\libs\fse\hist.h" />
+    <ClInclude Include="src\libs\fse\huf.h" />
+    <ClInclude Include="src\libs\fse\mem.h" />
+    <ClInclude Include="src\libs\glad\include\glad\glad.h" />
+    <ClInclude Include="src\libs\glad\include\KHR\khrplatform.h" />
+    <ClInclude Include="src\libs\glfw\include\GLFW\glfw3.h" />
+    <ClInclude Include="src\libs\glfw\include\GLFW\glfw3native.h" />
+    <ClInclude Include="src\libs\glfw\src\egl_context.h" />
+    <ClInclude Include="src\libs\glfw\src\internal.h" />
+    <ClInclude Include="src\libs\glfw\src\mappings.h" />
+    <ClInclude Include="src\libs\glfw\src\osmesa_context.h" />
+    <ClInclude Include="src\libs\glfw\src\wgl_context.h" />
+    <ClInclude Include="src\libs\glfw\src\win32_joystick.h" />
+    <ClInclude Include="src\libs\glfw\src\win32_platform.h" />
+    <ClInclude Include="src\libs\gmp\gmp.h" />
+    <ClInclude Include="src\libs\gmp\gmpxx.h" />
+    <ClInclude Include="src\libs\ImFrame\ImfInternal.h" />
+    <ClInclude Include="src\libs\ImFrame\ImfUtilities.h" />
+    <ClInclude Include="src\libs\ImFrame\Include\ImFrame.h" />
+    <ClInclude Include="src\libs\ImFrame\stb\stb_image.h" />
+    <ClInclude Include="src\libs\ImFrame\stb\stb_image_resize.h" />
+    <ClInclude Include="src\libs\Imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="src\libs\Imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\libs\Imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="src\libs\Imgui\imconfig.h" />
+    <ClInclude Include="src\libs\Imgui\imgui.h" />
+    <ClInclude Include="src\libs\Imgui\imgui_internal.h" />
+    <ClInclude Include="src\libs\Imgui\imstb_rectpack.h" />
+    <ClInclude Include="src\libs\Imgui\imstb_textedit.h" />
+    <ClInclude Include="src\libs\Imgui\imstb_truetype.h" />
+    <ClInclude Include="src\libs\Imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="src\libs\Implot\implot.h" />
+    <ClInclude Include="src\libs\Implot\implot_internal.h" />
+    <ClInclude Include="src\libs\pthreads\pthread.h" />
+    <ClInclude Include="src\libs\pthreads\sched.h" />
+    <ClInclude Include="src\libs\pthreads\semaphore.h" />
+    <ClInclude Include="src\libs\pthreads\_ptw32.h" />
+    <ClInclude Include="src\libs\relic\include\low\relic_bn_low.h" />
+    <ClInclude Include="src\libs\relic\include\low\relic_dv_low.h" />
+    <ClInclude Include="src\libs\relic\include\low\relic_fp_low.h" />
+    <ClInclude Include="src\libs\relic\include\relic.h" />
+    <ClInclude Include="src\libs\relic\include\relic_alloc.h" />
+    <ClInclude Include="src\libs\relic\include\relic_arch.h" />
+    <ClInclude Include="src\libs\relic\include\relic_bn.h" />
+    <ClInclude Include="src\libs\relic\include\relic_conf.h" />
+    <ClInclude Include="src\libs\relic\include\relic_core.h" />
+    <ClInclude Include="src\libs\relic\include\relic_dv.h" />
+    <ClInclude Include="src\libs\relic\include\relic_ep.h" />
+    <ClInclude Include="src\libs\relic\include\relic_err.h" />
+    <ClInclude Include="src\libs\relic\include\relic_fp.h" />
+    <ClInclude Include="src\libs\relic\include\relic_label.h" />
+    <ClInclude Include="src\libs\relic\include\relic_md.h" />
+    <ClInclude Include="src\libs\relic\include\relic_multi.h" />
+    <ClInclude Include="src\libs\relic\include\relic_rand.h" />
+    <ClInclude Include="src\libs\relic\include\relic_types.h" />
+    <ClInclude Include="src\libs\relic\include\relic_util.h" />
+    <ClInclude Include="src\libs\relic\md\blake2-impl.h" />
+    <ClInclude Include="src\libs\relic\md\blake2.h" />
+    <ClInclude Include="src\libs\relic\md\sha.h" />
+    <ClInclude Include="src\libs\relic\md\sha_private.h" />
+    <ClInclude Include="src\libs\relic\tmpl\relic_tmpl_map.h" />
+    <ClInclude Include="src\libs\uint128_t\uint128_t.h" />
+    <ClInclude Include="src\main.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\chiapos\b3\blake3_avx2_x86-64_unix.S" />
+    <None Include="src\chiapos\b3\blake3_avx512_x86-64_unix.S" />
+    <None Include="src\chiapos\b3\blake3_sse41_x86-64_unix.S" />
+    <None Include="src\libs\fse\README.md" />
+    <None Include="src\libs\relic\arch\lzcnt.inc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

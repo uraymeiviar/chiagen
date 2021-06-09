@@ -1,0 +1,1046 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="chiapos">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="libs\freetype">
+      <UniqueIdentifier>{c78d1b5d-3c6b-482f-b02a-fbe7c892db2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\freetype\freetype">
+      <UniqueIdentifier>{6f67ba8d-03cc-4ac0-9ab7-1d91780b5991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\freetype\freetype\config">
+      <UniqueIdentifier>{1396b67e-40e1-47d6-984e-7665751c1904}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\glad">
+      <UniqueIdentifier>{71d13faf-61e0-470a-9f5b-8bff4a5d892c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\glad\src">
+      <UniqueIdentifier>{f14c492c-14cf-46f4-9632-c7f2bcade124}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\glad\include">
+      <UniqueIdentifier>{f315d435-8830-4ea5-a118-01dc1e69af45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\glfw">
+      <UniqueIdentifier>{e15426f2-c631-49a7-b8b8-a4119ca586bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\glfw\src">
+      <UniqueIdentifier>{dc6b3275-f408-4cab-96a2-60af7951726b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\glfw\include">
+      <UniqueIdentifier>{15e846ac-1415-4ced-896c-8214756170c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\gmp">
+      <UniqueIdentifier>{98b14e18-f61e-4f4f-8bd2-fcd572dc5552}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImFrame">
+      <UniqueIdentifier>{e5f3f5ac-5d08-4ec2-81e8-3e605a7a363c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImFrame\include">
+      <UniqueIdentifier>{37cee5b0-b02b-4c8a-bc99-cd47f9ce4f01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImGui">
+      <UniqueIdentifier>{13d65fa1-5e21-4c49-985a-9248328513cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImGui\backends">
+      <UniqueIdentifier>{7c5cc64f-575f-4c59-8eb5-b06a7c4f1298}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImPlot">
+      <UniqueIdentifier>{77921d52-6a7e-46d9-94d9-7a67c01932cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\pthreads">
+      <UniqueIdentifier>{85897967-af9e-4b3a-ac84-298d192889d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic">
+      <UniqueIdentifier>{67795cd9-e64a-468e-bc53-f143c7eb0e05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\include">
+      <UniqueIdentifier>{b3800198-e626-4b4b-89d0-dedbe09c4d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\include\low">
+      <UniqueIdentifier>{4f61ac97-cbda-4422-b3cc-edcebab2e99d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\arch">
+      <UniqueIdentifier>{c40ec8e2-32ff-4c76-a285-003a64ab24ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\bn">
+      <UniqueIdentifier>{7c6d4d77-7b5a-4c98-9593-d2a231fc146c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\dv">
+      <UniqueIdentifier>{59eadb14-f4ed-4f80-8067-0ea4c827727b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\ep">
+      <UniqueIdentifier>{ea7e0c5c-6cb7-463a-a298-0126dc1714d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\fp">
+      <UniqueIdentifier>{9332693e-1c3e-462e-9cc5-feed6201d9c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\md">
+      <UniqueIdentifier>{3df557a2-cbdb-4880-97f4-6aa10151cb4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\rand">
+      <UniqueIdentifier>{53c026c8-118a-4adc-bb7d-3ae18c27447e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\tmpl">
+      <UniqueIdentifier>{87a9b749-d912-4901-9771-311925022462}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\low">
+      <UniqueIdentifier>{10d322b0-65a1-4f8b-8c71-eba32eb9b8f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\relic\low\gmp">
+      <UniqueIdentifier>{869865a9-bcb8-4571-99f6-27493c9fd334}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="chiapos\b3">
+      <UniqueIdentifier>{73064cb6-355c-4dea-8ff6-ab91e0d6e749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\fse">
+      <UniqueIdentifier>{cb520c6c-40db-43a3-be92-693478ba0b3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\uint128_t">
+      <UniqueIdentifier>{b0c12f3b-e22b-4cc9-98e1-0a99385fcca2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImGui\misc">
+      <UniqueIdentifier>{72d21017-7902-413f-b069-fd71a47b7dd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImGui\misc\cpp">
+      <UniqueIdentifier>{0e5a1e6e-18f4-4064-8fa1-f27c9bea6c56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImFrame\nfd">
+      <UniqueIdentifier>{3a9476a0-de48-49ac-a9a3-945fcf58e2e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImFrame\WinPC">
+      <UniqueIdentifier>{78fce132-a637-4f45-9c57-56b049c8f3be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\ImFrame\stb">
+      <UniqueIdentifier>{2101493b-6a87-4aff-a86f-de35841dd02a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\cli.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Keygen.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b17.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\bitfield.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\bitfield_index.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\bits.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\calculate_bucket.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\chacha8.c">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\disk.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\encoding.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\entry_sizes.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\phases.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\plotter_disk.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\prover_disk.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\sort_manager.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\util.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\verifier.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glad\src\glad.c">
+      <Filter>libs\glad\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\context.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\egl_context.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\init.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\input.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\monitor.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\osmesa_context.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\vulkan.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\wgl_context.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\win32_init.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\win32_joystick.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\win32_monitor.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\win32_thread.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\win32_time.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\win32_window.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\glfw\src\window.c">
+      <Filter>libs\glfw\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\ImFrame\ImFrame.cpp">
+      <Filter>libs\ImFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\ImFrame\ImfUtilities.cpp">
+      <Filter>libs\ImFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\imgui.cpp">
+      <Filter>libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\imgui_demo.cpp">
+      <Filter>libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\imgui_draw.cpp">
+      <Filter>libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\imgui_tables.cpp">
+      <Filter>libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\imgui_widgets.cpp">
+      <Filter>libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\backends\imgui_impl_glfw.cpp">
+      <Filter>libs\ImGui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>libs\ImGui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\backends\imgui_impl_win32.cpp">
+      <Filter>libs\ImGui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Implot\implot.cpp">
+      <Filter>libs\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Implot\implot_demo.cpp">
+      <Filter>libs\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Implot\implot_items.cpp">
+      <Filter>libs\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\relic_conf.c">
+      <Filter>libs\relic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\relic_core.c">
+      <Filter>libs\relic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\relic_err.c">
+      <Filter>libs\relic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\relic_util.c">
+      <Filter>libs\relic</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\arch\relic_arch_x64.c">
+      <Filter>libs\relic\arch</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_add.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_cmp.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_div.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_factor.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_gcd.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_inv.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_lcm.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mem.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mod.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mul.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_mxp.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_prime.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_rec.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_shift.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_smb.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_sqr.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_srt.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\bn\relic_bn_util.c">
+      <Filter>libs\relic\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\dv\relic_dv_mem.c">
+      <Filter>libs\relic\dv</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\dv\relic_dv_util.c">
+      <Filter>libs\relic\dv</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_add.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_cmp.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_curve.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_dbl.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_map.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_mul.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_mul_fix.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_mul_sim.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_neg.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_norm.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_param.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_pck.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_psi.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\ep\relic_ep_util.c">
+      <Filter>libs\relic\ep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_add.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_cmp.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_exp.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_inv.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_mul.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_param.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_prime.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_rdc.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_shift.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_sqr.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_srt.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\fp\relic_fp_util.c">
+      <Filter>libs\relic\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\blake2s-ref.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_blake2s.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_hmac.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_kdf.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_mgf.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_sha224.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_sha256.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_sha384.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_sha512.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\relic_md_xmd.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\sha224-256.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\md\sha384-512.c">
+      <Filter>libs\relic\md</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\rand\relic_rand_call.c">
+      <Filter>libs\relic\rand</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\rand\relic_rand_core.c">
+      <Filter>libs\relic\rand</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\rand\relic_rand_hashd.c">
+      <Filter>libs\relic\rand</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\rand\relic_rand_rdrnd.c">
+      <Filter>libs\relic\rand</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\rand\relic_rand_udev.c">
+      <Filter>libs\relic\rand</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_add_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_div_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_mod_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_mul_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_shift_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_bn_sqr_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_add_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_inv_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_mul_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_rdc_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_shift_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\relic\low\gmp\relic_fp_sqr_low.c">
+      <Filter>libs\relic\low\gmp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3_avx2.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3_avx512.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3_dispatch.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3_portable.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3_sse41.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\debug.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\entropy_common.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\fse_compress.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\fse_decompress.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\fseU16.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\hist.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\huf_compress.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\fse\huf_decompress.c">
+      <Filter>libs\fse</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\uint128_t\uint128_t.cpp">
+      <Filter>libs\uint128_t</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\Imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>libs\ImGui\misc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\ImFrame\nfd\src\nfd_win.cpp">
+      <Filter>libs\ImFrame\nfd</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\ImFrame\WinPC\WinPCUtilities.cpp">
+      <Filter>libs\ImFrame\WinPC</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\ImFrame\stb\stb_image.cpp">
+      <Filter>libs\ImFrame\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\ImFrame\stb\stb_image_resize.cpp">
+      <Filter>libs\ImFrame\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Job.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JobCreatePlot.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\cli.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Keygen.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\main.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\b17.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\bitfield.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\bitfield_index.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\bits.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\calculate_bucket.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\chacha8.h">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\disk.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\encoding.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\entry_sizes.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\phases.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\picosha2.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\plotter_disk.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\pos_constants.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\prover_disk.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\sort_manager.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\thread_pool.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\util.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\verifier.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\ft2build.h">
+      <Filter>libs\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\freetype.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftadvanc.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbbox.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbdf.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbitmap.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftbzip2.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftcache.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftchapters.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftcid.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftcolor.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftdriver.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\fterrdef.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\fterrors.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftfntfmt.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftgasp.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftglyph.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftgxval.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftgzip.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftimage.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftincrem.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftlcdfil.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftlist.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftlzw.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmac.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmm.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmodapi.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftmoderr.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftotval.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftoutln.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftparams.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftpfr.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftrender.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsizes.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsnames.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftstroke.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsynth.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftsystem.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\fttrigon.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\fttypes.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ftwinfnt.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\t1tables.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\ttnameid.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\tttables.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\tttags.h">
+      <Filter>libs\freetype\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftconfig.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftheader.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftmodule.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftoption.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\ftstdlib.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\integer-types.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\mac-support.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\freetype\include\freetype\config\public-macros.h">
+      <Filter>libs\freetype\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glad\include\KHR\khrplatform.h">
+      <Filter>libs\glad\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glad\include\glad\glad.h">
+      <Filter>libs\glad\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\include\GLFW\glfw3.h">
+      <Filter>libs\glfw\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\include\GLFW\glfw3native.h">
+      <Filter>libs\glfw\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\egl_context.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\internal.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\mappings.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\osmesa_context.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\wgl_context.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\win32_joystick.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\glfw\src\win32_platform.h">
+      <Filter>libs\glfw\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\gmp\gmp.h">
+      <Filter>libs\gmp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\gmp\gmpxx.h">
+      <Filter>libs\gmp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\ImFrame\ImfInternal.h">
+      <Filter>libs\ImFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\ImFrame\ImfUtilities.h">
+      <Filter>libs\ImFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\ImFrame\Include\ImFrame.h">
+      <Filter>libs\ImFrame\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\imconfig.h">
+      <Filter>libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\imgui.h">
+      <Filter>libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\imgui_internal.h">
+      <Filter>libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\imstb_rectpack.h">
+      <Filter>libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\imstb_textedit.h">
+      <Filter>libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\imstb_truetype.h">
+      <Filter>libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\backends\imgui_impl_glfw.h">
+      <Filter>libs\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\backends\imgui_impl_opengl3.h">
+      <Filter>libs\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\backends\imgui_impl_win32.h">
+      <Filter>libs\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Implot\implot.h">
+      <Filter>libs\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Implot\implot_internal.h">
+      <Filter>libs\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\pthreads\_ptw32.h">
+      <Filter>libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\pthreads\pthread.h">
+      <Filter>libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\pthreads\sched.h">
+      <Filter>libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\pthreads\semaphore.h">
+      <Filter>libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_alloc.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_arch.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_bn.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_conf.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_core.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_dv.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_ep.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_err.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_fp.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_label.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_md.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_multi.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_rand.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_types.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\relic_util.h">
+      <Filter>libs\relic\include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\low\relic_bn_low.h">
+      <Filter>libs\relic\include\low</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\low\relic_dv_low.h">
+      <Filter>libs\relic\include\low</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\include\low\relic_fp_low.h">
+      <Filter>libs\relic\include\low</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\md\blake2.h">
+      <Filter>libs\relic\md</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\md\blake2-impl.h">
+      <Filter>libs\relic\md</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\md\sha.h">
+      <Filter>libs\relic\md</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\md\sha_private.h">
+      <Filter>libs\relic\md</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\relic\tmpl\relic_tmpl_map.h">
+      <Filter>libs\relic\tmpl</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\b3\blake3.h">
+      <Filter>chiapos\b3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chiapos\b3\blake3_impl.h">
+      <Filter>chiapos\b3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\bitstream.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\compiler.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\debug.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\error_private.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\error_public.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\fse.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\fseU16.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\hist.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\huf.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\fse\mem.h">
+      <Filter>libs\fse</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\uint128_t\uint128_t.h">
+      <Filter>libs\uint128_t</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\Imgui\misc\cpp\imgui_stdlib.h">
+      <Filter>libs\ImGui\misc\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\ImFrame\stb\stb_image.h">
+      <Filter>libs\ImFrame\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\ImFrame\stb\stb_image_resize.h">
+      <Filter>libs\ImFrame\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Job.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JobCreatePlot.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\data.hpp">
+      <Filter>chiapos</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\libs\relic\arch\lzcnt.inc">
+      <Filter>libs\relic\arch</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_avx2_x86-64_unix.S">
+      <Filter>chiapos\b3</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_avx512_x86-64_unix.S">
+      <Filter>chiapos\b3</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_sse41_x86-64_unix.S">
+      <Filter>chiapos\b3</Filter>
+    </None>
+    <None Include="src\libs\fse\README.md">
+      <Filter>libs\fse</Filter>
+    </None>
+  </ItemGroup>
+</Project>
