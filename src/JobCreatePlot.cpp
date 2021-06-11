@@ -8,10 +8,33 @@
 
 JobCreatePlot::JobCreatePlot(std::string title, const JobCreatePlotParam& param)
 	: Job(title), param(param)
-{
+{	
+	this->init();
 	this->startRule.param = param.startRuleParam;
 	this->finishRule.param = param.finishRuleParam;
 	this->jobEditor.setData(&this->param);
+}
+
+JobCreatePlot::JobCreatePlot(std::string title) : Job(title)
+{
+	this->init();
+}
+
+void JobCreatePlot::init()
+{
+	this->jobProgress = std::make_shared<JobProgress>(this->getTitle());
+	this->startEvent = std::make_shared<JobEvent>("job-start");
+	this->finishEvent = std::make_shared<JobEvent>("job-finish");
+	this->phase1FinishEvent = std::make_shared<JobEvent>("phase1-finish");
+	this->phase2FinishEvent = std::make_shared<JobEvent>("phase2-finish");
+	this->phase3FinishEvent = std::make_shared<JobEvent>("phase3-finish");
+	this->phase4FinishEvent = std::make_shared<JobEvent>("phase4-finish");
+	this->events.push_back(this->startEvent);
+	this->events.push_back(this->finishEvent);
+	this->events.push_back(this->phase1FinishEvent);
+	this->events.push_back(this->phase2FinishEvent);
+	this->events.push_back(this->phase3FinishEvent);
+	this->events.push_back(this->phase4FinishEvent);
 }
 
 JobCreatePlotParam* JobCreatePlot::drawUI()
@@ -754,7 +777,7 @@ bool JobCreatePlotFinishRule::drawItemWidget() {
 std::shared_ptr<JobTaskItem> CreatePlotContext::getCurrentTask()
 {
 	if (this->tasks.empty()) {
-		return this->job;
+		return this->job->jobProgress;
 	}
 	else {
 		return this->tasks.top();
@@ -763,7 +786,7 @@ std::shared_ptr<JobTaskItem> CreatePlotContext::getCurrentTask()
 
 std::shared_ptr<JobTaskItem> CreatePlotContext::pushTask(std::string name, uint32_t totalWorkItem)
 {
-	std::shared_ptr<JobTaskItem> newTask = std::make_shared<JobTaskItem>(name, this->getCurrentTask());
+	std::shared_ptr<JobTaskItem> newTask = std::make_shared<JobTaskItem>(name);
 	newTask->totalWorkItem = totalWorkItem;
 	this->getCurrentTask()->addChild(newTask);
 	this->tasks.push(newTask);

@@ -80,6 +80,8 @@ uint64_t compute(	DiskPlotterContext& context,
     std::vector<uint32_t> C2;
 
     std::cout << "[P4] Starting to write C1 and C3 tables" << std::endl;
+	context.pushTask("Phase4.C2Write");
+	context.pushTask("Phase4.C1C3Write");
     
 	struct park_deltas_t {
 		uint64_t offset = 0;
@@ -217,6 +219,7 @@ uint64_t compute(	DiskPlotterContext& context,
     
     std::cout << "[P4] Finished writing C1 and C3 tables" << std::endl;
     std::cout << "[P4] Writing C2 table" << std::endl;
+	context.popTask();
 
     for(const uint64_t C2_entry : C2) {
         Bits(C2_entry, k).ToBytes(C1_entry_buf);
@@ -228,6 +231,7 @@ uint64_t compute(	DiskPlotterContext& context,
     		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     
     std::cout << "[P4] Finished writing C2 table" << std::endl;
+	context.popTask();
 
     final_file_writer_1 = header_size - 8 * 3;
     uint8_t table_pointer_bytes[8] = {};

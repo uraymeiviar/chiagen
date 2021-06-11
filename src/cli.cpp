@@ -101,6 +101,9 @@ struct CreatePlotParam {
 	uint8_t num_threads;
 	uint32_t bufferSz;
 	bool bitfield;
+	std::wstring finalDir;
+	std::wstring tempDir;
+	std::wstring tempDir2;
 };
 
 bool create_plot_precheck(
@@ -207,11 +210,13 @@ bool create_plot_precheck(
 			destPath = destPath.parent_path() / outParam.plot_name;
 		}
 		else {
+			outParam.finalDir = destPath.wstring();
 			destPath = destPath / outParam.plot_name;
 		}
 	}
 	else {
 		if (std::filesystem::create_directory(destPath)) {
+			outParam.finalDir = destPath.wstring();
 			destPath = destPath / outParam.plot_name;
 		}
 		else {
@@ -239,9 +244,10 @@ bool create_plot_precheck(
 		}
 	}
 	tempdir = tempPath.string();
+	outParam.tempDir = tempdir.wstring();
 
 	if (tempdir2.empty()) {
-		tempdir2 = tempdir;
+		tempdir2 = tempdir;		
 	}
 
 	std::filesystem::path tempPath2 = std::filesystem::path(tempdir2);
@@ -259,6 +265,7 @@ bool create_plot_precheck(
 		}
 	}
 	tempdir2 = tempPath2.string();
+	outParam.tempDir2 = tempdir.wstring();
 
 	wcout << L"Generating plot for k=" << static_cast<int>(k) << " filename=" << outParam.plot_name << endl << endl;
 
@@ -326,9 +333,9 @@ int cli_create(
 			}
 			phases_flags = phases_flags | SHOW_PROGRESS;
 			plotter.CreatePlotDisk(
-					tempdir,
-					tempdir2,
-					finaldir,
+					param.tempDir,
+					param.tempDir2,
+					param.finalDir,
 					param.plot_name,
 					param.k,
 					param.memo_data.data(),
@@ -507,46 +514,90 @@ int cli_create_mad(
 		params.plot_name = ws2s(param.plot_name);
 
 		int log_num_buckets = int(log2(num_buckets));
+
 		mad::DiskPlotterContext context;
+		context.job = std::make_shared<JobCreatePlot>("cli");
 
-		mad::phase1::output_t out_1;
-		mad::phase1::compute(context, params, out_1, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
+		context.pushTask("PlotCopy");
+		context.pushTask("Phase4");
+		context.pushTask("Phase3");
+		context.pushTask("Phase2");
+		context.pushTask("Phase1");
 	
-		mad::phase2::output_t out_2;
-		mad::phase2::compute(context, out_1, out_2, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
-	
-		mad::phase3::output_t out_3;
-		mad::phase3::compute(context, out_2, out_3, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
-	
-		mad::phase4::output_t out_4;
-		mad::phase4::compute(context, out_3, out_4, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
-	
-		std::cout << "Total plot creation time was "
-			<< (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
+		try {
+			std::shared_ptr<JobCreatePlot> plottingJob = std::dynamic_pointer_cast<JobCreatePlot>(context.job);
+			plottingJob->startEvent->trigger();
 
-		mad::Thread<std::pair<std::string, std::string>> copy_thread(
-		[](std::pair<std::string, std::string>& from_to) {
-			const auto total_begin = get_wall_time_micros();
-			while(true) {
-				try {
-					const auto bytes = mad::final_copy(from_to.first, from_to.second);
+			mad::phase1::output_t out_1;
+			mad::phase1::compute(context, params, out_1, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+	
+			context.popTask();
+			plottingJob->phase1FinishEvent->trigger();
+
+			mad::phase2::output_t out_2;
+			mad::phase2::compute(context, out_1, out_2, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+	
+			context.popTask();
+			plottingJob->phase2FinishEvent->trigger();
+
+			mad::phase3::output_t out_3;
+			mad::phase3::compute(context, out_2, out_3, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+	
+			context.popTask();
+			plottingJob->phase3FinishEvent->trigger();
+
+			mad::phase4::output_t out_4;
+			mad::phase4::compute(context, out_3, out_4, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+			
+			context.popTask();
+			plottingJob->phase4FinishEvent->trigger();
+
+			std::cout << "Total plot creation time was "
+				<< (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
+
+			mad::Thread<std::pair<std::string, std::string>> copy_thread(
+			[](std::pair<std::string, std::string>& from_to) {
+				const auto total_begin = get_wall_time_micros();
+				while(true) {
+					try {
+						const auto bytes = mad::final_copy(from_to.first, from_to.second);
 					
-					const auto time = (get_wall_time_micros() - total_begin) / 1e6;
-					std::cout << "Copy to " << from_to.second << " finished, took " << time << " sec, "
-							<< ((bytes / time) / 1024 / 1024) << " MB/s avg." << std::endl;
-					break;
-				} catch(const std::exception& ex) {
-					std::cout << "Copy to " << from_to.second << " failed with: " << ex.what() << std::endl;
-					std::this_thread::sleep_for(std::chrono::minutes(5));
+						const auto time = (get_wall_time_micros() - total_begin) / 1e6;
+						std::cout << "Copy to " << from_to.second << " finished, took " << time << " sec, "
+								<< ((bytes / time) / 1024 / 1024) << " MB/s avg." << std::endl;
+						break;
+					} catch(const std::exception& ex) {
+						std::cout << "Copy to " << from_to.second << " failed with: " << ex.what() << std::endl;
+						std::this_thread::sleep_for(std::chrono::minutes(5));
+					}
 				}
-			}
-		}, "final/copy");
+			}, "final/copy");
 
-		if(finaldir != tempdir)
-		{
-			const auto dst_path = finaldir / param.plot_name;
-			std::cout << "Started copy to " << dst_path << std::endl;
-			copy_thread.take_copy(std::make_pair(out_4.plot_file_name, dst_path.string()));
+			if(finaldir != tempdir)
+			{
+				const auto dst_path = finaldir / param.plot_name;
+				std::cout << "Started copy to " << dst_path << std::endl;
+				copy_thread.take_copy(std::make_pair(out_4.plot_file_name, dst_path.string()));
+			}
+			context.popTask();
+			plottingJob->finishEvent->trigger();
 		}
+		catch(const std::runtime_error& re)
+		{
+			std::cerr << "Runtime error: " << re.what() << std::endl;
+			exit(1);
+		}
+		catch(const std::exception& ex)
+		{
+			std::cerr << "Error occurred: " << ex.what() << std::endl;
+			exit(1);
+		}
+		catch(...)
+		{
+			std::cerr << "Unknown failure occurred. Possible memory corruption" << std::endl;
+			exit(1);
+		}
+		return 1;
 	}
+	return 0;
 }

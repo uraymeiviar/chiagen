@@ -459,12 +459,26 @@ void compute(	DiskPlotterContext& context,
 	
 	auto R_sort_lp = std::make_shared<DiskSortLP>(
 			63, log_num_buckets, prefix_2 + "p3s1.t2");
+
+	context.pushTask("Phase3-Table7-Stage2");
+	context.pushTask("Phase3-Table7-Stage1");
+	context.pushTask("Phase3-Table6-Stage2");
+	context.pushTask("Phase3-Table6-Stage1");
+	context.pushTask("Phase3-Table5-Stage2");
+	context.pushTask("Phase3-Table5-Stage1");
+	context.pushTask("Phase3-Table4-Stage2");
+	context.pushTask("Phase3-Table4-Stage1");
+	context.pushTask("Phase3-Table3-Stage2");
+	context.pushTask("Phase3-Table3-Stage1");
+	context.pushTask("Phase3-Table2-Stage2");
+	context.pushTask("Phase3-Table2-Stage1");
 	
 	compute_stage1<phase2::entry_1, phase2::entry_x, DiskSortNP, phase2::DiskSortT>(
 			1, num_threads, nullptr, input.sort[1].get(), R_sort_lp.get(), &L_table_1, input.bitfield_1.get());
 	
 	input.bitfield_1 = nullptr;
 	remove(input.table_1.file_name);
+	context.popTask();
 	
 	auto L_sort_np = std::make_shared<DiskSortNP>(
 			32, log_num_buckets, prefix_2 + "p3s2.t2");
@@ -472,6 +486,7 @@ void compute(	DiskPlotterContext& context,
 	num_written_final += compute_stage2(context,
 			1, num_threads, R_sort_lp.get(), L_sort_np.get(),
 			plot_file, final_pointers[1], &final_pointers[2]);
+	context.popTask();
 	
 	for(int L_index = 2; L_index < 6; ++L_index)
 	{
@@ -482,6 +497,7 @@ void compute(	DiskPlotterContext& context,
 		
 		compute_stage1<entry_np, phase2::entry_x, DiskSortNP, phase2::DiskSortT>(
 				L_index, num_threads, L_sort_np.get(), input.sort[L_index].get(), R_sort_lp.get());
+		context.popTask();
 		
 		L_sort_np = std::make_shared<DiskSortNP>(
 				32, log_num_buckets, prefix_2 + "p3s2." + R_t);
@@ -489,6 +505,7 @@ void compute(	DiskPlotterContext& context,
 		num_written_final += compute_stage2(context,
 				L_index, num_threads, R_sort_lp.get(), L_sort_np.get(),
 				plot_file, final_pointers[L_index], &final_pointers[L_index + 1]);
+		context.popTask();
 	}
 	
 	DiskTable<phase2::entry_7> R_table_7(input.table_7);
@@ -497,6 +514,7 @@ void compute(	DiskPlotterContext& context,
 	
 	compute_stage1<entry_np, phase2::entry_7, DiskSortNP, phase2::DiskSort7>(
 			6, num_threads, L_sort_np.get(), nullptr, R_sort_lp.get(), nullptr, nullptr, &R_table_7);
+	context.popTask();
 	
 	remove(input.table_7.file_name);
 	
@@ -518,6 +536,8 @@ void compute(	DiskPlotterContext& context,
 	out.sort_7 = L_sort_np;
 	out.num_written_7 = num_written_final_7;
 	out.final_pointer_7 = final_pointers[7];
+
+	context.popTask();
 	
 	std::cout << "Phase 3 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec"
 			", wrote " << num_written_final << " entries to final plot" << std::endl;

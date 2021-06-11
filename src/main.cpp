@@ -185,7 +185,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						std::cout << "  -b  --buckets     : number of buckets       (default 128  )" << std::endl;
 						std::cout << "  -m  --mem         : max memory buffer in MB (default 4608 )" << std::endl;
 						std::cout << "  -s  --stripes     : stripes count           (default 65536)" << std::endl;
-						std::cout << "  -n  --no-bitfield : use bitfield            (default set  )" << std::endl << std::endl;
+						std::cout << "  -n  --no-bitfield : use bitfield            (default set  )" << std::endl;
+						std::cout << "  -w  --plotter     : madmax | chiapos        (default madmax)" << std::endl << std::endl;
 						std::cout << " common usage example :" << std::endl;
 						std::cout << exePath.filename().string() << " create -f b6cce9c6ff637f1dc9726f5db64776096fdb4101d673afc4e27ec71f0f9a859b2f1d661c92f3b8e6932a3f7634bc4c12 -p 86e2a9cf0b409c8ca7258f03ef7698565658a17f6f7dd9e9b0ac9be6ca3891ac09fa8468951f24879c00870e88fa66bb -d D:\\chia-plots -t C:\\chia-temp" << std::endl << std::endl;
 						std::cout << "this command will create default 100GB k-32 plot to D:\\chia-plots\\ and use C:\\chia-plots as temporary directory, plot id, memo, and filename will be generated from farm and plot public key, its recommend to use buckets, k-size and stripes to default value" << std::endl;
@@ -204,6 +205,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						int buckets = 128;
 						int mem = 3390;
 						int stripes = 65556;
+						bool useMadMax = true;
 						bool bitfield = true;
 
 						std::string lastArg = "";
@@ -312,6 +314,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 									}
 									lastArg = "";
 								}
+								else if (lastArg == "-w" || lastArg == "--plotter") {
+									std::wstring valStr = std::wstring(args[i]);
+									if (lowercase(valStr) == L"chiapos") {
+										useMadMax = false;
+									}
+								}
 								else {
 									std::wcout << L"ignored unknown argument " << args[i] << std::endl;
 									lastArg = "";
@@ -376,7 +384,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						std::cout << "stripes count = " << std::to_string(stripes) << std::endl;
 
 						try {
-							cli_create(farmkey,poolkey,dest,temp,temp2,filename,memo,id,ksize,buckets,stripes,nthreads,mem,!bitfield);
+							if (useMadMax) {
+								cli_create_mad(farmkey,poolkey,dest,temp,temp2,buckets,nthreads);
+							}
+							else {
+								cli_create(farmkey,poolkey,dest,temp,temp2,filename,memo,id,ksize,buckets,stripes,nthreads,mem,!bitfield);
+							}
 							std::cin.get();
 						}
 						catch (...) {

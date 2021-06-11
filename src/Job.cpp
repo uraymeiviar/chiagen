@@ -9,6 +9,27 @@ JobManager& JobManager::getInstance() {
 	return instance;
 }
 
+void JobManager::triggerEvent(std::shared_ptr<JobEvent> jobEvent)
+{
+	for (auto job : this->activeJobs) {
+		try {
+			job->handleEvent(jobEvent);
+		}
+		catch (...) {
+
+		}
+	}
+}
+
+void JobManager::listEvents(std::vector<std::shared_ptr<JobEvent>> out)
+{
+	for (auto job : this->activeJobs) {
+		for (auto jobEvent : job->events) {
+			out.push_back(jobEvent);
+		}
+	}
+}
+
 void JobManager::addJob(std::shared_ptr<Job> newJob) {
 	this->activeJobs.push_back(newJob);
 }
@@ -41,6 +62,11 @@ std::vector<std::shared_ptr<Job>>::const_iterator JobManager::jobIteratorBegin()
 
 std::vector<std::shared_ptr<Job>>::const_iterator JobManager::jobIteratorEnd() const  {
 	return this->activeJobs.end();
+}
+
+Job::Job(std::string title) :title(title)
+{
+
 }
 
 std::string Job::getTitle() const { return this->title; }
@@ -91,7 +117,7 @@ void Job::drawStatusWidget() {
 	}
 }
 
-JobTaskItem::JobTaskItem(std::string name, std::shared_ptr<JobTaskItem> parent) :name(name), parentTask(parent)
+JobTaskItem::JobTaskItem(std::string name) :name(name)
 {
 
 }
@@ -114,6 +140,9 @@ void JobTaskItem::removeChild(std::shared_ptr<JobTaskItem> task)
 			if (child.lock() == task) {
 				task->parentTask = nullptr;
 				return true;
+			}
+			else {
+				return false;
 			}
 		}
 	),this->tasks.end());
@@ -145,10 +174,10 @@ float JobTaskItem::getProgress()
 			}			
 		}
 		if (childProgress > 1.0f) {
-			return 1.0f;
+			childProgress = 1.0f;
 		}
 		if (childProgress < 0.0f) {
-			return 0.0f;
+			childProgress = 0.0f;
 		}
 		return childProgress;
 	}
@@ -159,11 +188,12 @@ float JobTaskItem::getProgress()
 			val = (float)this->getCompletedWorkItems() / (float)selfWorkItem;
 		}
 		if (val > 1.0f) {
-			return 1.0f;
+			val = 1.0f;
 		}
 		if (val < 0.0f) {
-			return 0.0f;
+			val = 0.0f;
 		}
+		return val;
 	}
 }
 
@@ -219,7 +249,7 @@ bool JobTaskItem::isFinished() const
 	return this->finished;
 }
 
-JobProgress::JobProgress(std::string name) :JobTaskItem(name, nullptr)
+JobProgress::JobProgress(std::string name) :JobTaskItem(name)
 {
 	this->myProcess = ::GetCurrentProcess();
 }
@@ -348,4 +378,19 @@ void JobProgress::collectDiskUsage()
 	while (this->diskReadHistory.size() > this->statSampleCount) {
 		this->diskReadHistory.erase(this->diskReadHistory.begin());
 	}
+}
+
+JobEvent::JobEvent(std::string type) : type(type)
+{
+
+}
+
+void JobEvent::trigger()
+{
+	JobManager::getInstance().triggerEvent(this->shared_from_this());
+}
+
+std::string JobEvent::getType() const
+{
+	return this->type;
 }

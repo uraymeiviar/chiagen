@@ -26,7 +26,7 @@ public:
 
 class JobTaskItem : public std::enable_shared_from_this<JobTaskItem> {
 public:
-	JobTaskItem(std::string name, std::shared_ptr<JobTaskItem> parent = nullptr);
+	JobTaskItem(std::string name);
 	virtual void addChild(std::shared_ptr<JobTaskItem> task);
 	virtual void removeChild(std::shared_ptr<JobTaskItem> task);
 	virtual void addDiskRead(uint64_t byteSize);
@@ -45,11 +45,13 @@ public:
 	std::chrono::time_point<std::chrono::system_clock> startTime;
 	std::chrono::time_point<std::chrono::system_clock> finishTime;
 	std::vector<std::weak_ptr<JobTaskItem>> tasks;
-	std::shared_ptr<JobTaskItem> parentTask;
+	std::shared_ptr<JobTaskItem> parentTask {nullptr};
 protected:
 	bool running {false};
 	bool finished {false};
 };
+
+class Job;
 
 class JobProgress : public JobTaskItem{
 public:
@@ -70,6 +72,7 @@ public:
 	std::vector<uint64_t> diskWriteHistory;
 	std::vector<uint64_t> diskReadHistory;
 	std::vector<uint64_t> memUsageHistory;
+	Job* job {nullptr};
 protected:
 	uint32_t statUpdateInterval {10};
 	uint32_t statSampleCount {60};
@@ -88,9 +91,19 @@ protected:
 	void collectDiskUsage();
 };
 
+class JobEvent : public std::enable_shared_from_this<JobEvent> {
+public:
+	JobEvent(std::string type);;
+	virtual void trigger();
+	std::string getType() const;;
+	std::string name;
+protected:	
+	std::string type;
+};
+
 class Job {
 public:
-	Job(std::string title):title(title){};
+	Job(std::string title);
 	virtual bool isRunning() const = 0;
 	virtual bool isPaused() const = 0;
 	virtual bool isFinished() const = 0;
@@ -104,6 +117,9 @@ public:
 	std::string getTitle() const;
 	virtual void drawItemWidget();
 	virtual void drawStatusWidget();
+	virtual void handleEvent(std::shared_ptr<JobEvent> jobEvent){}
+	std::vector<std::shared_ptr<JobEvent>> events;
+	std::shared_ptr<JobProgress> jobProgress;
 protected:
 	std::string title;
 };
@@ -112,6 +128,8 @@ class JobManager {
 public: 
 	JobManager(){};
 	static JobManager& getInstance();
+	void triggerEvent(std::shared_ptr<JobEvent> jobEvent);
+	void listEvents(std::vector<std::shared_ptr<JobEvent>> out);
 	void addJob(std::shared_ptr<Job> newJob);
 	void setSelectedJob(std::shared_ptr<Job> job);
 	std::shared_ptr<Job> getSelectedJob() const;

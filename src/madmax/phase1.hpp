@@ -462,39 +462,61 @@ void compute(	DiskPlotterContext& context,
 	
 	const std::string prefix = tmp_dir + plot_name + ".p1.";
 	const std::string prefix_2 = tmp_dir_2 + plot_name + ".p1.";
+
+	context.pushTask("Phase1.Table7");
+	context.pushTask("Phase1.Table6");
+	context.pushTask("Phase1.Table5");
+	context.pushTask("Phase1.Table4");
+	context.pushTask("Phase1.Table3");
+	context.pushTask("Phase1.Table2");
+	context.pushTask("Phase1.Table1");
 	
 	DiskSort1 sort_1(32 + kExtraBits, log_num_buckets, prefix_2 + "t1");
 	compute_f1(input.id.data(), num_threads, &sort_1);
+
+	context.popTask();
 	
 	DiskTable<tmp_entry_1> tmp_1(prefix + "table1.tmp");
 	DiskSort2 sort_2(32 + kExtraBits, log_num_buckets, prefix_2 + "t2");
 	compute_table<entry_1, entry_2, tmp_entry_1>(
 			2, num_threads, &sort_1, &sort_2, &tmp_1);
+
+	context.popTask();
 	
 	DiskTable<tmp_entry_x> tmp_2(prefix + "table2.tmp");
 	DiskSort3 sort_3(32 + kExtraBits, log_num_buckets, prefix_2 + "t3");
 	compute_table<entry_2, entry_3, tmp_entry_x>(
 			3, num_threads, &sort_2, &sort_3, &tmp_2);
+
+	context.popTask();
 	
 	DiskTable<tmp_entry_x> tmp_3(prefix + "table3.tmp");
 	DiskSort4 sort_4(32 + kExtraBits, log_num_buckets, prefix_2 + "t4");
 	compute_table<entry_3, entry_4, tmp_entry_x>(
 			4, num_threads, &sort_3, &sort_4, &tmp_3);
+
+	context.popTask();
 	
 	DiskTable<tmp_entry_x> tmp_4(prefix + "table4.tmp");
 	DiskSort5 sort_5(32 + kExtraBits, log_num_buckets, prefix_2 + "t5");
 	compute_table<entry_4, entry_5, tmp_entry_x>(
 			5, num_threads, &sort_4, &sort_5, &tmp_4);
+
+	context.popTask();
 	
 	DiskTable<tmp_entry_x> tmp_5(prefix + "table5.tmp");
 	DiskSort6 sort_6(32 + kExtraBits, log_num_buckets, prefix_2 + "t6");
 	compute_table<entry_5, entry_6, tmp_entry_x>(
 			6, num_threads, &sort_5, &sort_6, &tmp_5);
+
+	context.popTask();
 	
 	DiskTable<tmp_entry_x> tmp_6(prefix + "table6.tmp");
 	DiskTable<entry_7> tmp_7(prefix_2 + "table7.tmp");
 	compute_table<entry_6, entry_7, tmp_entry_x, DiskSort6, DiskSort7>(
 			7, num_threads, &sort_6, nullptr, &tmp_6, &tmp_7);
+
+	context.popTask();
 	
 	out.params = input;
 	out.table[0] = tmp_1.get_info();

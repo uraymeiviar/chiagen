@@ -132,12 +132,19 @@ void compute(	DiskPlotterContext& context,
 	
 	const std::string prefix = tmp_dir + plot_name + ".p2.";
 	const std::string prefix_2 = tmp_dir_2 + plot_name + ".p2.";
+
+	context.pushTask("Phase2.Table1");
+	context.pushTask("Phase2.Table2");
+	context.pushTask("Phase2.Table3");
+	context.pushTask("Phase2.Table5");
+	context.pushTask("Phase2.Table6");
+	context.pushTask("Phase2.Table7");
 	
 	size_t max_table_size = 0;
 	for(const auto& table : input.table) {
 		max_table_size = std::max(max_table_size, table.num_entries);
 	}
-	std::cout << "[P2] max_table_size = " << max_table_size << std::endl;
+	std::cout << "[P2] max_table_size = " << max_table_size << std::endl;	
 	
 	auto curr_bitfield = std::make_shared<bitfield>(max_table_size);
 	auto next_bitfield = std::make_shared<bitfield>(max_table_size);
@@ -149,6 +156,8 @@ void compute(	DiskPlotterContext& context,
 	
 	table_7.close();
 	remove(input.table[6].file_name);
+
+	context.popTask();
 	
 	for(int i = 5; i >= 1; --i)
 	{
@@ -159,6 +168,7 @@ void compute(	DiskPlotterContext& context,
 			i + 1, num_threads, out.sort[i].get(), nullptr, input.table[i], next_bitfield.get(), curr_bitfield.get());
 		
 		remove(input.table[i].file_name);
+		context.popTask();
 	}
 	
 	out.params = input.params;

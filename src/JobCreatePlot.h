@@ -50,9 +50,9 @@ public:
 
 class CreatePlotContext {
 public:
-	std::shared_ptr<JobProgress> job;
+	std::shared_ptr<Job> job;
 	std::shared_ptr<JobTaskItem> getCurrentTask();
-	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem);
+	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem = 0);
 	std::shared_ptr<JobTaskItem> popTask();
 protected:
 	std::stack<std::shared_ptr<JobTaskItem>> tasks;
@@ -90,7 +90,7 @@ public:
 
 class WidgetCreatePlot : public Widget<JobCreatePlotParam*> {
 public:
-	WidgetCreatePlot();;
+	WidgetCreatePlot();
 	bool draw() override;
 	virtual void setData(JobCreatePlotParam* param) override;
 protected:
@@ -100,7 +100,7 @@ protected:
 
 class JobCreatePlot : public Job {
 public:
-	JobCreatePlot(std::string title) : Job(title){};
+	JobCreatePlot(std::string title);;
 	JobCreatePlot(std::string title,const JobCreatePlotParam& param);
 	static JobCreatePlotParam* drawUI();
 	static int jobIdCounter;
@@ -116,7 +116,16 @@ public:
 	JobRule& getFinishRule() override;
 	void drawItemWidget() override;
 	void drawStatusWidget() override;
+
+	std::shared_ptr<JobEvent> startEvent;
+	std::shared_ptr<JobEvent> finishEvent;
+	std::shared_ptr<JobEvent> phase1FinishEvent;
+	std::shared_ptr<JobEvent> phase2FinishEvent;
+	std::shared_ptr<JobEvent> phase3FinishEvent;
+	std::shared_ptr<JobEvent> phase4FinishEvent;
+
 protected:
+	void init();
 	bool preStartCheck(std::vector<std::string>& errs);
 	bool paused {false};
 	bool running {false};
