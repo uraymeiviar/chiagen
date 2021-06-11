@@ -19,6 +19,7 @@
 #include <pthread.h>
 #endif
 
+namespace mad{
 
 template<typename T>
 class Processor {
@@ -149,5 +150,6 @@ private:
 	
 };
 
+}
 
 #endif /* INCLUDE_CHIA_THREAD_H_ */

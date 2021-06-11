@@ -5,14 +5,13 @@
  *      Author: mad
  */
 
-#include <chia/phase4.h>
-#include <chia/DiskSort.hpp>
+#include "phase4.h"
+#include "DiskSort.hpp"
+#include "encoding.hpp"
+#include "util.hpp"
 
-#include <chia/encoding.hpp>
-#include <chia/util.hpp>
 
-
-namespace phase4 {
+namespace mad::phase4 {
 
 // Calculates the size of one C3 park. This will store bits for each f7 between
 // two C1 checkpoints, depending on how many times that f7 is present. For low

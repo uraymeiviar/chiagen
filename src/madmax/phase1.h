@@ -8,10 +8,10 @@
 #ifndef INCLUDE_CHIA_PHASE1_H_
 #define INCLUDE_CHIA_PHASE1_H_
 
-#include <chia/chia.h>
-#include <chia/entries.h>
-#include <chia/DiskSort.h>
-#include <chia/util.hpp>
+#include "chia.h"
+#include "entries.h"
+#include "DiskSort.h"
+#include "util.hpp"
 
 #include <array>
 #include <vector>
@@ -19,8 +19,7 @@
 #include <cstdint>
 #include <cstring>
 
-
-namespace phase1 {
+namespace mad::phase1 {
 
 struct input_t {
 	std::array<uint8_t, 32> id = {};

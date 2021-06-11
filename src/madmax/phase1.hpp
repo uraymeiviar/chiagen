@@ -8,16 +8,16 @@
 #ifndef INCLUDE_CHIA_PHASE1_HPP_
 #define INCLUDE_CHIA_PHASE1_HPP_
 
-#include <chia/phase1.h>
-#include <chia/ThreadPool.h>
-#include <chia/DiskTable.h>
-#include <chia/bits.hpp>
+#include "phase1.h"
+#include "ThreadPool.h"
+#include "DiskTable.h"
+#include "bits.hpp"
 
 #include "blake3.h"
 #include "chacha8.h"
 
 
-namespace phase1 {
+namespace mad::phase1 {
 
 static uint16_t L_targets[2][kBC][kExtraBitsPow];
 

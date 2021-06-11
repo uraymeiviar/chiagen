@@ -52,13 +52,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src\madmax;$(ProjectDir)\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src\madmax;$(ProjectDir)\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -507,6 +507,24 @@
     <ClInclude Include="src\libs\relic\md\sha_private.h" />
     <ClInclude Include="src\libs\relic\tmpl\relic_tmpl_map.h" />
     <ClInclude Include="src\libs\uint128_t\uint128_t.h" />
+    <ClInclude Include="src\madmax\buffer.h" />
+    <ClInclude Include="src\madmax\chia.h" />
+    <ClInclude Include="src\madmax\copy.h" />
+    <ClInclude Include="src\madmax\DiskSort.h" />
+    <ClInclude Include="src\madmax\DiskSort.hpp" />
+    <ClInclude Include="src\madmax\DiskTable.h" />
+    <ClInclude Include="src\madmax\entries.h" />
+    <ClInclude Include="src\madmax\phase1.h" />
+    <ClInclude Include="src\madmax\phase1.hpp" />
+    <ClInclude Include="src\madmax\phase2.h" />
+    <ClInclude Include="src\madmax\phase2.hpp" />
+    <ClInclude Include="src\madmax\phase3.h" />
+    <ClInclude Include="src\madmax\phase3.hpp" />
+    <ClInclude Include="src\madmax\phase4.h" />
+    <ClInclude Include="src\madmax\phase4.hpp" />
+    <ClInclude Include="src\madmax\settings.h" />
+    <ClInclude Include="src\madmax\Thread.h" />
+    <ClInclude Include="src\madmax\ThreadPool.h" />
     <ClInclude Include="src\main.hpp" />
   </ItemGroup>
   <ItemGroup>

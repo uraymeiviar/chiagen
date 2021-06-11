@@ -8,10 +8,10 @@
 #ifndef INCLUDE_CHIA_PHASE2_H_
 #define INCLUDE_CHIA_PHASE2_H_
 
-#include <chia/chia.h>
-#include <chia/phase1.h>
-#include <chia/DiskSort.h>
-#include <chia/bitfield.hpp>
+#include "chia.h"
+#include "phase1.h"
+#include "DiskSort.h"
+#include "bitfield.hpp"
 
 #include <array>
 #include <vector>
@@ -20,7 +20,7 @@
 #include <cstring>
 
 
-namespace phase2 {
+namespace mad::phase2 {
 
 struct entry_x {
 	uint32_t key;

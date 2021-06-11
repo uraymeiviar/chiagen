@@ -8,10 +8,10 @@
 #ifndef INCLUDE_CHIA_PHASE4_H_
 #define INCLUDE_CHIA_PHASE4_H_
 
-#include <chia/phase3.h>
+#include "phase3.h"
 
 
-namespace phase4 {
+namespace mad::phase4 {
 
 struct output_t {
 	phase1::input_t params;

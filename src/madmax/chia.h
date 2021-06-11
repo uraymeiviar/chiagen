@@ -12,8 +12,9 @@
 #include <cstdint>
 #include <string>
 
-#include <chia/settings.h>
+#include "settings.h"
 
+namespace mad {
 
 // Unique plot id which will be used as a ChaCha8 key, and determines the PoSpace.
 const uint32_t kIdLen = 32;
@@ -77,5 +78,6 @@ struct table_t {
 	size_t num_entries = 0;
 };
 
+}
 
 #endif /* INCLUDE_CHIA_CHIA_H_ */

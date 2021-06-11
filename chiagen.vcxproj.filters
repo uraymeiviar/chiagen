@@ -127,6 +127,9 @@
     <Filter Include="common">
       <UniqueIdentifier>{f028c071-fd9c-4bcb-aa77-1868c8ce372b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="madmax">
+      <UniqueIdentifier>{efbb9275-e3ac-41ae-9ba6-0c6601f78d77}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cli.cpp">
@@ -1018,6 +1021,60 @@
     </ClInclude>
     <ClInclude Include="src\common\util.hpp">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\buffer.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\chia.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\copy.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\DiskSort.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\DiskSort.hpp">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\DiskTable.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\entries.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase1.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase1.hpp">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase2.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase2.hpp">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase3.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase3.hpp">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase4.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\phase4.hpp">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\settings.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\Thread.h">
+      <Filter>madmax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\madmax\ThreadPool.h">
+      <Filter>madmax</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

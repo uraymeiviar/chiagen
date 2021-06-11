@@ -8,11 +8,12 @@
 #ifndef INCLUDE_CHIA_THREADPOOL_H_
 #define INCLUDE_CHIA_THREADPOOL_H_
 
-#include <chia/Thread.h>
+#include "Thread.h"
 
 #include <vector>
 #include <memory>
 
+namespace mad{
 
 template<typename T, typename S, typename L = size_t>
 class ThreadPool : public Processor<T> {
@@ -132,6 +133,6 @@ private:
 	
 };
 
-
+}
 
 #endif /* INCLUDE_CHIA_THREADPOOL_H_ */

@@ -8,15 +8,14 @@
 #ifndef INCLUDE_CHIA_PHASE3_HPP_
 #define INCLUDE_CHIA_PHASE3_HPP_
 
-#include <chia/chia.h>
-#include <chia/phase3.h>
-#include <chia/encoding.hpp>
-#include <chia/DiskTable.h>
+#include "chia.h"
+#include "phase3.h"
+#include "encoding.hpp"
+#include "DiskTable.h"
 
 #include <list>
 
-
-namespace phase3 {
+namespace mad::phase3 {
 
 template<typename T, typename S, typename DS_L, typename DS_R>
 void compute_stage1(int L_index, int num_threads,

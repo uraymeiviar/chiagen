@@ -8,14 +8,12 @@
 #ifndef INCLUDE_CHIA_PHASE2_HPP_
 #define INCLUDE_CHIA_PHASE2_HPP_
 
-#include <chia/phase2.h>
-#include <chia/DiskTable.h>
-#include <chia/ThreadPool.h>
+#include "phase2.h"
+#include "DiskTable.h"
+#include "ThreadPool.h"
+#include "bitfield_index.hpp"
 
-#include <chia/bitfield_index.hpp>
-
-
-namespace phase2 {
+namespace mad::phase2 {
 
 template<typename T, typename S, typename DS>
 void compute_table(	int R_index, int num_threads,

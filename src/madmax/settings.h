@@ -11,18 +11,18 @@
 #include <cstdint>
 #include <cstddef>
 
-
+namespace mad{
 /*
  * Number of table entries to read at once.
  * default = 65536
  */
-extern size_t g_read_chunk_size;
+const size_t g_read_chunk_size = 65536;
 
 /*
  * Number of table entries to buffer before writing to disk.
  * default = 4096
  */
-extern size_t g_write_chunk_size;
-
+const size_t g_write_chunk_size = 4096;
+}
 
 #endif /* INCLUDE_CHIA_SETTINGS_H_ */

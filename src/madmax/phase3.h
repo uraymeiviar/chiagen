@@ -8,10 +8,10 @@
 #ifndef INCLUDE_CHIA_PHASE3_H_
 #define INCLUDE_CHIA_PHASE3_H_
 
-#include <chia/phase2.h>
+#include "phase2.h"
 
 
-namespace phase3 {
+namespace mad::phase3{
 
 struct entry_kpp {
 	uint32_t pos[2];	// 2x 32-bit position
