@@ -157,20 +157,20 @@ void compute_stage1(int L_index, int num_threads,
 }
 
 static uint32_t CalculateLinePointSize(uint8_t k) {
-	return Util::ByteAlign(2 * k) / 8;
+	return ByteAlign(2 * k) / 8;
 }
 
 static uint32_t CalculateStubsSize(uint32_t k) {
-	return Util::ByteAlign((kEntriesPerPark - 1) * (k - kStubMinusBits)) / 8;
+	return ByteAlign((kEntriesPerPark - 1) * (k - kStubMinusBits)) / 8;
 }
 
 // This is the full size of the deltas section in a park. However, it will not be fully filled
 static uint32_t CalculateMaxDeltasSize(uint8_t k, uint8_t table_index)
 {
 	if (table_index == 1) {
-		return Util::ByteAlign((kEntriesPerPark - 1) * kMaxAverageDeltaTable1) / 8;
+		return ByteAlign((kEntriesPerPark - 1) * kMaxAverageDeltaTable1) / 8;
 	}
-	return Util::ByteAlign((kEntriesPerPark - 1) * kMaxAverageDelta) / 8;
+	return ByteAlign((kEntriesPerPark - 1) * kMaxAverageDelta) / 8;
 }
 
 static uint32_t CalculateParkSize(uint8_t k, uint8_t table_index)
@@ -205,11 +205,11 @@ uint32_t WriteHeader(
 	num_bytes += fwrite((k_buffer), 1, 1, file);
 
 	uint8_t size_buffer[2];
-	Util::IntToTwoBytes(size_buffer, kFormatDescription.size());
+	IntToTwoBytes(size_buffer, kFormatDescription.size());
 	num_bytes += fwrite((size_buffer), 1, 2, file);
 	num_bytes += fwrite(kFormatDescription.c_str(), 1, kFormatDescription.size(), file);
 
-	Util::IntToTwoBytes(size_buffer, memo_len);
+	IntToTwoBytes(size_buffer, memo_len);
 	num_bytes += fwrite((size_buffer), 1, 2, file);
 	num_bytes += fwrite((memo), 1, memo_len, file);
 
@@ -230,6 +230,7 @@ uint32_t WriteHeader(
 // [first_line_point] ...
 inline
 void WritePark(
+	DiskPlotterContext& context,
     uint128_t first_line_point,
     const std::vector<uint8_t>& park_deltas,
     const std::vector<uint64_t>& park_stubs,
@@ -244,7 +245,7 @@ void WritePark(
     uint8_t* index = park_buffer;
 
     first_line_point <<= 128 - 2 * k;
-    Util::IntTo16Bytes(index, first_line_point);
+    IntTo16Bytes(index, first_line_point);
     index += CalculateLinePointSize(k);
 
     // We use ParkBits instead of Bits since it allows storing more data
@@ -262,16 +263,16 @@ void WritePark(
     // be small, so we can compress them
     const double R = kRValues[table_index - 1];
     uint8_t* deltas_start = index + 2;
-    size_t deltas_size = Encoding::ANSEncodeDeltas(park_deltas, R, deltas_start);
+    size_t deltas_size = Encoding::ANSEncodeDeltas(context.tmCache, park_deltas, R, deltas_start);
 
     if (!deltas_size) {
         // Uncompressed
         deltas_size = park_deltas.size();
-        Util::IntToTwoBytesLE(index, deltas_size | 0x8000);
+        IntToTwoBytesLE(index, deltas_size | 0x8000);
         memcpy(deltas_start, park_deltas.data(), deltas_size);
     } else {
         // Compressed
-        Util::IntToTwoBytesLE(index, deltas_size);
+        IntToTwoBytesLE(index, deltas_size);
     }
     index += 2 + deltas_size;
 
@@ -284,7 +285,8 @@ void WritePark(
 }
 
 inline
-uint64_t compute_stage2(int L_index, int num_threads,
+uint64_t compute_stage2(DiskPlotterContext& context,
+						int L_index, int num_threads,
 						DiskSortLP* R_sort, DiskSortNP* L_sort,
 						FILE* plot_file, uint64_t L_final_begin, uint64_t* R_final_begin)
 {
@@ -335,7 +337,7 @@ uint64_t compute_stage2(int L_index, int num_threads,
 		}, "phase3/write");
 	
 	ThreadPool<std::vector<park_data_t>, std::vector<park_out_t>> park_threads(
-		[L_index, L_final_begin, park_size_bytes, &num_written_final]
+		[L_index, L_final_begin, park_size_bytes, &num_written_final, &context]
 		 (std::vector<park_data_t>& input, std::vector<park_out_t>& out, size_t&) {
 			for(const auto& park : input) {
 				const auto& points = park.points;
@@ -358,6 +360,7 @@ uint64_t compute_stage2(int L_index, int num_threads,
 				tmp.offset = L_final_begin + park.index * park_size_bytes;
 				tmp.buffer.resize(park_size_bytes);
 				WritePark(
+					context,
 					points[0],
 					deltas,
 					stubs,
@@ -426,7 +429,8 @@ uint64_t compute_stage2(int L_index, int num_threads,
 }
 
 inline
-void compute(	phase2::output_t& input, output_t& out,
+void compute(	DiskPlotterContext& context,
+				phase2::output_t& input, output_t& out,
 				const int num_threads, const int log_num_buckets,
 				const std::string plot_name,
 				const std::string tmp_dir,
@@ -465,7 +469,7 @@ void compute(	phase2::output_t& input, output_t& out,
 	auto L_sort_np = std::make_shared<DiskSortNP>(
 			32, log_num_buckets, prefix_2 + "p3s2.t2");
 	
-	num_written_final += compute_stage2(
+	num_written_final += compute_stage2(context,
 			1, num_threads, R_sort_lp.get(), L_sort_np.get(),
 			plot_file, final_pointers[1], &final_pointers[2]);
 	
@@ -482,7 +486,7 @@ void compute(	phase2::output_t& input, output_t& out,
 		L_sort_np = std::make_shared<DiskSortNP>(
 				32, log_num_buckets, prefix_2 + "p3s2." + R_t);
 		
-		num_written_final += compute_stage2(
+		num_written_final += compute_stage2(context,
 				L_index, num_threads, R_sort_lp.get(), L_sort_np.get(),
 				plot_file, final_pointers[L_index], &final_pointers[L_index + 1]);
 	}
@@ -498,7 +502,7 @@ void compute(	phase2::output_t& input, output_t& out,
 	
 	L_sort_np = std::make_shared<DiskSortNP>(32, log_num_buckets, prefix_2 + "p3s2.t7");
 	
-	const auto num_written_final_7 = compute_stage2(
+	const auto num_written_final_7 = compute_stage2(context,
 			6, num_threads, R_sort_lp.get(), L_sort_np.get(),
 			plot_file, final_pointers[6], &final_pointers[7]);
 	num_written_final += num_written_final_7;
@@ -506,7 +510,7 @@ void compute(	phase2::output_t& input, output_t& out,
 	fseek_set(plot_file, out.header_size - 10 * 8);
 	for(size_t i = 1; i < final_pointers.size(); ++i) {
 		uint8_t tmp[8] = {};
-		Util::IntToEightBytes(tmp, final_pointers[i]);
+		IntToEightBytes(tmp, final_pointers[i]);
 		fwrite_ex(plot_file, tmp, sizeof(tmp));
 	}
 	fclose(plot_file);

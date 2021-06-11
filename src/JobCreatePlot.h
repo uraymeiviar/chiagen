@@ -4,6 +4,7 @@
 #include "gui.hpp"
 #include <chrono>
 #include <filesystem>
+#include <stack>
 
 class JobCratePlotStartRuleParam {
 public:
@@ -45,6 +46,16 @@ class JobCreatePlotFinishRule : public JobFinishRule {
 public:
 	bool drawItemWidget() override;
 	JobCreatePlotFinishRuleParam param;
+};
+
+class CreatePlotContext {
+public:
+	std::shared_ptr<JobProgress> job;
+	std::shared_ptr<JobTaskItem> getCurrentTask();
+	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem);
+	std::shared_ptr<JobTaskItem> popTask();
+protected:
+	std::stack<std::shared_ptr<JobTaskItem>> tasks;
 };
 
 class JobCreatePlotParam {

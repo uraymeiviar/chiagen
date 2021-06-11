@@ -9,6 +9,7 @@
 #include <vector>
 #include "disk.hpp"
 #include "encoding.hpp"
+#include "JobCreatePlot.h"
 
 struct THREADDATA {
 	int index;
@@ -40,18 +41,12 @@ struct GlobalData {
 	uint8_t num_threads;
 };
 
-class DiskPlotterContext {
+class DiskPlotterContext : public CreatePlotContext {
 public:
 	thread_pool pool;
 	synced_stream sync_out;
 	GlobalData globals;
 	TMemoCache tmCache;
-	std::shared_ptr<JobProgress> job;
-	std::shared_ptr<JobTaskItem> getCurrentTask();
-	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem);
-	std::shared_ptr<JobTaskItem> popTask();
-protected:
-	std::stack<std::shared_ptr<JobTaskItem>> tasks;
 };
 
 #endif

@@ -11,6 +11,7 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include "encoding.hpp"
 
 #include "settings.h"
 
@@ -78,6 +79,10 @@ struct table_t {
 	size_t num_entries = 0;
 };
 
+class DiskPlotterContext : public CreatePlotContext {
+	public:
+		TMemoCache tmCache;
+	};
 }
 
 #endif /* INCLUDE_CHIA_CHIA_H_ */

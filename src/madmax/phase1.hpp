@@ -13,7 +13,7 @@
 #include "DiskTable.h"
 #include "bits.hpp"
 
-#include "blake3.h"
+#include "b3/blake3.h"
 #include "chacha8.h"
 
 
@@ -65,7 +65,7 @@ public:
 		for(uint64_t i = 0; i < 16; ++i)
 		{
 			const uint64_t x = index * 16 + i;
-			const uint64_t y = Util::SliceInt64FromBytes(buf, i * 32, 32);
+			const uint64_t y = SliceInt64FromBytes(buf, i * 32, 32);
 			block[i].x = x;
 			block[i].y = (y << kExtraBits) | (x >> (32 - kExtraBits));
 		}
@@ -120,7 +120,7 @@ public:
         blake3_hasher_update(&hasher, input_bytes, cdiv(input.GetSize(), 8));
         blake3_hasher_finalize(&hasher, hash_bytes, sizeof(hash_bytes));
 
-        entry.y = Util::EightBytesToInt(hash_bytes) >> (64 - (k_ + (table_index_ < 7 ? kExtraBits : 0)));
+        entry.y = EightBytesToInt(hash_bytes) >> (64 - (k_ + (table_index_ < 7 ? kExtraBits : 0)));
 
         if (table_index_ < 4) {
             // c is already computed
@@ -449,7 +449,8 @@ uint64_t compute_table(	int R_index, int num_threads,
 }
 
 inline
-void compute(	const input_t& input, output_t& out,
+void compute(	DiskPlotterContext& context, 
+				const input_t& input, output_t& out,
 				const int num_threads, const int log_num_buckets,
 				const std::string plot_name,
 				const std::string tmp_dir,

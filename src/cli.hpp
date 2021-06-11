@@ -24,6 +24,15 @@ int cli_create(
 int cli_check(uint32_t iterations, std::wstring filename);
 int cli_verify(std::string id, std::string proof, std::string challenge);
 int cli_proof(std::string challenge, std::wstring filename);
+int cli_create_mad(
+	std::string farmer_key,
+	std::string pool_key,
+	std::filesystem::path finaldir = std::filesystem::path(),
+	std::filesystem::path tempdir = std::filesystem::path(),
+	std::filesystem::path tempdir2 = std::filesystem::path(), 
+	uint32_t num_buckets = 128,
+	uint8_t num_threads = 2
+);
 
 std::wstring s2ws(const std::string& str);
 std::string ws2s(const std::wstring& wstr);

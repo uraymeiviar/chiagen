@@ -19,9 +19,9 @@ namespace mad::phase4 {
 static uint32_t CalculateC3Size(uint8_t k)
 {
 	if (k < 20) {
-		return Util::ByteAlign(8 * kCheckpoint1Interval) / 8;
+		return ByteAlign(8 * kCheckpoint1Interval) / 8;
 	} else {
-		return Util::ByteAlign(kC3BitsPerEntry * kCheckpoint1Interval) / 8;
+		return ByteAlign(kC3BitsPerEntry * kCheckpoint1Interval) / 8;
 	}
 }
 
@@ -41,14 +41,15 @@ static uint32_t CalculateC3Size(uint8_t k)
 // C1 (checkpoint values)
 // C2 (checkpoint values into)
 // C3 (deltas of f7s between C1 checkpoints)
-uint64_t compute(	FILE* plot_file, const int header_size,
+uint64_t compute(	DiskPlotterContext& context,
+					FILE* plot_file, const int header_size,
 					phase3::DiskSortNP* L_sort_7, int num_threads,
 					const uint64_t final_pointer_7,
 					const uint64_t final_entries_written)
 {
     static constexpr uint8_t k = 32;
 	
-	const uint32_t P7_park_size = Util::ByteAlign((k + 1) * kEntriesPerPark) / 8;
+	const uint32_t P7_park_size = ByteAlign((k + 1) * kEntriesPerPark) / 8;
     const uint64_t number_of_p7_parks =
         ((final_entries_written == 0 ? 0 : final_entries_written - 1) / kEntriesPerPark) + 1;
     
@@ -58,9 +59,9 @@ uint64_t compute(	FILE* plot_file, const int header_size,
     const uint64_t begin_byte_C1 = final_table_begin_pointers[7] + number_of_p7_parks * P7_park_size;
 
     const uint64_t total_C1_entries = cdiv(final_entries_written, kCheckpoint1Interval);
-    const uint64_t begin_byte_C2 = begin_byte_C1 + (total_C1_entries + 1) * (Util::ByteAlign(k) / 8);
+    const uint64_t begin_byte_C2 = begin_byte_C1 + (total_C1_entries + 1) * (ByteAlign(k) / 8);
     const uint64_t total_C2_entries = cdiv(total_C1_entries, kCheckpoint2Interval);
-    const uint64_t begin_byte_C3 = begin_byte_C2 + (total_C2_entries + 1) * (Util::ByteAlign(k) / 8);
+    const uint64_t begin_byte_C3 = begin_byte_C2 + (total_C2_entries + 1) * (ByteAlign(k) / 8);
 
     const uint32_t C3_size = CalculateC3Size(k);
     const uint64_t end_byte = begin_byte_C3 + total_C1_entries * C3_size;
@@ -118,17 +119,17 @@ uint64_t compute(	FILE* plot_file, const int header_size,
 		}, &plot_write, std::max(num_threads / 2, 1), "phase4/P7");
     
 	ThreadPool<park_deltas_t, std::vector<write_data_t>> park_threads(
-		[C3_size](park_deltas_t& park, std::vector<write_data_t>& out, size_t&) {
+		[C3_size, &context](park_deltas_t& park, std::vector<write_data_t>& out, size_t&) {
 			write_data_t tmp;
 			tmp.offset = park.offset;
 			tmp.buffer.resize(C3_size);
 			const size_t num_bytes =
-					Encoding::ANSEncodeDeltas(park.deltas, kC3R, tmp.buffer.data() + 2);
+					Encoding::ANSEncodeDeltas(context.tmCache, park.deltas, kC3R, tmp.buffer.data() + 2);
 			
 			if(num_bytes + 2 > C3_size) {
 				throw std::logic_error("C3 overflow");
 			}
-			Util::IntToTwoBytes(tmp.buffer.data(), num_bytes);	// Write the size
+			IntToTwoBytes(tmp.buffer.data(), num_bytes);	// Write the size
 			out.emplace_back(std::move(tmp));
 		}, &plot_write, std::max(num_threads / 2, 1), "phase4/C3");
 
@@ -210,7 +211,7 @@ uint64_t compute(	FILE* plot_file, const int header_size,
     plot_write.close();
 
     uint8_t C1_entry_buf[4] = {};
-    Bits(0, Util::ByteAlign(k)).ToBytes(C1_entry_buf);
+    Bits(0, ByteAlign(k)).ToBytes(C1_entry_buf);
     final_file_writer_1 +=
     		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     
@@ -222,7 +223,7 @@ uint64_t compute(	FILE* plot_file, const int header_size,
         final_file_writer_1 +=
         		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     }
-    Bits(0, Util::ByteAlign(k)).ToBytes(C1_entry_buf);
+    Bits(0, ByteAlign(k)).ToBytes(C1_entry_buf);
     final_file_writer_1 +=
     		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     
@@ -233,7 +234,7 @@ uint64_t compute(	FILE* plot_file, const int header_size,
 
     // Writes the pointers to the start of the tables, for proving
     for (int i = 8; i <= 10; i++) {
-        Util::IntToEightBytes(table_pointer_bytes, final_table_begin_pointers[i]);
+        IntToEightBytes(table_pointer_bytes, final_table_begin_pointers[i]);
         final_file_writer_1 +=
         		fwrite_at(plot_file, final_file_writer_1, table_pointer_bytes, 8);
     }
@@ -241,7 +242,8 @@ uint64_t compute(	FILE* plot_file, const int header_size,
 }
 
 inline
-void compute(	const phase3::output_t& input, output_t& out,
+void compute(	DiskPlotterContext& context,
+				const phase3::output_t& input, output_t& out,
 				const int num_threads, const int log_num_buckets,
 				const std::string plot_name,
 				const std::string tmp_dir,
@@ -254,7 +256,7 @@ void compute(	const phase3::output_t& input, output_t& out,
 		throw std::runtime_error("fopen() failed");
 	}
 	
-	out.plot_size = compute(plot_file, input.header_size, input.sort_7.get(),
+	out.plot_size = compute(context, plot_file, input.header_size, input.sort_7.get(),
 							num_threads, input.final_pointer_7, input.num_written_7);
 	
 	fclose(plot_file);

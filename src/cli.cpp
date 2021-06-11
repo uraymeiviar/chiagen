@@ -20,6 +20,12 @@
 #include "chiapos/prover_disk.hpp"
 #include "chiapos/verifier.hpp"
 #include "chiapos/thread_pool.hpp"
+#include "madmax/phase1.hpp"
+#include "madmax/phase2.hpp"
+#include "madmax/phase3.hpp"
+#include "madmax/phase4.hpp"
+#include "madmax/chia.h"
+#include "madmax/copy.h"
 #include <ctime>
 #include <iomanip>
 #include <codecvt>
@@ -85,7 +91,20 @@ string hexStr(const std::vector<uint8_t>& data)
 	 return ss.str();
 }
 
-int cli_create( 	 
+struct CreatePlotParam {
+	std::array<uint8_t, 32> plot_id = {};
+	std::vector<uint8_t> memo_data;
+	std::wstring plot_name;
+	uint8_t k;
+	uint32_t num_buckets;
+	uint32_t num_stripes;
+	uint8_t num_threads;
+	uint32_t bufferSz;
+	bool bitfield;
+};
+
+bool create_plot_precheck(
+	CreatePlotParam& outParam,
 	string farmer_key,
 	string pool_key,
 	std::filesystem::path finaldir, 
@@ -101,7 +120,6 @@ int cli_create(
 	uint32_t bufferSz,
 	bool nobitfield
 ) {
-try {
 	cout << "creating plot..." << endl;
 	std::random_device r;
 	std::default_random_engine randomEngine(r());
@@ -139,46 +157,71 @@ try {
 	plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
 	plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
 
-	std::vector<uint8_t> plot_id(32);
-	Hash256(plot_id.data(),plid_key_bytes.data(),plid_key_bytes.size());
-	id = hexStr(plot_id);
+	if (id.empty()) {
+		Hash256(outParam.plot_id.data(),plid_key_bytes.data(),plid_key_bytes.size());
+	}
+	else {
+		id = Strip0x(id);
+		if (id.size() != 64) {
+			cout << "Invalid ID, should be 32 bytes (hex)" << endl;
+			return false;
+		}
+		HexToBytes(id, outParam.plot_id.data());
+	}	
+	id = hexStr(std::vector<uint8_t>(outParam.plot_id.begin(), outParam.plot_id.end()));
 	cout << "plot id   = " << id << endl;
 
-	std::vector<uint8_t> memo_data;
-	memo_data.insert(memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
-	memo_data.insert(memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
-	memo_data.insert(memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());
-	memo = hexStr(memo_data);
+	if (memo.empty()) {
+		outParam.memo_data.insert(outParam.memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
+		outParam.memo_data.insert(outParam.memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
+		outParam.memo_data.insert(outParam.memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());		
+	}
+	else {
+		memo = Strip0x(memo);
+		if (memo.size() % 2 != 0) {
+			cout << "Invalid memo, should be only whole bytes (hex)" << endl;
+			return false;
+		}
+		outParam.memo_data = std::vector<uint8_t>(memo.size() / 2);
+		HexToBytes(memo, outParam.memo_data.data());
+	}
+	memo = hexStr(outParam.memo_data);
 	cout << "memo      = " << memo << endl;
 
-	time_t t = std::time(nullptr);
-	std::tm tm = *std::localtime(&t);
-	std::wostringstream oss;
-	oss << std::put_time(&tm, L"%Y-%m-%d-%H-%M");
-	wstring timestr = oss.str();
+	if (filename.empty()) {
+		time_t t = std::time(nullptr);
+		std::tm tm = *std::localtime(&t);
+		std::wostringstream oss;
+		oss << std::put_time(&tm, L"%Y-%m-%d-%H-%M");
+		wstring timestr = oss.str();
 
-	filename = L"plot-k"+std::to_wstring((int)k)+L"-"+timestr+L"-"+s2ws(id)+L".plot";
+		outParam.plot_name = L"plot-k"+std::to_wstring((int)k)+L"-"+timestr+L"-"+s2ws(id)+L".plot";
+	}
+	else {
+		outParam.plot_name = filename;
+	}
+
 	std::filesystem::path destPath = std::filesystem::path(finaldir);
 	if (std::filesystem::exists(destPath)) {
 		if (std::filesystem::is_regular_file(destPath)) {
-			destPath = destPath.parent_path() / filename;
+			destPath = destPath.parent_path() / outParam.plot_name;
 		}
 		else {
-			destPath = destPath / filename;
+			destPath = destPath / outParam.plot_name;
 		}
 	}
 	else {
 		if (std::filesystem::create_directory(destPath)) {
-			destPath = destPath / filename;
+			destPath = destPath / outParam.plot_name;
 		}
 		else {
 			std::cerr << "unable to create directory " << destPath.string() << std::endl;
-			exit(1);
+			return false;
 		}
 	}
 	if(std::filesystem::exists(destPath)) {
 		std::cerr << "plot file already exists " << destPath.string() << std::endl;
-		exit(1);
+		return false;
 	}
 
 	std::filesystem::path tempPath = std::filesystem::path(tempdir);
@@ -192,7 +235,7 @@ try {
 		}
 		else {
 			std::cerr << "unable to create temp directory " << tempPath.string() << std::endl;
-			exit(1);
+			return false;
 		}
 	}
 	tempdir = tempPath.string();
@@ -212,51 +255,94 @@ try {
 		}
 		else {
 			std::cerr << "unable to create temp2 directory " << tempPath2.string() << std::endl;
-			exit(1);
+			return false;
 		}
 	}
 	tempdir2 = tempPath2.string();
 
-	wcout << L"Generating plot for k=" << static_cast<int>(k) << " filename=" << filename << endl << endl;
+	wcout << L"Generating plot for k=" << static_cast<int>(k) << " filename=" << outParam.plot_name << endl << endl;
 
-	id = Strip0x(id);
-	if (id.size() != 64) {
-		cout << "Invalid ID, should be 32 bytes (hex)" << endl;
-		exit(1);
+	outParam.k = k;
+	if (outParam.k < 18) {
+		outParam.k = 18;
 	}
-	memo = Strip0x(memo);
-	if (memo.size() % 2 != 0) {
-		cout << "Invalid memo, should be only whole bytes (hex)" << endl;
-		exit(1);
+	if (outParam.k > 50) {
+		outParam.k = 50;
 	}
-	std::vector<uint8_t> memo_bytes(memo.size() / 2);
-	std::array<uint8_t, 32> id_bytes;
 
-	HexToBytes(memo, memo_bytes.data());
-	HexToBytes(id, id_bytes.data());
-
-	DiskPlotter plotter = DiskPlotter();
-	uint8_t phases_flags = 0;
-	if (!nobitfield) {
-		phases_flags = ENABLE_BITFIELD;
+	outParam.bufferSz = bufferSz;
+	if (bufferSz < 16) {
+		bufferSz = 16;
 	}
-	phases_flags = phases_flags | SHOW_PROGRESS;
-	plotter.CreatePlotDisk(
-			tempdir,
-			tempdir2,
-			finaldir,
-			filename,
-			k,
-			memo_bytes.data(),
-			memo_bytes.size(),
-			id_bytes.data(),
-			id_bytes.size(),
-			bufferSz,
-			num_buckets,
-			num_stripes,
-			num_threads,
-			phases_flags,
-			true);
+
+	outParam.num_buckets = num_buckets;
+	if (outParam.num_buckets < 16) {
+		outParam.num_buckets = 16;
+	}
+	if (outParam.num_buckets > 128) {
+		outParam.num_buckets = 128;
+	}
+
+	outParam.num_stripes = num_stripes;
+	if (outParam.num_stripes < 256) {
+		outParam.num_stripes = 256;
+	}
+
+	outParam.num_threads = num_threads;
+	if (num_threads < 1) {
+		num_threads = 1;
+	}
+
+	outParam.bitfield = !nobitfield;
+
+	return true;
+}
+
+int cli_create( 	 
+	string farmer_key,
+	string pool_key,
+	std::filesystem::path finaldir, 
+	std::filesystem::path tempdir,
+	std::filesystem::path tempdir2,
+	wstring filename,
+	string memo,
+	string id,
+	uint8_t k,
+	uint32_t num_buckets,
+	uint32_t num_stripes,
+	uint8_t num_threads,
+	uint32_t bufferSz,
+	bool nobitfield
+) {
+	try {
+		CreatePlotParam param;
+		if(create_plot_precheck(param, farmer_key, pool_key, finaldir, tempdir, tempdir2, 
+			filename, memo, id, k, num_buckets, num_stripes, num_threads, bufferSz, nobitfield))
+		{ 
+			DiskPlotter plotter = DiskPlotter();
+			uint8_t phases_flags = 0;
+			if (!nobitfield) {
+				phases_flags = ENABLE_BITFIELD;
+			}
+			phases_flags = phases_flags | SHOW_PROGRESS;
+			plotter.CreatePlotDisk(
+					tempdir,
+					tempdir2,
+					finaldir,
+					param.plot_name,
+					param.k,
+					param.memo_data.data(),
+					param.memo_data.size(),
+					param.plot_id.data(),
+					param.plot_id.size(),
+					param.bufferSz,
+					param.num_buckets,
+					param.num_stripes,
+					param.num_threads,
+					!param.bitfield,
+					true);
+
+		}
 	}
 	catch(const std::runtime_error& re)
 	{
@@ -399,4 +485,68 @@ int cli_proof(std::string challenge, std::wstring filename) {
 		exit(1);
 	}
 	return 1;
+}
+
+int cli_create_mad(
+	std::string farmer_key, 
+	std::string pool_key, 
+	std::filesystem::path finaldir, 
+	std::filesystem::path tempdir, 
+	std::filesystem::path tempdir2, 
+	uint32_t num_buckets, 
+	uint8_t num_threads)
+{
+	CreatePlotParam param;
+	if (create_plot_precheck(param, farmer_key, pool_key, finaldir, tempdir, tempdir2,
+		L"", "", "", 32, num_buckets, 65536, num_threads, 4096, false)) {
+		
+		const auto total_begin = get_wall_time_micros();
+		mad::phase1::input_t params;
+		params.id = param.plot_id;
+		params.memo = param.memo_data;
+		params.plot_name = ws2s(param.plot_name);
+
+		int log_num_buckets = int(log2(num_buckets));
+		mad::DiskPlotterContext context;
+
+		mad::phase1::output_t out_1;
+		mad::phase1::compute(context, params, out_1, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
+	
+		mad::phase2::output_t out_2;
+		mad::phase2::compute(context, out_1, out_2, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
+	
+		mad::phase3::output_t out_3;
+		mad::phase3::compute(context, out_2, out_3, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
+	
+		mad::phase4::output_t out_4;
+		mad::phase4::compute(context, out_3, out_4, num_threads, log_num_buckets, ws2s(param.plot_name), tempdir.string(), tempdir2.string());
+	
+		std::cout << "Total plot creation time was "
+			<< (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
+
+		mad::Thread<std::pair<std::string, std::string>> copy_thread(
+		[](std::pair<std::string, std::string>& from_to) {
+			const auto total_begin = get_wall_time_micros();
+			while(true) {
+				try {
+					const auto bytes = mad::final_copy(from_to.first, from_to.second);
+					
+					const auto time = (get_wall_time_micros() - total_begin) / 1e6;
+					std::cout << "Copy to " << from_to.second << " finished, took " << time << " sec, "
+							<< ((bytes / time) / 1024 / 1024) << " MB/s avg." << std::endl;
+					break;
+				} catch(const std::exception& ex) {
+					std::cout << "Copy to " << from_to.second << " failed with: " << ex.what() << std::endl;
+					std::this_thread::sleep_for(std::chrono::minutes(5));
+				}
+			}
+		}, "final/copy");
+
+		if(finaldir != tempdir)
+		{
+			const auto dst_path = finaldir / param.plot_name;
+			std::cout << "Started copy to " << dst_path << std::endl;
+			copy_thread.take_copy(std::make_pair(out_4.plot_file_name, dst_path.string()));
+		}
+	}
 }
