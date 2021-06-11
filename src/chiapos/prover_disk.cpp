@@ -23,7 +23,7 @@ DiskProver::DiskProver(const std::wstring& filename)
     if (memcmp(header.magic, "Proof of Space Plot", sizeof(header.magic)) != 0)
         throw std::invalid_argument("Invalid plot header magic");
 
-    uint16_t fmt_desc_len = Util::TwoBytesToInt(header.fmt_desc_len);
+    uint16_t fmt_desc_len = TwoBytesToInt(header.fmt_desc_len);
 
     if (fmt_desc_len == kFormatDescription.size() &&
         !memcmp(header.fmt_desc, kFormatDescription.c_str(), fmt_desc_len)) {
@@ -38,7 +38,7 @@ DiskProver::DiskProver(const std::wstring& filename)
 
     uint8_t size_buf[2];
     SafeRead(disk_file, size_buf, 2);
-    this->memo_size = Util::TwoBytesToInt(size_buf);
+    this->memo_size = TwoBytesToInt(size_buf);
     this->memo = new uint8_t[this->memo_size];
     SafeRead(disk_file, this->memo, this->memo_size);
 
@@ -48,12 +48,12 @@ DiskProver::DiskProver(const std::wstring& filename)
     uint8_t pointer_buf[8];
     for (uint8_t i = 1; i < 11; i++) {
         SafeRead(disk_file, pointer_buf, 8);
-        this->table_begin_pointers[i] = Util::EightBytesToInt(pointer_buf);
+        this->table_begin_pointers[i] = EightBytesToInt(pointer_buf);
     }
 
     SafeSeek(disk_file, table_begin_pointers[9]);
 
-    uint8_t c2_size = (Util::ByteAlign(k) / 8);
+    uint8_t c2_size = (ByteAlign(k) / 8);
     uint32_t c2_entries = (table_begin_pointers[10] - table_begin_pointers[9]) / c2_size;
     if (c2_entries == 0 || c2_entries == 1) {
         throw std::invalid_argument("Invalid C2 table size");
@@ -134,7 +134,7 @@ std::vector<LargeBits> DiskProver::GetQualitiesForChallenge(const uint8_t* chall
             auto x1x2 = Encoding::LinePointToSquare(new_line_point);
 
             // The final two x values (which are stored in the same location) are hashed
-            std::vector<unsigned char> hash_input(32 + Util::ByteAlign(2 * k) / 8, 0);
+            std::vector<unsigned char> hash_input(32 + ByteAlign(2 * k) / 8, 0);
             memcpy(hash_input.data(), challenge, 32);
             (LargeBits(x1x2.second, k) + LargeBits(x1x2.first, k)).ToBytes(hash_input.data() + 32);
             std::vector<unsigned char> hash(picosha2::k_digest_size);
@@ -223,7 +223,7 @@ uint128_t DiskProver::ReadLinePoint(
     uint16_t line_point_size = EntrySizes::CalculateLinePointSize(k);
     auto* line_point_bin = new uint8_t[line_point_size + 7];
     SafeRead(disk_file, line_point_bin, line_point_size);
-    uint128_t line_point = Util::SliceInt128FromBytes(line_point_bin, 0, k * 2);
+    uint128_t line_point = SliceInt128FromBytes(line_point_bin, 0, k * 2);
 
     // Reads EPP stubs
     uint32_t stubs_size_bits = EntrySizes::CalculateStubsSize(k) * 8;
@@ -266,7 +266,7 @@ uint128_t DiskProver::ReadLinePoint(
     for (uint32_t i = 0;
          i < std::min((uint32_t)(position % kEntriesPerPark), (uint32_t)deltas.size());
          i++) {
-        uint64_t stub = Util::EightBytesToInt(stubs_bin + start_bit / 8);
+        uint64_t stub = EightBytesToInt(stubs_bin + start_bit / 8);
         stub <<= start_bit % 8;
         stub >>= 64 - stub_size;
 
@@ -360,10 +360,10 @@ std::vector<uint64_t> DiskProver::GetP7Entries(std::ifstream& disk_file, const u
         c1_index -= kCheckpoint2Interval;
     }
 
-    uint32_t c1_entry_size = Util::ByteAlign(k) / 8;
+    uint32_t c1_entry_size = ByteAlign(k) / 8;
 
     auto* c1_entry_bytes = new uint8_t[c1_entry_size];
-    SafeSeek(disk_file, table_begin_pointers[8] + c1_index * Util::ByteAlign(k) / 8);
+    SafeSeek(disk_file, table_begin_pointers[8] + c1_index * ByteAlign(k) / 8);
 
     uint64_t curr_f7 = c2_entry_f;
     uint64_t prev_f7 = c2_entry_f;
@@ -371,7 +371,7 @@ std::vector<uint64_t> DiskProver::GetP7Entries(std::ifstream& disk_file, const u
     // Goes through C2 entries until we find the correct C1 checkpoint.
     for (uint64_t start = 0; start < kCheckpoint1Interval; start++) {
         SafeRead(disk_file, c1_entry_bytes, c1_entry_size);
-        Bits c1_entry = Bits(c1_entry_bytes, Util::ByteAlign(k) / 8, Util::ByteAlign(k));
+        Bits c1_entry = Bits(c1_entry_bytes, ByteAlign(k) / 8, ByteAlign(k));
         uint64_t read_f7 = c1_entry.Slice(0, k).GetValue();
 
         if (start != 0 && read_f7 == 0) {
@@ -411,9 +411,9 @@ std::vector<uint64_t> DiskProver::GetP7Entries(std::ifstream& disk_file, const u
     if (double_entry) {
         // In this case, we read the previous park as well as the current one
         c1_index -= 1;
-        SafeSeek(disk_file, table_begin_pointers[8] + c1_index * Util::ByteAlign(k) / 8);
-        SafeRead(disk_file, c1_entry_bytes, Util::ByteAlign(k) / 8);
-        Bits c1_entry_bits = Bits(c1_entry_bytes, Util::ByteAlign(k) / 8, Util::ByteAlign(k));
+        SafeSeek(disk_file, table_begin_pointers[8] + c1_index * ByteAlign(k) / 8);
+        SafeRead(disk_file, c1_entry_bytes, ByteAlign(k) / 8);
+        Bits c1_entry_bits = Bits(c1_entry_bytes, ByteAlign(k) / 8, ByteAlign(k));
         next_f7 = curr_f7;
         curr_f7 = c1_entry_bits.Slice(0, k).GetValue();
 
@@ -452,7 +452,7 @@ std::vector<uint64_t> DiskProver::GetP7Entries(std::ifstream& disk_file, const u
         return std::vector<uint64_t>();
     }
 
-    uint64_t p7_park_size_bytes = Util::ByteAlign((k + 1) * kEntriesPerPark) / 8;
+    uint64_t p7_park_size_bytes = ByteAlign((k + 1) * kEntriesPerPark) / 8;
 
     std::vector<uint64_t> p7_entries;
 

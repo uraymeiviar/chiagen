@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SRC_CPP_ENCODING_HPP_
-#define SRC_CPP_ENCODING_HPP_
+#ifndef COMMON_SRC_CPP_ENCODING_HPP_
+#define COMMON_SRC_CPP_ENCODING_HPP_
 
 #include <cmath>
 #include <map>
@@ -88,8 +88,6 @@ private:
     std::map<double, FSE_CTable *> CT_MEMO;
     std::map<double, FSE_DTable *> DT_MEMO;
 };
-
-TMemoCache tmCache;
 
 class Encoding {
 public:
@@ -179,7 +177,7 @@ public:
         return ans;
     }
 
-    static size_t ANSEncodeDeltas(std::vector<unsigned char> deltas, double R, uint8_t *out)
+    static size_t ANSEncodeDeltas(TMemoCache& tmCache, std::vector<unsigned char> deltas, double R, uint8_t *out)
     {
         if (!tmCache.CTExists(R)) {
             std::vector<short> nCount = Encoding::CreateNormalizedCount(R);
@@ -207,6 +205,7 @@ public:
     }
 
     static std::vector<uint8_t> ANSDecodeDeltas(
+		TMemoCache& tmCache,
         const uint8_t *inp,
         size_t inp_size,
         int numDeltas,

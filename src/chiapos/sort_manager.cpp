@@ -14,7 +14,7 @@ void QuickSort::SortInner(
             uint64_t j = i;
             memcpy(pivot_space, memory + i * L, L);
             while (j > begin &&
-                   Util::MemCmpBits(memory + (j - 1) * L, pivot_space, L, bits_begin) > 0) {
+                   MemCmpBits(memory + (j - 1) * L, pivot_space, L, bits_begin) > 0) {
                 memcpy(memory + j * L, memory + (j - 1) * L, L);
                 j--;
             }
@@ -31,7 +31,7 @@ void QuickSort::SortInner(
 
     while (lo < hi) {
         if (left_side) {
-            if (Util::MemCmpBits(memory + lo * L, pivot_space, L, bits_begin) < 0) {
+            if (MemCmpBits(memory + lo * L, pivot_space, L, bits_begin) < 0) {
                 ++lo;
             } else {
                 memcpy(memory + hi * L, memory + lo * L, L);
@@ -39,7 +39,7 @@ void QuickSort::SortInner(
                 left_side = false;
             }
         } else {
-            if (Util::MemCmpBits(memory + hi * L, pivot_space, L, bits_begin) > 0) {
+            if (MemCmpBits(memory + hi * L, pivot_space, L, bits_begin) > 0) {
                 --hi;
             } else {
                 memcpy(memory + lo * L, memory + hi * L, L);
@@ -85,7 +85,7 @@ void UniformSort::SortToMemory(
     uint64_t const num_entries,
     uint32_t const bits_begin)
 {
-    uint64_t const memory_len = Util::RoundSize(num_entries) * entry_len;
+    uint64_t const memory_len = RoundSize(num_entries) * entry_len;
     auto const swap_space = std::make_unique<uint8_t[]>(entry_len);
     auto buffer = std::make_unique<uint8_t[]>(BUF_SIZE);
     auto next_buffer = std::make_unique<uint8_t[]>(BUF_SIZE);
@@ -143,12 +143,12 @@ void UniformSort::SortToMemory(
         // First unique bits in the entry give the expected position of it in the sorted array.
         // We take 'bucket_length' bits starting with the first unique one.
         uint64_t pos =
-            Util::ExtractNum(buffer.get() + buf_ptr, entry_len, bits_begin, (uint32_t)bucket_length) *
+            ExtractNum(buffer.get() + buf_ptr, entry_len, bits_begin, (uint32_t)bucket_length) *
             entry_len;
         // As long as position is occupied by a previous entry...
         while (!IsPositionEmpty(memory + pos, entry_len) && pos < memory_len) {
             // ...store there the minimum between the two and continue to push the higher one.
-            if (Util::MemCmpBits(memory + pos, buffer.get() + buf_ptr, entry_len, bits_begin) > 0) {
+            if (MemCmpBits(memory + pos, buffer.get() + buf_ptr, entry_len, bits_begin) > 0) {
                 memcpy(swap_space.get(), memory + pos, entry_len);
                 memcpy(memory + pos, buffer.get() + buf_ptr, entry_len);
                 memcpy(buffer.get() + buf_ptr, swap_space.get(), entry_len);
@@ -227,7 +227,7 @@ void SortManager::AddToCache(const uint8_t *entry)
         throw InvalidValueException("Already finished.");
     }
     uint64_t const bucket_index =
-        Util::ExtractNum(entry, entry_size_, begin_bits_, log_num_buckets_);
+        ExtractNum(entry, entry_size_, begin_bits_, log_num_buckets_);
     bucket_t &b = buckets_[bucket_index];
     b.file.Write(b.write_pointer, entry, entry_size_);
     b.write_pointer += entry_size_;
@@ -414,7 +414,7 @@ void SortManager::SortBucket(
 
     double const have_ram = entry_size_ * entries_fit_in_memory / (1024.0 * 1024.0 * 1024.0);
     double const qs_ram = entry_size_ * bucket_entries / (1024.0 * 1024.0 * 1024.0);
-    double const u_ram = Util::RoundSize(bucket_entries) * entry_size_ / (1024.0 * 1024.0 * 1024.0);
+    double const u_ram = RoundSize(bucket_entries) * entry_size_ / (1024.0 * 1024.0 * 1024.0);
 
     if (bucket_entries > entries_fit_in_memory) {
         throw InsufficientMemoryException(
@@ -429,7 +429,7 @@ void SortManager::SortBucket(
 
     // Do SortInMemory algorithm if it fits in the memory
     // (number of entries required * entry_size_) <= total memory available
-    if (!force_quicksort && Util::RoundSize(bucket_entries) * entry_size_ <= memory_size_) {
+    if (!force_quicksort && RoundSize(bucket_entries) * entry_size_ <= memory_size_) {
         context->sync_out.println(
             "\tBucket ",
             bucket_i,

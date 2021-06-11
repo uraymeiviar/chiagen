@@ -8,6 +8,7 @@
 #include <stack>
 #include <vector>
 #include "disk.hpp"
+#include "encoding.hpp"
 
 struct THREADDATA {
 	int index;
@@ -44,6 +45,7 @@ public:
 	thread_pool pool;
 	synced_stream sync_out;
 	GlobalData globals;
+	TMemoCache tmCache;
 	std::shared_ptr<JobProgress> job;
 	std::shared_ptr<JobTaskItem> getCurrentTask();
 	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem);

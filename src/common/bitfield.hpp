@@ -69,13 +69,13 @@ struct bitfield
         
         int64_t ret = 0;
         while (start != end) {
-            ret += Util::PopCount(*start);
+            ret += PopCount(*start);
             ++start;
         }
         int const tail = end_bit % 64;
         if (tail > 0) {
             uint64_t const mask = (uint64_t(1) << tail) - 1;
-            ret += Util::PopCount(*end & mask);
+            ret += PopCount(*end & mask);
         }
         return ret;
     }

@@ -80,7 +80,7 @@ void F1Calculator::CalculateBuckets(uint64_t first_x, uint64_t n, uint64_t* res)
 
     chacha8_get_keystream(&this->enc_ctx_, start, num_blocks, buf_);
     for (uint64_t x = first_x; x < first_x + n; x++) {
-        uint64_t y = Util::SliceInt64FromBytes(buf_, start_bit, k_);
+        uint64_t y = SliceInt64FromBytes(buf_, start_bit, k_);
 
         res[x - first_x] = (y << kExtraBits) | (x >> x_shift);
 
@@ -127,7 +127,7 @@ std::pair<Bits, Bits> FxCalculator::CalculateBucket(const Bits& y1, const Bits& 
     blake3_hasher_update(&hasher, input_bytes, cdiv(input.GetSize(), 8));
     blake3_hasher_finalize(&hasher, hash_bytes, sizeof(hash_bytes));
 
-    f = Util::EightBytesToInt(hash_bytes) >> (64 - (k_ + kExtraBits));
+    f = EightBytesToInt(hash_bytes) >> (64 - (k_ + kExtraBits));
 
     if (table_index_ < 4) {
         // c is already computed

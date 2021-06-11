@@ -300,8 +300,8 @@ int cli_check(uint32_t iterations, std::wstring filename) {
 				uint8_t *proof_data = new uint8_t[proof.GetSize() / 8];
 				proof.ToBytes(proof_data);
 				cout << "i: " << num << std::endl;
-				cout << "challenge: 0x" << Util::HexStr(hash.data(), 256 / 8) << endl;
-				cout << "proof: 0x" << Util::HexStr(proof_data, k * 8) << endl;
+				cout << "challenge: 0x" << HexStr(hash.data(), 256 / 8) << endl;
+				cout << "proof: 0x" << HexStr(proof_data, k * 8) << endl;
 				LargeBits quality =
 					verifier.ValidateProof(id_bytes, k, hash.data(), proof_data, k * 8);
 				if (quality.GetSize() == 256 && quality == qualities[i]) {
@@ -384,7 +384,7 @@ int cli_proof(std::string challenge, std::wstring filename) {
 			uint8_t *proof_data = new uint8_t[8 * k];
 			LargeBits proof = prover.GetFullProof(challenge_bytes, i);
 			proof.ToBytes(proof_data);
-			cout << "Proof: 0x" << Util::HexStr(proof_data, k * 8) << endl;
+			cout << "Proof: 0x" << HexStr(proof_data, k * 8) << endl;
 			delete[] proof_data;
 		}
 		if (qualities.empty()) {

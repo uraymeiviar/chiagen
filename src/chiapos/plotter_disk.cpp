@@ -66,9 +66,9 @@ void DiskPlotter::CreatePlotDisk(
             max_table_size = memory_i;
     }
     if (num_buckets_input != 0) {
-        num_buckets = Util::RoundPow2(num_buckets_input);
+        num_buckets = RoundPow2(num_buckets_input);
     } else {
-        num_buckets = 2 * Util::RoundPow2(
+        num_buckets = 2 * RoundPow2(
                               ceil(((double)max_table_size) / (memory_size * kMemSortProportion)));
     }
 
@@ -94,7 +94,7 @@ void DiskPlotter::CreatePlotDisk(
     }
 
 #if defined(_WIN32) || defined(__x86_64__)
-    if (!nobitfield && !Util::HavePopcnt()) {
+    if (!nobitfield && !HavePopcnt()) {
         throw InvalidValueException("Bitfield plotting not supported by CPU");
     }
 #endif /* defined(_WIN32) || defined(__x86_64__) */
@@ -102,7 +102,7 @@ void DiskPlotter::CreatePlotDisk(
     std::wcout << std::endl
                << L"Starting plotting progress into temporary dirs: " << tmp_dirname << L" and "
                << tmp2_dirname << std::endl;
-    std::cout << "ID: " << Util::HexStr(id, id_len) << std::endl;
+    std::cout << "ID: " << HexStr(id, id_len) << std::endl;
     std::cout << "Plot size is: " << static_cast<int>(k) << std::endl;
     std::cout << "Buffer size is: " << buf_megabytes << "MiB" << std::endl;
     std::cout << "Using " << num_buckets << " buckets" << std::endl;
@@ -230,7 +230,7 @@ void DiskPlotter::CreatePlotDisk(
                       << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                       << " ... " << Timer::GetNow();
             Timer p4;
-            b17RunPhase4(k, k + 1, tmp2_disk, res, show_progress, 16);
+            b17RunPhase4(&context, k, k + 1, tmp2_disk, res, show_progress, 16);
             p4.PrintElapsed("Time for phase 4 =");
             finalsize = res.final_table_begin_pointers[11];
         } else {
@@ -279,7 +279,7 @@ void DiskPlotter::CreatePlotDisk(
                       << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                       << " ... " << Timer::GetNow();
             Timer p4;
-            RunPhase4(k, k + 1, tmp2_disk, res, show_progress, 16);
+            RunPhase4(&context, k, k + 1, tmp2_disk, res, show_progress, 16);
             p4.PrintElapsed("Time for phase 4 =");
             finalsize = res.final_table_begin_pointers[11];
         }
@@ -396,13 +396,13 @@ uint32_t DiskPlotter::WriteHeader(
     write_pos += 1;
 
     uint8_t size_buffer[2];
-    Util::IntToTwoBytes(size_buffer,(uint16_t)kFormatDescription.size());
+    IntToTwoBytes(size_buffer,(uint16_t)kFormatDescription.size());
     plot_Disk.Write(write_pos, (size_buffer), 2);
     write_pos += 2;
     plot_Disk.Write(write_pos, (uint8_t*)kFormatDescription.data(), kFormatDescription.size());
     write_pos += kFormatDescription.size();
 
-    Util::IntToTwoBytes(size_buffer, memo_len);
+    IntToTwoBytes(size_buffer, memo_len);
     plot_Disk.Write(write_pos, (size_buffer), 2);
     write_pos += 2;
     plot_Disk.Write(write_pos, (memo), memo_len);

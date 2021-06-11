@@ -28,7 +28,8 @@
 #define kMaxSizeBits 8388608
 
 // A stack vector of length 5, having the functions of std::vector needed for Bits.
-struct SmallVector {
+class SmallVector {
+public:
     typedef uint16_t size_type;
 
     SmallVector() noexcept { count_ = 0; }
@@ -39,7 +40,7 @@ struct SmallVector {
 
     void push_back(uint64_t value) { v_[count_++] = value; }
 
-    SmallVector& operator=(const SmallVector& other)
+    inline SmallVector& operator=(const SmallVector& other)
     {
         count_ = other.count_;
         for (size_type i = 0; i < other.count_; i++) v_[i] = other.v_[i];
@@ -68,7 +69,7 @@ struct ParkVector {
 
     void push_back(uint64_t value) { v_[count_++] = value; }
 
-    ParkVector& operator=(const ParkVector& other)
+    inline ParkVector& operator=(const ParkVector& other)
     {
         count_ = other.count_;
         for (size_type i = 0; i < other.count_; i++) v_[i] = other.v_[i];
@@ -123,7 +124,7 @@ public:
         this->last_size_ = 0;
         if (size > 64) {
             // Get number of extra 0s added at the beginning.
-            uint32_t zeros = size - Util::GetSizeBits(value);
+            uint32_t zeros = size - GetSizeBits(value);
             // Add a full group of 0s (length 64)
             while (zeros > 64) {
                 AppendValue(0, 64);
@@ -131,7 +132,7 @@ public:
             }
             // Add the incomplete group of 0s and then the value.
             AppendValue(0, zeros);
-            AppendValue(value, Util::GetSizeBits(value));
+            AppendValue(value, GetSizeBits(value));
         } else {
             /* 'value' must be under 'size' bits. */
             assert(size == 64 || value == (value & ((1ULL << size) - 1)));
@@ -317,10 +318,10 @@ public:
             return;
 
         for (i = 0; i < (int)values_.size() - 1; i++) {
-            Util::IntToEightBytes(buffer + i * 8, values_[i]);
+            IntToEightBytes(buffer + i * 8, values_[i]);
         }
 
-        Util::IntToEightBytes(tmp, values_[i] << (64 - last_size_));
+        IntToEightBytes(tmp, values_[i] << (64 - last_size_));
         memcpy(buffer + i * 8, tmp, cdiv(last_size_, 8));
     }
 

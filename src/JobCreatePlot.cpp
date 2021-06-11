@@ -140,9 +140,9 @@ bool JobCreatePlot::preStartCheck(std::vector<std::string>& errs) {
 			max_table_size = memory_i;
 	}
 	if (this->param.buckets != 0) {
-		num_buckets = Util::RoundPow2(this->param.buckets);
+		num_buckets = RoundPow2(this->param.buckets);
 	} else {
-		num_buckets = 2 * Util::RoundPow2(ceil(
+		num_buckets = 2 * RoundPow2(ceil(
 								((double)max_table_size) / (memory_size * kMemSortProportion)));
 	}
 
@@ -171,7 +171,7 @@ bool JobCreatePlot::preStartCheck(std::vector<std::string>& errs) {
 	}
 
 #if defined(_WIN32) || defined(__x86_64__)
-	if (this->param.bitfield && !Util::HavePopcnt()) {
+	if (this->param.bitfield && !HavePopcnt()) {
 		errs.push_back("Bitfield plotting not supported by CPU");
 		result = false;
 	}

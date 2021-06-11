@@ -23,7 +23,7 @@ LargeBits Verifier::GetQualityString(
         proof = new_proof;
     }
     // Hashes two of the x values, based on the quality index
-    std::vector<unsigned char> hash_input(32 + Util::ByteAlign(2 * k) / 8, 0);
+    std::vector<unsigned char> hash_input(32 + ByteAlign(2 * k) / 8, 0);
     memcpy(hash_input.data(), challenge, 32);
     proof.Slice(k * quality_index, k * (quality_index + 2)).ToBytes(hash_input.data() + 32);
     std::vector<unsigned char> hash(picosha2::k_digest_size);

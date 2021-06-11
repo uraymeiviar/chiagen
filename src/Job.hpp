@@ -24,10 +24,11 @@ class JobFinishRule : public JobRule {
 public:
 };
 
-class JobTaskItem {
+class JobTaskItem : public std::enable_shared_from_this<JobTaskItem> {
 public:
 	JobTaskItem(std::string name, std::shared_ptr<JobTaskItem> parent = nullptr);
 	virtual void addChild(std::shared_ptr<JobTaskItem> task);
+	virtual void removeChild(std::shared_ptr<JobTaskItem> task);
 	virtual void addDiskRead(uint64_t byteSize);
 	virtual void addDiskWrite(uint64_t byteSize);
 	virtual float getProgress();
@@ -43,7 +44,7 @@ public:
 	uint32_t totalWorkItem {0};
 	std::chrono::time_point<std::chrono::system_clock> startTime;
 	std::chrono::time_point<std::chrono::system_clock> finishTime;
-	std::vector<std::shared_ptr<JobTaskItem>> tasks;
+	std::vector<std::weak_ptr<JobTaskItem>> tasks;
 	std::shared_ptr<JobTaskItem> parentTask;
 protected:
 	bool running {false};

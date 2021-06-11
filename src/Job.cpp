@@ -96,6 +96,29 @@ JobTaskItem::JobTaskItem(std::string name, std::shared_ptr<JobTaskItem> parent) 
 
 }
 
+void JobTaskItem::addChild(std::shared_ptr<JobTaskItem> task)
+{
+	if (task->parentTask != this->shared_from_this()) {
+		this->tasks.push_back(task);
+		if (task->parentTask) {
+			task->parentTask->removeChild(task);
+		}
+		task->parentTask = this->shared_from_this();
+	}
+}
+
+void JobTaskItem::removeChild(std::shared_ptr<JobTaskItem> task)
+{
+	this->tasks.erase(std::remove_if(this->tasks.begin(), this->tasks.end(),
+		[=](std::weak_ptr<JobTaskItem> child) {
+			if (child.lock() == task) {
+				task->parentTask = nullptr;
+				return true;
+			}
+		}
+	),this->tasks.end());
+}
+
 void JobTaskItem::addDiskRead(uint64_t byteSize)
 {
 	if (this->parentTask) {
@@ -116,7 +139,10 @@ float JobTaskItem::getProgress()
 		float childProgress = 0.0f;
 		float childWeight = 1.0f/(float)this->tasks.size();
 		for (auto child : this->tasks) {
-			childProgress += child->getProgress()*childWeight;
+			auto childPtr = child.lock();
+			if (childPtr) {
+				childProgress += childPtr->getProgress()*childWeight;
+			}			
 		}
 		if (childProgress > 1.0f) {
 			return 1.0f;
@@ -145,7 +171,10 @@ uint32_t JobTaskItem::getTotalWorkItems()
 {
 	uint32_t childTotal = 0;
 	for (auto child : this->tasks) {
-		childTotal += child->getTotalWorkItems();
+		auto childPtr = child.lock();
+		if (childPtr) {
+			childTotal += childPtr->getTotalWorkItems();
+		}		
 	}
 	return childTotal + this->totalWorkItem;
 }
@@ -154,7 +183,10 @@ uint32_t JobTaskItem::getCompletedWorkItems()
 {
 	uint32_t childTotal = 0;
 	for (auto child : this->tasks) {
-		childTotal += child->getCompletedWorkItems();
+		auto childPtr = child.lock();
+		if (childPtr) {
+			childTotal += childPtr->getCompletedWorkItems();
+		}		
 	}
 	return childTotal + this->completedWorkItem;
 }

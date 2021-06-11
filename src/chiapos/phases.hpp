@@ -44,6 +44,7 @@
 #include "util.hpp"
 #include <cstdint>
 
+#include "encoding.hpp"
 #include "data.hpp"
 
 enum phase_flags : uint8_t {
@@ -139,6 +140,7 @@ struct Phase3Results {
 // is: [2k bits of first_line_point]  [EPP-1 stubs] [Deltas size] [EPP-1 deltas]....
 // [first_line_point] ...
 void WriteParkToFile(
+	TMemoCache& tmCache,
 	Disk &final_disk,
 	uint64_t table_start,
 	uint64_t park_index,
@@ -197,6 +199,7 @@ Phase3Results RunPhase3(
 // C2 (checkpoint values into)
 // C3 (deltas of f7s between C1 checkpoints)
 void RunPhase4(
+	DiskPlotterContext* context,
 	uint8_t k, 
 	uint8_t pos_size, 
 	FileDisk &tmp2_disk, 

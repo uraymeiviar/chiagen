@@ -170,6 +170,7 @@ b17Phase3Results b17RunPhase3(
 // C2 (checkpoint values into)
 // C3 (deltas of f7s between C1 checkpoints)
 void b17RunPhase4(
+	DiskPlotterContext* context,
 	uint8_t k, 
 	uint8_t pos_size, 
 	FileDisk &tmp2_disk, 
