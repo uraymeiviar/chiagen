@@ -90,15 +90,17 @@ void F1Calculator::CalculateBuckets(uint64_t first_x, uint64_t n, uint64_t* res)
 
 F1Calculator::~F1Calculator() { delete[] buf_; }
 
+ bool FxCalculator::initialized = false;
+uint16_t FxCalculator::L_targets[2][kBC][kExtraBitsPow];
 FxCalculator::FxCalculator(uint8_t k, uint8_t table_index)
 {
     this->k_ = k;
     this->table_index_ = table_index;
 
     this->rmap.resize(kBC);
-    if (!initialized) {
-        initialized = true;
-        load_tables();
+    if (!FxCalculator::initialized) {
+        FxCalculator::initialized = true;
+        FxCalculator::load_tables();
     }
 }
 
@@ -196,7 +198,7 @@ void FxCalculator::load_tables()
             for (uint16_t m = 0; m < kExtraBitsPow; m++) {
                 uint16_t yr =
                     ((indJ + m) % kB) * kC + (((2 * m + parity) * (2 * m + parity) + i) % kC);
-                L_targets[parity][i][m] = yr;
+                FxCalculator::L_targets[parity][i][m] = yr;
             }
         }
     }

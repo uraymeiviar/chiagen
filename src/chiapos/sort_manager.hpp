@@ -74,7 +74,7 @@ namespace UniformSort {
 class SortManager : public Disk {
 public:
 	SortManager(
-		DiskPlotterContext& context,
+		DiskPlotterContext* context,
 		uint64_t const memory_size,
 		uint32_t const num_buckets,
 		uint32_t const log_num_buckets,
@@ -97,7 +97,7 @@ public:
 	bool CloseToNewBucket(uint64_t position) const;
 	void TriggerNewBucket(uint64_t position);
 	void FlushCache();
-	DiskPlotterContext& context;
+	DiskPlotterContext* context;
 	
 	~SortManager();
 

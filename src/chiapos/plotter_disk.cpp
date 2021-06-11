@@ -12,7 +12,7 @@ void DiskPlotter::CreatePlotDisk(
     uint32_t id_len,
     uint32_t buf_megabytes_input /*= 0*/,
     uint32_t num_buckets_input /*= 0*/,
-    uint64_t stripe_size_input /*= 0*/,
+    uint32_t stripe_size_input /*= 0*/,
     uint8_t num_threads_input /*= 0*/,
     bool nobitfield /*= false*/,
     bool show_progress /*= false*/)
@@ -53,14 +53,14 @@ void DiskPlotter::CreatePlotDisk(
     // Subtract some ram to account for dynamic allocation through the code
     uint64_t thread_memory = num_threads * (2 * (stripe_size + 5000)) *
                              EntrySizes::GetMaxEntrySize(k, 4, true) / (1024 * 1024);
-    uint64_t sub_mbytes = (5 + (int)std::min(buf_megabytes * 0.05, (double)50) + thread_memory);
+    uint64_t sub_mbytes = (5 + (uint64_t)std::min(buf_megabytes * 0.05, (double)50) + thread_memory);
     if (sub_mbytes > buf_megabytes) {
         throw InsufficientMemoryException(
             "Please provide more memory. At least " + std::to_string(sub_mbytes));
     }
     uint64_t memory_size = ((uint64_t)(buf_megabytes - sub_mbytes)) * 1024 * 1024;
     double max_table_size = 0;
-    for (size_t i = 1; i <= 7; i++) {
+    for (uint8_t i = 1; i <= 7; i++) {
         double memory_i = 1.3 * ((uint64_t)1 << k) * EntrySizes::GetMaxEntrySize(k, i, true);
         if (memory_i > max_table_size)
             max_table_size = memory_i;
@@ -165,7 +165,7 @@ void DiskPlotter::CreatePlotDisk(
         Timer p1;
         Timer all_phases;
         std::vector<uint64_t> table_sizes = RunPhase1(
-			context,
+			&context,
             tmp_1_disks,
             k,
             id,
@@ -185,14 +185,12 @@ void DiskPlotter::CreatePlotDisk(
         if (nobitfield) {
             // Memory to be used for sorting and buffers
             std::unique_ptr<uint8_t[]> memory(new uint8_t[memory_size + 7]);
-
             std::cout << std::endl
                       << "Starting phase 2/4: Backpropagation without bitfield into tmp files... "
                       << Timer::GetNow();
-
             Timer p2;
             std::vector<uint64_t> backprop_table_sizes = b17RunPhase2(
-				context,
+				&context,
                 memory.get(),
                 tmp_1_disks,
                 table_sizes,
@@ -205,16 +203,14 @@ void DiskPlotter::CreatePlotDisk(
                 log_num_buckets,
                 show_progress);
             p2.PrintElapsed("Time for phase 2 =");
-
             // Now we open a new file, where the final contents of the plot will be stored.
             uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
-
             std::cout << std::endl
                       << "Starting phase 3/4: Compression without bitfield from tmp files into "
                       << tmp_2_filename << " ... " << Timer::GetNow();
             Timer p3;
             b17Phase3Results res = b17RunPhase3(
-				context,
+				&context,
                 memory.get(),
                 k,
                 tmp2_disk,
@@ -244,7 +240,7 @@ void DiskPlotter::CreatePlotDisk(
 
             Timer p2;
             Phase2Results res2 = RunPhase2(
-				context,
+				&context,
                 tmp_1_disks,
                 table_sizes,
                 k,
@@ -265,7 +261,7 @@ void DiskPlotter::CreatePlotDisk(
                       << " ... " << Timer::GetNow();
             Timer p3;
             Phase3Results res = RunPhase3(
-				context,
+				&context,
                 k,
                 tmp2_disk,
                 std::move(res2),
@@ -294,7 +290,7 @@ void DiskPlotter::CreatePlotDisk(
         // sort on disk space does not happen at the exact same time as max table sizes, so this
         // estimate is conservative (high).
         uint64_t total_working_space = table_sizes[0];
-        for (size_t i = 1; i <= 7; i++) {
+        for (uint8_t i = 1; i <= 7; i++) {
             total_working_space += table_sizes[i] * EntrySizes::GetMaxEntrySize(k, i, false);
         }
         std::cout << "Approximate working space used (without final file): "
@@ -400,7 +396,7 @@ uint32_t DiskPlotter::WriteHeader(
     write_pos += 1;
 
     uint8_t size_buffer[2];
-    Util::IntToTwoBytes(size_buffer, kFormatDescription.size());
+    Util::IntToTwoBytes(size_buffer,(uint16_t)kFormatDescription.size());
     plot_Disk.Write(write_pos, (size_buffer), 2);
     write_pos += 2;
     plot_Disk.Write(write_pos, (uint8_t*)kFormatDescription.data(), kFormatDescription.size());

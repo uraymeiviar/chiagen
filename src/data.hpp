@@ -4,6 +4,8 @@
 #include <memory>
 #include <cstdint>
 #include "thread_pool.hpp"
+#include "Job.hpp"
+#include <stack>
 
 struct THREADDATA {
 	int index;
@@ -35,10 +37,17 @@ struct GlobalData {
 	uint8_t num_threads;
 };
 
-struct DiskPlotterContext {
+class DiskPlotterContext {
+public:
 	thread_pool pool;
 	synced_stream sync_out;
 	GlobalData globals;
+	std::shared_ptr<JobProgress> job;
+	std::shared_ptr<JobTaskItem> getCurrentTask();
+	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem);
+	std::shared_ptr<JobTaskItem> popTask();
+protected:
+	std::stack<std::shared_ptr<JobTaskItem>> tasks;
 };
 
 #endif

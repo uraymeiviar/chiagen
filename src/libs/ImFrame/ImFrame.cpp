@@ -37,14 +37,14 @@ namespace ImFrame
 
 		// Register OnExit() as early as possible
 		void OnExit();
-		struct StaticInitializer
-		{
-			StaticInitializer()
-			{
-				// Signal this function to execute on exit
-				atexit(OnExit);
-			}
-		};
+		//struct StaticInitializer
+		//{
+		//	StaticInitializer()
+		//	{
+		//		// Signal this function to execute on exit
+		//		atexit(OnExit);
+		//	}
+		//};
 
 		// Persistent app data
 
@@ -76,7 +76,7 @@ namespace ImFrame
 		};
 
 
-		StaticInitializer s_initializer;
+		//StaticInitializer s_initializer;
 		std::unique_ptr<PersistentData> s_data;
 
 
@@ -172,12 +172,7 @@ namespace ImFrame
 
 		void OnExit()
 		{
-#ifdef IMFRAME_WINDOWS
 
-			// Assert that the function returns zero indicating no memory leaks from
-			// the debug CRT libraries.
-			assert(!_CrtDumpMemoryLeaks() && "Memory leak detected!");
-#endif
 		}
 
 		void UpdateCustomFont()

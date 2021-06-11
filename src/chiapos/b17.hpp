@@ -34,7 +34,7 @@
 class b17SortManager {
 public:
 	b17SortManager(
-		DiskPlotterContext& context,
+		DiskPlotterContext* context,
 		uint8_t *memory,
 		uint64_t memory_size,
 		uint32_t num_buckets,
@@ -55,7 +55,7 @@ public:
 	void FlushCache();
 
 	~b17SortManager();
-	DiskPlotterContext& context;
+	DiskPlotterContext* context;
 private:
 	// Start of the whole memory array. This will be diveded into buckets
 	uint8_t *memory_start;
@@ -97,7 +97,7 @@ private:
 // to final values in f7, to minimize disk usage. A sort on disk is applied to each table,
 // so that they are sorted by position.
 std::vector<uint64_t> b17RunPhase2(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	uint8_t *memory,
 	std::vector<FileDisk> &tmp_1_disks,
 	std::vector<uint64_t> table_sizes,
@@ -136,7 +136,7 @@ struct b17Phase3Results {
 // backpropagation step happened, so there will be no more dropped entries. See the design
 // document for more details on the algorithm.
 b17Phase3Results b17RunPhase3(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	uint8_t *memory,
 	uint8_t k,
 	FileDisk &tmp2_disk /*filename*/,

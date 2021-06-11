@@ -573,7 +573,7 @@ void* phase1_thread(DiskPlotterContext* context,THREADDATA* ptd)
 }
 
 std::vector<uint64_t> RunPhase1(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	std::vector<FileDisk>& tmp_1_disks,
 	uint8_t const k,
 	const uint8_t* const id,
@@ -588,14 +588,14 @@ std::vector<uint64_t> RunPhase1(
 	bool show_progress)
 {
 	std::cout << "Computing table 1" << std::endl;
-	context.globals.stripe_size = stripe_size;
-	context.globals.num_threads = num_threads;
+	context->globals.stripe_size = stripe_size;
+	context->globals.num_threads = num_threads;
 	Timer f1_start_time;
 	F1Calculator f1(k, id);
 	uint64_t x = 0;
 
 	uint32_t const t1_entry_size_bytes = EntrySizes::GetMaxEntrySize(k, 1, true);
-	context.globals.L_sort_manager = std::make_unique<SortManager>(
+	context->globals.L_sort_manager = std::make_unique<SortManager>(
 		context,
 		memory_size,
 		num_buckets,
@@ -604,7 +604,7 @@ std::vector<uint64_t> RunPhase1(
 		tmp_dirname,
 		filename + L".p1.t1",
 		0,
-		context.globals.stripe_size);
+		context->globals.stripe_size);
 
 	// These are used for sorting on disk. The sort on disk code needs to know how
 	// many elements are in each bucket.
@@ -615,7 +615,7 @@ std::vector<uint64_t> RunPhase1(
 		// Start of parallel execution
 		std::vector<std::thread> threads;
 		for (int i = 0; i < num_threads; i++) {
-			threads.emplace_back(F1thread,&context, i, k, id, &sort_manager_mutex);
+			threads.emplace_back(F1thread,context, i, k, id, &sort_manager_mutex);
 		}
 
 		for (auto& t : threads) {
@@ -626,15 +626,17 @@ std::vector<uint64_t> RunPhase1(
 
 	uint64_t prevtableentries = 1ULL << k;
 	f1_start_time.PrintElapsed("F1 complete, time:");
-	context.globals.L_sort_manager->FlushCache();
+	context->globals.L_sort_manager->FlushCache();
 	table_sizes[1] = x + 1;
 
 	// Store positions to previous tables, in k bits.
 	uint8_t pos_size = k;
 	uint32_t right_entry_size_bytes = 0;
 
-	// For tables 1 through 6, sort the table, calculate matches, and write
-	// the next table. This is the left table index.
+	FxCalculator f(k, 1);
+
+	//// For tables 1 through 6, sort the table, calculate matches, and write
+	//// the next table. This is the left table index.
 	for (uint8_t table_index = 1; table_index < 7; table_index++) {
 		Timer table_timer;
 		uint8_t const metadata_size = kVectorLens[table_index + 1] * k;
@@ -657,15 +659,16 @@ std::vector<uint64_t> RunPhase1(
 		std::cout << "Computing table " << int{table_index + 1} << std::endl;
 		// Start of parallel execution
 
-		FxCalculator f(k, table_index + 1);  // dummy to load static table
+		//FxCalculator f(k, table_index + 1);  // dummy to load static table
+		//moved
 
-		context.globals.matches = 0;
-		context.globals.left_writer_count = 0;
-		context.globals.right_writer_count = 0;
-		context.globals.right_writer = 0;
-		context.globals.left_writer = 0;
+		context->globals.matches = 0;
+		context->globals.left_writer_count = 0;
+		context->globals.right_writer_count = 0;
+		context->globals.right_writer = 0;
+		context->globals.left_writer = 0;
 
-		context.globals.R_sort_manager = std::make_unique<SortManager>(
+		context->globals.R_sort_manager = std::make_unique<SortManager>(
 			context,
 			memory_size,
 			num_buckets,
@@ -674,9 +677,9 @@ std::vector<uint64_t> RunPhase1(
 			tmp_dirname,
 			filename + L".p1.t" + std::to_wstring(table_index + 1),
 			0,
-			context.globals.stripe_size);
+			context->globals.stripe_size);
 
-		context.globals.L_sort_manager->TriggerNewBucket(0);
+		context->globals.L_sort_manager->TriggerNewBucket(0);
 
 		Timer computation_pass_timer;
 
@@ -704,7 +707,7 @@ std::vector<uint64_t> RunPhase1(
 			td[i].compressed_entry_size_bytes = compressed_entry_size_bytes;
 			td[i].ptmp_1_disks = &tmp_1_disks;
 
-			threads.emplace_back(phase1_thread, &context,&td[i]);
+			threads.emplace_back(phase1_thread, context,&td[i]);
 		}
 		Sem::Post(&mutex[num_threads - 1]);
 
@@ -719,42 +722,42 @@ std::vector<uint64_t> RunPhase1(
 		// end of parallel execution
 
 		// Total matches found in the left table
-		std::cout << "\tTotal matches: " << context.globals.matches << std::endl;
+		std::cout << "\tTotal matches: " << context->globals.matches << std::endl;
 
-		table_sizes[table_index] = context.globals.left_writer_count;
-		table_sizes[table_index + 1] = context.globals.right_writer_count;
+		table_sizes[table_index] = context->globals.left_writer_count;
+		table_sizes[table_index + 1] = context->globals.right_writer_count;
 
 		// Truncates the file after the final write position, deleting no longer useful
 		// working space
-		tmp_1_disks[table_index].Truncate(context.globals.left_writer);
-		context.globals.L_sort_manager.reset();
+		tmp_1_disks[table_index].Truncate(context->globals.left_writer);
+		context->globals.L_sort_manager.reset();
 		if (table_index < 6) {
-			context.globals.R_sort_manager->FlushCache();
-			context.globals.L_sort_manager = std::move(context.globals.R_sort_manager);
+			context->globals.R_sort_manager->FlushCache();
+			context->globals.L_sort_manager = std::move(context->globals.R_sort_manager);
 		} else {
-			tmp_1_disks[table_index + 1].Truncate(context.globals.right_writer);
+			tmp_1_disks[table_index + 1].Truncate(context->globals.right_writer);
 		}
 
 		// Resets variables
-		if (context.globals.matches != context.globals.right_writer_count) {
+		if (context->globals.matches != context->globals.right_writer_count) {
 			throw InvalidStateException(
 				"Matches do not match with number of write entries " +
-				std::to_string(context.globals.matches) + " " + std::to_string(context.globals.right_writer_count));
+				std::to_string(context->globals.matches) + " " + std::to_string(context->globals.right_writer_count));
 		}
 
-		prevtableentries = context.globals.right_writer_count;
+		prevtableentries = context->globals.right_writer_count;
 		table_timer.PrintElapsed("Forward propagation table time:");
 		if ((flags & SHOW_PROGRESS) || show_progress) {
 			progress(1, table_index, 6);
 		}
 	}
 	table_sizes[0] = 0;
-	context.globals.R_sort_manager.reset();
+	context->globals.R_sort_manager.reset();
 	return table_sizes;
 }
 
 Phase2Results RunPhase2(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	std::vector<FileDisk>& tmp_1_disks,
 	std::vector<uint64_t> table_sizes,
 	uint8_t const k,
@@ -996,7 +999,7 @@ Disk& Phase2Results::disk_for_table(int const table_index)
 }
 
 Phase3Results RunPhase3(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	uint8_t k,
 	FileDisk& tmp2_disk /*filename*/,
 	Phase2Results res2,

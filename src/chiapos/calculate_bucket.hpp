@@ -130,9 +130,9 @@ private:
     std::vector<struct rmap_item> rmap;
     std::vector<uint16_t> rmap_clean;
 
-	void load_tables();
-	uint16_t L_targets[2][kBC][kExtraBitsPow];
-	bool initialized = false;
+	static void load_tables();
+	static uint16_t L_targets[2][kBC][kExtraBitsPow];
+	static bool initialized;
 };
 
 #endif  // SRC_CPP_CALCULATE_BUCKET_HPP_

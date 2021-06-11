@@ -175,7 +175,7 @@ void UniformSort::SortToMemory(
 }
 
 SortManager::SortManager(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
     uint64_t const memory_size,
     uint32_t const num_buckets,
     uint32_t const log_num_buckets,
@@ -294,14 +294,14 @@ uint8_t *SortManager::ReadEntry(uint64_t position)
         if (max_memory_size_ == 2 * memory_size_) {
             next_memory_start_.reset(new uint8_t[memory_size_]);
             uint64_t bucket_i = next_bucket_to_sort++;
-            next_sort_job = context.pool.submit([bucket_i, memory_start = next_memory_start_.get(), this] {
+            next_sort_job = context->pool.submit([bucket_i, memory_start = next_memory_start_.get(), this] {
                 SortBucket(bucket_i, memory_start, memory_size_);
             });
         }
     }
 
     while (position >= this->final_position_end) {
-        WaitForSortedBucket(context.pool);
+        WaitForSortedBucket(context->pool);
     }
 
     if (unlikely(!(this->final_position_end > position))) {
@@ -430,7 +430,7 @@ void SortManager::SortBucket(
     // Do SortInMemory algorithm if it fits in the memory
     // (number of entries required * entry_size_) <= total memory available
     if (!force_quicksort && Util::RoundSize(bucket_entries) * entry_size_ <= memory_size_) {
-        context.sync_out.println(
+        context->sync_out.println(
             "\tBucket ",
             bucket_i,
             " uniform sort. Ram: ",
@@ -443,7 +443,7 @@ void SortManager::SortBucket(
             qs_ram,
             "GiB.");
         UniformSort::SortToMemory(
-			context.pool,
+			context->pool,
             b.underlying_file,
             0,
             memory_start,
@@ -454,7 +454,7 @@ void SortManager::SortBucket(
         // Are we in Compress phrase 1 (quicksort=1) or is it the last bucket (quicksort=2)?
         // Perform quicksort if so (SortInMemory algorithm won't always perform well), or if we
         // don't have enough memory for uniform sort
-        context.sync_out.println(
+        context->sync_out.println(
             "\tBucket ",
             bucket_i,
             " QS. Ram: ",

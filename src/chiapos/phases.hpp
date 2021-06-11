@@ -75,7 +75,7 @@ void* F1thread(
 // ChaCha8, and each encryption provides multiple output values. Then, the rest of the
 // f functions are computed, and a sort on disk happens for each table.
 std::vector<uint64_t> RunPhase1(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	std::vector<FileDisk>& tmp_1_disks,
 	uint8_t const k,
 	const uint8_t* const id,
@@ -105,7 +105,7 @@ struct Phase2Results
 // to final values in f7, to minimize disk usage. A sort on disk is applied to each table,
 // so that they are sorted by position.
 Phase2Results RunPhase2(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	std::vector<FileDisk> &tmp_1_disks,
 	std::vector<uint64_t> table_sizes,
 	uint8_t const k,
@@ -165,7 +165,7 @@ void WriteParkToFile(
 // backpropagation step happened, so there will be no more dropped entries. See the design
 // document for more details on the algorithm.
 Phase3Results RunPhase3(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
 	uint8_t k,
 	FileDisk &tmp2_disk /*filename*/,
 	Phase2Results res2,

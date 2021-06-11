@@ -377,6 +377,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
 						try {
 							cli_create(farmkey,poolkey,dest,temp,temp2,filename,memo,id,ksize,buckets,stripes,nthreads,mem,!bitfield);
+							std::cin.get();
 						}
 						catch (...) {
 							return 0;

@@ -32,7 +32,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PlatformToolset>v142</PlatformToolset>
@@ -92,6 +92,12 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <StringPooling>true</StringPooling>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -99,7 +105,7 @@
       <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalDependencies>gmpd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gmp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib\libpng;$(SolutionDir)\lib\bzip2;$(SolutionDir)\lib\zlib;$(SolutionDir)\lib\brotli;$(SolutionDir)\lib\gmp;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
     </Link>
@@ -123,7 +129,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
@@ -133,6 +139,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointModel>Fast</FloatingPointModel>
       <CallingConvention>FastCall</CallingConvention>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,6 +154,15 @@
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
       <TerminalServerAware>true</TerminalServerAware>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <Profile>true</Profile>
+      <HeapReserveSize>
+      </HeapReserveSize>
+      <HeapCommitSize>
+      </HeapCommitSize>
+      <StackReserveSize>
+      </StackReserveSize>
+      <StackCommitSize>
+      </StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -206,6 +222,7 @@
     <ClCompile Include="src\chiapos\bits.cpp" />
     <ClCompile Include="src\chiapos\calculate_bucket.cpp" />
     <ClCompile Include="src\chiapos\chacha8.c" />
+    <ClCompile Include="src\chiapos\data.cpp" />
     <ClCompile Include="src\chiapos\disk.cpp" />
     <ClCompile Include="src\chiapos\encoding.cpp" />
     <ClCompile Include="src\chiapos\entry_sizes.cpp" />

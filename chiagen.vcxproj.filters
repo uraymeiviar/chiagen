@@ -576,6 +576,9 @@
     <ClCompile Include="src\gui.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\chiapos\data.cpp">
+      <Filter>chiapos</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cli.hpp">

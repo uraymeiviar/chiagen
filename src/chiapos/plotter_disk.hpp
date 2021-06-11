@@ -62,7 +62,7 @@ public:
 		uint32_t id_len,
 		uint32_t buf_megabytes_input = 0,
 		uint32_t num_buckets_input = 0,
-		uint64_t stripe_size_input = 0,
+		uint32_t stripe_size_input = 0,
 		uint8_t num_threads_input = 0,
 		bool nobitfield = false,
 		bool show_progress = false);

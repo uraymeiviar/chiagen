@@ -3,7 +3,7 @@
 #include "phases.hpp"
 
 std::vector<uint64_t> b17RunPhase2(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
     uint8_t *memory,
     std::vector<FileDisk> &tmp_1_disks,
     std::vector<uint64_t> table_sizes,
@@ -398,7 +398,7 @@ std::vector<uint64_t> b17RunPhase2(
 }
 
 b17Phase3Results b17RunPhase3(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
     uint8_t *memory,
     uint8_t k,
     FileDisk &tmp2_disk /*filename*/,
@@ -999,7 +999,7 @@ void b17RunPhase4(
 }
 
 b17SortManager::b17SortManager(
-	DiskPlotterContext& context,
+	DiskPlotterContext* context,
     uint8_t *memory,
     uint64_t memory_size,
     uint32_t num_buckets,
@@ -1197,7 +1197,7 @@ void b17SortManager::SortBucket(int quicksort)
                   << std::setprecision(3) << have_ram << "GiB, u_sort min: " << u_ram
                   << "GiB, qs min: " << qs_ram << "GiB." << std::endl;
         UniformSort::SortToMemory(
-			context.pool,
+			context->pool,
             this->bucket_files[bucket_i],
             0,
             memory_start,
