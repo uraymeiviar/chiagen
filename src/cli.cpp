@@ -320,7 +320,7 @@ int cli_check(uint32_t iterations, std::wstring filename) {
 	}
 	std::cout << "Total success: " << success << "/" << iterations << ", "
 				<< (success * 100 / static_cast<double>(iterations)) << "%." << std::endl;
-	progress(4, 1, 1);
+	//progress(4, 1, 1);
 	return 0;
 }
 

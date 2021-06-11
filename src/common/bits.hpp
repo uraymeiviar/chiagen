@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CHIAPOS_SRC_CPP_BITS_HPP_
-#define CHIAPOS_SRC_CPP_BITS_HPP_
+#ifndef SRC_CPP_BITS_HPP_
+#define SRC_CPP_BITS_HPP_
 
 #include <algorithm>
 #include <limits>
@@ -22,21 +22,34 @@
 #include <vector>
 
 #include "util.hpp"
+#include "exceptions.hpp"
 
 // 64 * 2^16. 2^17 values, each value can store 64 bits.
 #define kMaxSizeBits 8388608
 
 // A stack vector of length 5, having the functions of std::vector needed for Bits.
-class SmallVector {
-public:
+struct SmallVector {
     typedef uint16_t size_type;
-    SmallVector() noexcept;
-    uint64_t& operator[](const uint16_t index);
-    uint64_t operator[](const uint16_t index) const;
-    SmallVector& operator=(const SmallVector& other);
-    void push_back(uint64_t value);
-    size_type size() const noexcept;
+
+    SmallVector() noexcept { count_ = 0; }
+
+    uint64_t& operator[](const uint16_t index) { return v_[index]; }
+
+    uint64_t operator[](const uint16_t index) const { return v_[index]; }
+
+    void push_back(uint64_t value) { v_[count_++] = value; }
+
+    SmallVector& operator=(const SmallVector& other)
+    {
+        count_ = other.count_;
+        for (size_type i = 0; i < other.count_; i++) v_[i] = other.v_[i];
+        return (*this);
+    }
+
+    size_type size() const noexcept { return count_; }
+
     void resize(const size_type n) { count_ = n; }
+
 private:
     uint64_t v_[10];
     size_type count_;
@@ -45,15 +58,24 @@ private:
 // A stack vector of length 1024, having the functions of std::vector needed for Bits.
 // The max number of Bits that can be stored is 1024 * 64
 struct ParkVector {
-public:
     typedef uint32_t size_type;
 
-    ParkVector() noexcept;
-    uint64_t& operator[](const uint32_t index);
-    uint64_t operator[](const uint32_t index) const;
-    ParkVector& operator=(const ParkVector& other);
-	void push_back(uint64_t value);
-    size_type size() const noexcept;
+    ParkVector() noexcept { count_ = 0; }
+
+    uint64_t& operator[](const uint32_t index) { return v_[index]; }
+
+    uint64_t operator[](const uint32_t index) const { return v_[index]; }
+
+    void push_back(uint64_t value) { v_[count_++] = value; }
+
+    ParkVector& operator=(const ParkVector& other)
+    {
+        count_ = other.count_;
+        for (size_type i = 0; i < other.count_; i++) v_[i] = other.v_[i];
+        return (*this);
+    }
+
+    size_type size() const noexcept { return count_; }
 
 private:
     uint64_t v_[2048];
@@ -73,7 +95,8 @@ private:
  * BitsGeneric<T> object into a BitsGeneric<SmallVector>.
  */
 
-template <class T> class BitsGeneric {
+template <class T>
+class BitsGeneric {
 public:
     template <class>
     friend class BitsGeneric;

@@ -389,9 +389,9 @@ std::vector<uint64_t> b17RunPhase2(
             R_sort_manager = std::move(L_sort_manager);
         }
         delete[] right_entry_buf_SM;
-        if (flags & SHOW_PROGRESS) {
-            progress(2, 8 - table_index, 6);
-        }
+        //if (flags & SHOW_PROGRESS) {
+        //    progress(2, 8 - table_index, 6);
+        //}
     }
     L_sort_manager.reset();
     return new_table_sizes;
@@ -812,9 +812,9 @@ b17Phase3Results b17RunPhase3(
         final_table_writer += 8;
 
         table_timer.PrintElapsed("Total compress table time:");
-        if (flags & SHOW_PROGRESS) {
-            progress(3, table_index, 6);
-        }
+        //if (flags & SHOW_PROGRESS) {
+        //    progress(3, table_index, 6);
+        //}
     }
 
     L_sort_manager->ChangeMemory(memory, memory_size);
@@ -932,9 +932,9 @@ void b17RunPhase4(
             }
             prev_y = entry_y;
         }
-        if (flags & SHOW_PROGRESS && f7_position % progress_update_increment == 0) {
-            progress(4, f7_position, res.final_entries_written);
-        }
+        //if (flags & SHOW_PROGRESS && f7_position % progress_update_increment == 0) {
+        //    progress(4, f7_position, res.final_entries_written);
+        //}
     }
     Encoding::ANSFree(kC3R);
     res.table7_sm.reset();

@@ -124,6 +124,9 @@
     <Filter Include="libs\ImFrame\stb">
       <UniqueIdentifier>{2101493b-6a87-4aff-a86f-de35841dd02a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{f028c071-fd9c-4bcb-aa77-1868c8ce372b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cli.cpp">
@@ -138,15 +141,6 @@
     <ClCompile Include="src\chiapos\b17.cpp">
       <Filter>chiapos</Filter>
     </ClCompile>
-    <ClCompile Include="src\chiapos\bitfield.cpp">
-      <Filter>chiapos</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\bitfield_index.cpp">
-      <Filter>chiapos</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\bits.cpp">
-      <Filter>chiapos</Filter>
-    </ClCompile>
     <ClCompile Include="src\chiapos\calculate_bucket.cpp">
       <Filter>chiapos</Filter>
     </ClCompile>
@@ -154,9 +148,6 @@
       <Filter>chiapos</Filter>
     </ClCompile>
     <ClCompile Include="src\chiapos\disk.cpp">
-      <Filter>chiapos</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\encoding.cpp">
       <Filter>chiapos</Filter>
     </ClCompile>
     <ClCompile Include="src\chiapos\entry_sizes.cpp">
@@ -172,9 +163,6 @@
       <Filter>chiapos</Filter>
     </ClCompile>
     <ClCompile Include="src\chiapos\sort_manager.cpp">
-      <Filter>chiapos</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\util.cpp">
       <Filter>chiapos</Filter>
     </ClCompile>
     <ClCompile Include="src\chiapos\verifier.cpp">
@@ -593,15 +581,6 @@
     <ClInclude Include="src\chiapos\b17.hpp">
       <Filter>chiapos</Filter>
     </ClInclude>
-    <ClInclude Include="src\chiapos\bitfield.hpp">
-      <Filter>chiapos</Filter>
-    </ClInclude>
-    <ClInclude Include="src\chiapos\bitfield_index.hpp">
-      <Filter>chiapos</Filter>
-    </ClInclude>
-    <ClInclude Include="src\chiapos\bits.hpp">
-      <Filter>chiapos</Filter>
-    </ClInclude>
     <ClInclude Include="src\chiapos\calculate_bucket.hpp">
       <Filter>chiapos</Filter>
     </ClInclude>
@@ -609,9 +588,6 @@
       <Filter>chiapos</Filter>
     </ClInclude>
     <ClInclude Include="src\chiapos\disk.hpp">
-      <Filter>chiapos</Filter>
-    </ClInclude>
-    <ClInclude Include="src\chiapos\encoding.hpp">
       <Filter>chiapos</Filter>
     </ClInclude>
     <ClInclude Include="src\chiapos\entry_sizes.hpp">
@@ -636,9 +612,6 @@
       <Filter>chiapos</Filter>
     </ClInclude>
     <ClInclude Include="src\chiapos\thread_pool.hpp">
-      <Filter>chiapos</Filter>
-    </ClInclude>
-    <ClInclude Include="src\chiapos\util.hpp">
       <Filter>chiapos</Filter>
     </ClInclude>
     <ClInclude Include="src\chiapos\verifier.hpp">
@@ -1027,6 +1000,24 @@
     </ClInclude>
     <ClInclude Include="src\data.hpp">
       <Filter>chiapos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\bitfield.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\bitfield_index.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\bits.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\encoding.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\exceptions.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\util.hpp">
+      <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

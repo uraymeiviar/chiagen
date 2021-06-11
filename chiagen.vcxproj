@@ -52,13 +52,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -217,20 +217,15 @@
     <ClCompile Include="src\chiapos\b3\blake3_dispatch.c" />
     <ClCompile Include="src\chiapos\b3\blake3_portable.c" />
     <ClCompile Include="src\chiapos\b3\blake3_sse41.c" />
-    <ClCompile Include="src\chiapos\bitfield.cpp" />
-    <ClCompile Include="src\chiapos\bitfield_index.cpp" />
-    <ClCompile Include="src\chiapos\bits.cpp" />
     <ClCompile Include="src\chiapos\calculate_bucket.cpp" />
     <ClCompile Include="src\chiapos\chacha8.c" />
     <ClCompile Include="src\chiapos\data.cpp" />
     <ClCompile Include="src\chiapos\disk.cpp" />
-    <ClCompile Include="src\chiapos\encoding.cpp" />
     <ClCompile Include="src\chiapos\entry_sizes.cpp" />
     <ClCompile Include="src\chiapos\phases.cpp" />
     <ClCompile Include="src\chiapos\plotter_disk.cpp" />
     <ClCompile Include="src\chiapos\prover_disk.cpp" />
     <ClCompile Include="src\chiapos\sort_manager.cpp" />
-    <ClCompile Include="src\chiapos\util.cpp" />
     <ClCompile Include="src\chiapos\verifier.cpp" />
     <ClCompile Include="src\cli.cpp" />
     <ClCompile Include="src\gui.cpp" />
@@ -366,13 +361,9 @@
     <ClInclude Include="src\chiapos\b17.hpp" />
     <ClInclude Include="src\chiapos\b3\blake3.h" />
     <ClInclude Include="src\chiapos\b3\blake3_impl.h" />
-    <ClInclude Include="src\chiapos\bitfield.hpp" />
-    <ClInclude Include="src\chiapos\bitfield_index.hpp" />
-    <ClInclude Include="src\chiapos\bits.hpp" />
     <ClInclude Include="src\chiapos\calculate_bucket.hpp" />
     <ClInclude Include="src\chiapos\chacha8.h" />
     <ClInclude Include="src\chiapos\disk.hpp" />
-    <ClInclude Include="src\chiapos\encoding.hpp" />
     <ClInclude Include="src\chiapos\entry_sizes.hpp" />
     <ClInclude Include="src\chiapos\phases.hpp" />
     <ClInclude Include="src\chiapos\picosha2.hpp" />
@@ -381,9 +372,14 @@
     <ClInclude Include="src\chiapos\prover_disk.hpp" />
     <ClInclude Include="src\chiapos\sort_manager.hpp" />
     <ClInclude Include="src\chiapos\thread_pool.hpp" />
-    <ClInclude Include="src\chiapos\util.hpp" />
     <ClInclude Include="src\chiapos\verifier.hpp" />
     <ClInclude Include="src\cli.hpp" />
+    <ClInclude Include="src\common\bitfield.hpp" />
+    <ClInclude Include="src\common\bitfield_index.hpp" />
+    <ClInclude Include="src\common\bits.hpp" />
+    <ClInclude Include="src\common\encoding.hpp" />
+    <ClInclude Include="src\common\exceptions.hpp" />
+    <ClInclude Include="src\common\util.hpp" />
     <ClInclude Include="src\data.hpp" />
     <ClInclude Include="src\gui.hpp" />
     <ClInclude Include="src\Job.hpp" />

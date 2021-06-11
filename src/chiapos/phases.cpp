@@ -747,9 +747,9 @@ std::vector<uint64_t> RunPhase1(
 
 		prevtableentries = context->globals.right_writer_count;
 		table_timer.PrintElapsed("Forward propagation table time:");
-		if ((flags & SHOW_PROGRESS) || show_progress) {
-			progress(1, table_index, 6);
-		}
+		//if ((flags & SHOW_PROGRESS) || show_progress) {
+		//	progress(1, table_index, 6);
+		//}
 	}
 	table_sizes[0] = 0;
 	context->globals.R_sort_manager.reset();
@@ -961,9 +961,9 @@ Phase2Results RunPhase2(
 		if (table_index != 7) {
 			tmp_1_disks[table_index].Truncate(0);
 		}
-		if (flags & SHOW_PROGRESS) {
-			progress(2, 8 - table_index, 6);
-		}
+		//if (flags & SHOW_PROGRESS) {
+		//	progress(2, 8 - table_index, 6);
+		//}
 	}
 
 	// lazy-compact table 1 based on current_bitfield
@@ -1396,9 +1396,9 @@ Phase3Results RunPhase3(
 
 		left_disk.FreeMemory();
 		right_disk.FreeMemory();
-		if (flags & SHOW_PROGRESS) {
-			progress(3, table_index, 6);
-		}
+		//if (flags & SHOW_PROGRESS) {
+		//	progress(3, table_index, 6);
+		//}
 	}
 
 	L_sort_manager->FreeMemory();
@@ -1512,9 +1512,9 @@ void RunPhase4(
 			deltas_to_write.push_back(entry_y - prev_y);
 			prev_y = entry_y;
 		}
-		if (flags & SHOW_PROGRESS && f7_position % progress_update_increment == 0) {
-			progress(4, f7_position, res.final_entries_written);
-		}
+		//if (flags & SHOW_PROGRESS && f7_position % progress_update_increment == 0) {
+		//	progress(4, f7_position, res.final_entries_written);
+		//}
 	}
 	Encoding::ANSFree(kC3R);
 	res.table7_sm.reset();

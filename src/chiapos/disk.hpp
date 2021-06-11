@@ -22,6 +22,7 @@
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <filesystem>
 
 // enables disk I/O logging to disk.log
 // use tools/disk.gnuplot to generate a plot
@@ -33,6 +34,8 @@ using namespace std::chrono_literals; // for operator""min;
 #include "util.hpp"
 #include "bitfield.hpp"
 #include "thread_pool.hpp"
+
+namespace fs = std::filesystem;
 
 constexpr uint64_t write_cache = 4 * 1024 * 1024;
 constexpr uint64_t read_ahead = 4 * 1024 * 1024;

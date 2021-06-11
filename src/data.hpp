@@ -6,6 +6,8 @@
 #include "thread_pool.hpp"
 #include "Job.hpp"
 #include <stack>
+#include <vector>
+#include "disk.hpp"
 
 struct THREADDATA {
 	int index;
