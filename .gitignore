@@ -3,3 +3,4 @@ bin/
 obj/
 *.diagsession
 *.vsp
+release/
