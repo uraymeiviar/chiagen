@@ -22,7 +22,7 @@ JobCreatePlot::JobCreatePlot(std::string title) : Job(title)
 
 void JobCreatePlot::init()
 {
-	this->jobProgress = std::make_shared<JobProgress>(this->getTitle());
+	this->activity = std::make_shared<JobActvity>(this->getTitle());
 	this->startEvent = std::make_shared<JobEvent>("job-start");
 	this->finishEvent = std::make_shared<JobEvent>("job-finish");
 	this->phase1FinishEvent = std::make_shared<JobEvent>("phase1-finish");
@@ -777,7 +777,7 @@ bool JobCreatePlotFinishRule::drawItemWidget() {
 std::shared_ptr<JobTaskItem> CreatePlotContext::getCurrentTask()
 {
 	if (this->tasks.empty()) {
-		return this->job->jobProgress;
+		return this->job->activity;
 	}
 	else {
 		return this->tasks.top();
@@ -793,9 +793,12 @@ std::shared_ptr<JobTaskItem> CreatePlotContext::pushTask(std::string name, uint3
 	return newTask;
 }
 
-std::shared_ptr<JobTaskItem> CreatePlotContext::popTask()
+std::shared_ptr<JobTaskItem> CreatePlotContext::popTask(bool finish)
 {
 	std::shared_ptr<JobTaskItem> result = this->tasks.top();
+	if (finish) {
+		result->stop(finish);
+	}	
 	this->tasks.pop();
 	return result;
 }

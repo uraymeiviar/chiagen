@@ -180,12 +180,12 @@ static uint32_t CalculateParkSize(uint8_t k, uint8_t table_index)
 }
 
 // Writes the plot file header to a file
-uint32_t WriteHeader(
+size_t WriteHeader(
 	FILE* file,
 	uint8_t k,
 	const uint8_t* id,
 	const uint8_t* memo,
-	uint32_t memo_len)
+	size_t memo_len)
 {
 	// 19 bytes  - "Proof of Space Plot" (utf-8)
 	// 32 bytes  - unique plot id
@@ -443,7 +443,7 @@ void compute(	DiskPlotterContext& context,
 	out.params = input.params;
 	out.plot_file_name = tmp_dir + plot_name + ".plot.tmp";
 	
-	FILE* plot_file = fopen(out.plot_file_name.c_str(), "wb");
+	FILE* plot_file = FOPEN(out.plot_file_name.c_str(), "wb");
 	if(!plot_file) {
 		throw std::runtime_error("fopen() failed");
 	}
@@ -504,7 +504,7 @@ void compute(	DiskPlotterContext& context,
 		
 		num_written_final += compute_stage2(context,
 				L_index, num_threads, R_sort_lp.get(), L_sort_np.get(),
-				plot_file, final_pointers[L_index], &final_pointers[L_index + 1]);
+				plot_file, final_pointers[L_index], &final_pointers[(size_t)L_index + 1]);
 		context.popTask();
 	}
 	
@@ -525,12 +525,13 @@ void compute(	DiskPlotterContext& context,
 			plot_file, final_pointers[6], &final_pointers[7]);
 	num_written_final += num_written_final_7;
 	
-	fseek_set(plot_file, out.header_size - 10 * 8);
+	fseek_set(plot_file, (size_t)out.header_size - 10 * 8);
 	for(size_t i = 1; i < final_pointers.size(); ++i) {
 		uint8_t tmp[8] = {};
 		IntToEightBytes(tmp, final_pointers[i]);
 		fwrite_ex(plot_file, tmp, sizeof(tmp));
 	}
+	fflush(plot_file);
 	fclose(plot_file);
 	
 	out.sort_7 = L_sort_np;

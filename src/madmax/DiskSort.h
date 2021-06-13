@@ -35,6 +35,7 @@ namespace mad {
 		};
 	
 	public:
+		DiskPlotterContext* context;
 		class WriteCache {
 		public:
 			WriteCache(DiskSort* disk, int key_shift, int num_buckets);
@@ -48,7 +49,8 @@ namespace mad {
 		};
 	
 		DiskSort(	int key_size, int log_num_buckets,
-					std::string file_prefix, bool read_only = false);
+					std::string file_prefix, bool read_only = false,
+					DiskPlotterContext* context = nullptr);
 	
 		~DiskSort() {
 			close();
@@ -57,7 +59,7 @@ namespace mad {
 		DiskSort(DiskSort&) = delete;
 		DiskSort& operator=(DiskSort&) = delete;
 	
-		void read(	Processor<std::pair<std::vector<T>, size_t>>* output,
+	void read(	Processor<std::pair<std::vector<T>, size_t>>* output,
 					int num_threads, int num_threads_read = -1);
 	
 		void finish();
@@ -80,8 +82,8 @@ namespace mad {
 		}
 	
 	private:
-		void read_bucket(	std::pair<size_t, size_t>& index,
-							std::vector<std::pair<std::vector<T>, size_t>>& out,
+	void read_bucket(	std::pair<size_t, size_t>& index,
+						std::vector<std::pair<std::vector<T>, size_t>>& out,
 							read_buffer_t<T>& buffer);
 	
 	private:

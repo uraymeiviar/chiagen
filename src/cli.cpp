@@ -211,12 +211,18 @@ bool create_plot_precheck(
 		}
 		else {
 			outParam.finalDir = destPath.wstring();
+			if (outParam.finalDir[outParam.finalDir.length() - 1] != '/') {
+				outParam.finalDir += L"/";
+			}
 			destPath = destPath / outParam.plot_name;
 		}
 	}
 	else {
 		if (std::filesystem::create_directory(destPath)) {
 			outParam.finalDir = destPath.wstring();
+			if (outParam.finalDir[outParam.finalDir.length() - 1] != '/') {
+				outParam.finalDir += L"/";
+			}
 			destPath = destPath / outParam.plot_name;
 		}
 		else {
@@ -245,6 +251,9 @@ bool create_plot_precheck(
 	}
 	tempdir = tempPath.string();
 	outParam.tempDir = tempdir.wstring();
+	if (outParam.tempDir[outParam.tempDir.length() - 1] != '/') {
+		outParam.tempDir += L"/";
+	}
 
 	if (tempdir2.empty()) {
 		tempdir2 = tempdir;		
@@ -266,6 +275,9 @@ bool create_plot_precheck(
 	}
 	tempdir2 = tempPath2.string();
 	outParam.tempDir2 = tempdir.wstring();
+	if (outParam.tempDir2[outParam.tempDir2.length() - 1] != '/') {
+		outParam.tempDir2 += L"/";
+	}
 
 	wcout << L"Generating plot for k=" << static_cast<int>(k) << " filename=" << outParam.plot_name << endl << endl;
 
@@ -474,10 +486,10 @@ int cli_proof(std::string challenge, std::wstring filename) {
 		vector<LargeBits> qualities = prover.GetQualitiesForChallenge(challenge_bytes);
 		for (uint32_t i = 0; i < qualities.size(); i++) {
 			uint8_t k = prover.GetSize();
-			uint8_t *proof_data = new uint8_t[8 * k];
+			uint8_t *proof_data = new uint8_t[8 * (size_t)k];
 			LargeBits proof = prover.GetFullProof(challenge_bytes, i);
 			proof.ToBytes(proof_data);
-			cout << "Proof: 0x" << HexStr(proof_data, k * 8) << endl;
+			cout << "Proof: 0x" << HexStr(proof_data, (size_t)k * 8) << endl;
 			delete[] proof_data;
 		}
 		if (qualities.empty()) {
@@ -512,8 +524,10 @@ int cli_create_mad(
 		params.id = param.plot_id;
 		params.memo = param.memo_data;
 		params.plot_name = ws2s(param.plot_name);
-
-		int log_num_buckets = int(log2(num_buckets));
+		params.log_num_buckets = int(log2(param.num_buckets));
+		params.tempDir = ws2s(param.tempDir);
+		params.tempDir2 = ws2s(param.tempDir2);
+		params.num_threads = param.num_threads;
 
 		mad::DiskPlotterContext context;
 		context.job = std::make_shared<JobCreatePlot>("cli");
@@ -529,25 +543,26 @@ int cli_create_mad(
 			plottingJob->startEvent->trigger();
 
 			mad::phase1::output_t out_1;
-			mad::phase1::compute(context, params, out_1, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+			mad::phase1::Phase1 p1(&context);
+			p1.compute(params, out_1);
 	
 			context.popTask();
 			plottingJob->phase1FinishEvent->trigger();
 
 			mad::phase2::output_t out_2;
-			mad::phase2::compute(context, out_1, out_2, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+			mad::phase2::compute(context, out_1, out_2, num_threads, params.log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
 	
 			context.popTask();
 			plottingJob->phase2FinishEvent->trigger();
 
 			mad::phase3::output_t out_3;
-			mad::phase3::compute(context, out_2, out_3, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+			mad::phase3::compute(context, out_2, out_3, num_threads, params.log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
 	
 			context.popTask();
 			plottingJob->phase3FinishEvent->trigger();
 
 			mad::phase4::output_t out_4;
-			mad::phase4::compute(context, out_3, out_4, num_threads, log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
+			mad::phase4::compute(context, out_3, out_4, num_threads, params.log_num_buckets, ws2s(param.plot_name), ws2s(param.tempDir), ws2s(param.tempDir2));
 			
 			context.popTask();
 			plottingJob->phase4FinishEvent->trigger();
@@ -555,29 +570,34 @@ int cli_create_mad(
 			std::cout << "Total plot creation time was "
 				<< (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
 
-			mad::Thread<std::pair<std::string, std::string>> copy_thread(
-			[](std::pair<std::string, std::string>& from_to) {
-				const auto total_begin = get_wall_time_micros();
-				while(true) {
-					try {
-						const auto bytes = mad::final_copy(from_to.first, from_to.second);
-					
-						const auto time = (get_wall_time_micros() - total_begin) / 1e6;
-						std::cout << "Copy to " << from_to.second << " finished, took " << time << " sec, "
-								<< ((bytes / time) / 1024 / 1024) << " MB/s avg." << std::endl;
-						break;
-					} catch(const std::exception& ex) {
-						std::cout << "Copy to " << from_to.second << " failed with: " << ex.what() << std::endl;
-						std::this_thread::sleep_for(std::chrono::minutes(5));
-					}
-				}
-			}, "final/copy");
+			//mad::Thread<std::pair<std::string, std::string>> copy_thread(
+			//[](std::pair<std::string, std::string>& from_to) {
+			//	const auto total_begin = get_wall_time_micros();
+			//	while(true) {
+			//		try {
+			//			const auto bytes = mad::final_copy(from_to.first, from_to.second);
+			//		
+			//			const auto time = (get_wall_time_micros() - total_begin) / 1e6;
+			//			std::cout << "Copy to " << from_to.second << " finished, took " << time << " sec, "
+			//					<< ((bytes / time) / 1024 / 1024) << " MB/s avg." << std::endl;
+			//			break;
+			//		} catch(const std::exception& ex) {
+			//			std::cout << "Copy to " << from_to.second << " failed with: " << ex.what() << std::endl;
+			//			std::this_thread::sleep_for(std::chrono::minutes(5));
+			//		}
+			//	}
+			//}, "final/copy");
 
 			if(finaldir != tempdir)
 			{
 				const auto dst_path = finaldir / param.plot_name;
 				std::cout << "Started copy to " << dst_path << std::endl;
-				copy_thread.take_copy(std::make_pair(out_4.plot_file_name, dst_path.string()));
+				const auto total_begin = get_wall_time_micros();
+				std::filesystem::copy(out_4.plot_file_name, dst_path);
+				const auto time = (get_wall_time_micros() - total_begin) / 1e6;
+				//copy_thread.take_copy(std::make_pair(out_4.plot_file_name, dst_path.string()));
+				std::cout << "Copy to " << dst_path.string() << " finished, took " << time << " sec " << std::endl;
+			//					<< ((bytes / time) / 1024 / 1024) << " MB/s avg." << std::endl;
 			}
 			context.popTask();
 			plottingJob->finishEvent->trigger();

@@ -135,6 +135,10 @@ bool CreateNewConsole(int16_t minLength)
 
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nShowCmd) {
+#ifdef _WIN32	
+	// the following line increases the number of open simultaneous files
+	int newmaxstdio = _setmaxstdio(8192);
+#endif
 	LPWSTR *args;
 	int nArgs;
 	args = CommandLineToArgvW(GetCommandLineW(), &nArgs);

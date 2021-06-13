@@ -48,7 +48,7 @@ std::vector<uint64_t> b17RunPhase2(
         // The memory will be used like this, with most memory allocated towards the SortManager,
         // since it needs it
         // [--------------------------SM/RR-------------------------|-----------LW-------------|--RW--|--LR--]
-        uint64_t sort_manager_buf_size = floor(kMemSortProportion * memory_size);
+        uint64_t sort_manager_buf_size = (uint64_t)floor(kMemSortProportion * (double)memory_size);
         uint64_t left_writer_buf_size = 3 * (memory_size - sort_manager_buf_size) / 4;
         uint64_t other_buf_sizes = (memory_size - sort_manager_buf_size - left_writer_buf_size) / 2;
         uint8_t *right_reader_buf = &(memory[0]);
@@ -470,7 +470,7 @@ b17Phase3Results b17RunPhase3(
         // The memory will be used like this, with most memory allocated towards the SortManager,
         // since it needs it
         // [---------------------------SM/LR---------------------|----------RW--------|---RR---]
-        uint64_t sort_manager_buf_size = floor(kMemSortProportion * memory_size);
+        uint64_t sort_manager_buf_size = (uint64_t)floor(kMemSortProportion * (double)memory_size);
         uint64_t right_writer_buf_size = 3 * (memory_size - sort_manager_buf_size) / 4;
         uint64_t right_reader_buf_size =
             memory_size - sort_manager_buf_size - right_writer_buf_size;
@@ -674,7 +674,7 @@ b17Phase3Results b17RunPhase3(
         // LeftSortManager, since it needs it
         // [---------------------------LSM/RR-----------------------------------|---------RSM/RW---------]
         right_reader = 0;
-        right_reader_buf_size = floor(kMemSortProportionLinePoint * memory_size);
+        right_reader_buf_size = (uint64_t)floor(kMemSortProportionLinePoint * (double)memory_size);
         right_writer_buf_size = memory_size - right_reader_buf_size;
         right_reader_buf = &(memory[0]);
         right_writer_buf = &(memory[right_reader_buf_size]);
@@ -839,7 +839,7 @@ void b17RunPhase4(
     FileDisk &tmp2_disk,
     b17Phase3Results &res,
     const uint8_t flags,
-    const int max_phase4_progress_updates)
+    const size_t max_phase4_progress_updates)
 {
     uint32_t P7_park_size = ByteAlign((k + 1) * kEntriesPerPark) / 8;
     uint64_t number_of_p7_parks =
@@ -880,7 +880,7 @@ void b17RunPhase4(
     std::cout << "\tStarting to write C1 and C3 tables" << std::endl;
 
     ParkBits to_write_p7;
-    const int progress_update_increment = res.final_entries_written / max_phase4_progress_updates;
+    const size_t progress_update_increment = res.final_entries_written / max_phase4_progress_updates;
 
     // We read each table7 entry, which is sorted by f7, but we don't need f7 anymore. Instead,
     // we will just store pos6, and the deltas in table C3, and checkpoints in tables C1 and C2.
@@ -1020,7 +1020,7 @@ b17SortManager::b17SortManager(
     this->entry_size = entry_size;
     this->begin_bits = begin_bits;
     this->done = false;
-    this->prev_bucket_buf_size = 2 * (stripe_size + 10 * (kBC / pow(2, kExtraBits))) * entry_size;
+    this->prev_bucket_buf_size = 2 * (stripe_size + 10 * (size_t)((double)kBC / pow(2, kExtraBits))) * (size_t)entry_size;
     this->prev_bucket_buf = new uint8_t[this->prev_bucket_buf_size]();
     this->prev_bucket_position_start = 0;
     // Cross platform way to concatenate paths, gulrak library.

@@ -150,7 +150,7 @@ public:
             dpdf.push_back(p);
             N++;
             p = (pow(E, 1.0 / R) - 1) * pow(E - 1, 1.0 / R);
-            p /= pow(E, ((N + 1) / R));
+            p /= pow(E, (((size_t)N + 1) / R));
         }
 
         std::vector<short> ans(N, 1);
@@ -181,8 +181,8 @@ public:
     {
         if (!tmCache.CTExists(R)) {
             std::vector<short> nCount = Encoding::CreateNormalizedCount(R);
-            unsigned maxSymbolValue = nCount.size() - 1;
-            unsigned tableLog = 14;
+            size_t maxSymbolValue = nCount.size() - 1;
+            size_t tableLog = 14;
 
             if (maxSymbolValue > 255)
                 throw std::invalid_argument("maxSymbolValue > 255");
@@ -213,8 +213,8 @@ public:
     {
         if (!tmCache.DTExists(R)) {
             std::vector<short> nCount = Encoding::CreateNormalizedCount(R);
-            unsigned maxSymbolValue = nCount.size() - 1;
-            unsigned tableLog = 14;
+            size_t maxSymbolValue = nCount.size() - 1;
+            size_t tableLog = 14;
 
             FSE_DTable *dt = FSE_createDTable(tableLog);
             size_t err = FSE_buildDTable(dt, nCount.data(), maxSymbolValue, tableLog);

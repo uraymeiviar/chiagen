@@ -473,7 +473,7 @@ PrivateKey::PrivateKey(const PrivateKey &privateKey)
 	bn_copy((bn_st*)keydata, (bn_st*)privateKey.keydata);
 }
 
-PrivateKey::PrivateKey(PrivateKey &&k)
+PrivateKey::PrivateKey(PrivateKey &&k) noexcept
 	: keydata(std::exchange(k.keydata, nullptr))
 {
 	k.InvalidateCaches();

@@ -128,7 +128,7 @@ private:
     uint8_t k_{};
     uint8_t table_index_{};
     std::vector<struct rmap_item> rmap;
-    std::vector<uint16_t> rmap_clean;
+    std::vector<size_t> rmap_clean;
 
 	static void load_tables();
 	static uint16_t L_targets[2][kBC][kExtraBitsPow];

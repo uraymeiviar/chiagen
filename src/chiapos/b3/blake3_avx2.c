@@ -1,6 +1,5 @@
 #include "blake3_impl.h"
 
-#include <intrin.h>
 #include <immintrin.h>
 
 #define DEGREE 8

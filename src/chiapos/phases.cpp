@@ -1036,9 +1036,9 @@ Phase3Results RunPhase3(
 
 	// These variables are used in the WriteParkToFile method. They are preallocatted here
 	// to save time.
-	uint64_t const park_buffer_size = EntrySizes::CalculateLinePointSize(k) +
-									  EntrySizes::CalculateStubsSize(k) + 2 +
-									  EntrySizes::CalculateMaxDeltasSize(k, 1);
+	uint64_t const park_buffer_size = (uint64_t)EntrySizes::CalculateLinePointSize(k) +
+									  (uint64_t)EntrySizes::CalculateStubsSize(k) + 2 +
+									  (uint64_t)EntrySizes::CalculateMaxDeltasSize(k, 1);
 	std::unique_ptr<uint8_t[]> park_buffer(new uint8_t[park_buffer_size]);
 
 	// Iterates through all tables, starting at 1, with L and R pointers.

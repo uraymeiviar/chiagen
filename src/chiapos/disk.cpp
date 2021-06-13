@@ -1,4 +1,5 @@
 #include "disk.hpp"
+#include "stdiox.hpp"
 
 #if ENABLE_LOGGING
 // logging is currently unix / bsd only: use <fstream> or update
@@ -83,16 +84,10 @@ void FileDisk::Read(uint64_t begin, uint8_t* memcache, uint64_t length)
     uint64_t amtread;
     do {
         if ((!bReading) || (begin != readPos)) {
-#ifdef _WIN32
-            _fseeki64(f_, begin, SEEK_SET);
-#else
-            // fseek() takes a long as offset, make sure it's wide enough
-            static_assert(sizeof(long) >= sizeof(begin));
-            ::fseek(f_, begin, SEEK_SET);
-#endif
+			FSEEK(f_, begin, SEEK_SET);
             bReading = true;
         }
-        amtread = ::fread(reinterpret_cast<char*>(memcache), sizeof(uint8_t), length, f_);
+        amtread = fread(reinterpret_cast<char*>(memcache), sizeof(uint8_t), length, f_);
         readPos = begin + amtread;
         if (amtread != length) {
             std::cout << "Only read " << amtread << " of " << length << " bytes at offset " << begin
@@ -118,13 +113,7 @@ void FileDisk::Write(uint64_t begin, const uint8_t* memcache, uint64_t length)
     uint64_t amtwritten;
     do {
         if ((bReading) || (begin != writePos)) {
-#ifdef _WIN32
-            _fseeki64(f_, begin, SEEK_SET);
-#else
-            // fseek() takes a long as offset, make sure it's wide enough
-            static_assert(sizeof(long) >= sizeof(begin));
-            ::fseek(f_, begin, SEEK_SET);
-#endif
+			FSEEK(f_, begin, SEEK_SET);
             bReading = false;
         }
         amtwritten = ::fwrite(reinterpret_cast<const char*>(memcache), sizeof(uint8_t), length, f_);
@@ -171,11 +160,7 @@ void FileDisk::Open(uint8_t flags /*= 0*/)
 
     // Opens the file for reading and writing
     do {
-#ifdef _WIN32
-        f_ = ::_wfopen(filename_.c_str(), (flags & writeFlag) ? L"w+b" : L"r+b");
-#else
-        f_ = ::fopen(filename_.c_str(), (flags & writeFlag) ? "w+b" : "r+b");
-#endif
+        f_ = FOPEN((const char*)filename_.string().c_str(), (flags & writeFlag) ? "w+b" : "r+b");
         if (f_ == nullptr) {
             char err_buffer[256];
             if (::strerror_s(err_buffer, 255, errno) != 0) {

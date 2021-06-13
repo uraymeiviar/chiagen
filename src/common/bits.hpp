@@ -61,7 +61,14 @@ private:
 struct ParkVector {
     typedef uint32_t size_type;
 
-    ParkVector() noexcept { count_ = 0; }
+    ParkVector() noexcept { 
+		count_ = 0; 
+		v_ = new uint64_t[2048];
+	}
+
+	~ParkVector() {
+		delete[] v_;
+	}
 
     uint64_t& operator[](const uint32_t index) { return v_[index]; }
 
@@ -79,7 +86,8 @@ struct ParkVector {
     size_type size() const noexcept { return count_; }
 
 private:
-    uint64_t v_[2048];
+    //uint64_t v_[2048];
+	uint64_t* v_;
     size_type count_;
 };
 

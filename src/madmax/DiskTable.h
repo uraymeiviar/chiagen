@@ -27,19 +27,20 @@ namespace mad {
 				delete [] buffer;
 			}
 		};
-	
+		DiskPlotterContext* context;
 	public:
-		DiskTable(std::string file_name, size_t num_entries = 0)
+		DiskTable(std::string file_name, size_t num_entries = 0, DiskPlotterContext* context = nullptr)
 			:	file_name(file_name),
-				num_entries(num_entries)
+				num_entries(num_entries),
+				context(context)
 		{
 			if(!num_entries) {
-				file_out = fopen(file_name.c_str(), "wb");
+				file_out = FOPEN(file_name.c_str(), "wb");
 			}
 		}
 	
-		DiskTable(const table_t& info)
-			:	DiskTable(info.file_name, info.num_entries)
+		DiskTable(const table_t& info, DiskPlotterContext* context = nullptr)
+			:	DiskTable(info.file_name, info.num_entries, context)
 		{
 		}
 	
@@ -63,12 +64,14 @@ namespace mad {
 		{
 			ThreadPool<std::pair<size_t, size_t>, std::pair<std::vector<T>, size_t>, local_t> pool(
 				std::bind(&DiskTable::read_block, this,
-						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-				output, num_threads_read, "Table/read");
+						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3
+				),
+				output, num_threads_read, "Table/read"
+			);
 		
 			for(size_t i = 0; i < pool.num_threads(); ++i)
 			{
-				FILE* file = fopen(file_name.c_str(), "rb");
+				FILE* file = FOPEN(file_name.c_str(), "rb");
 				if(!file) {
 					throw std::runtime_error("fopen() failed");
 				}
@@ -120,7 +123,7 @@ namespace mad {
 						std::pair<std::vector<T>, size_t>& out,
 						local_t& local) const
 		{
-			if(int err = fseek(local.file, param.first * T::disk_size, SEEK_SET)) {
+			if(int err = FSEEK(local.file, param.first * T::disk_size, SEEK_SET)) {
 				throw std::runtime_error("fseek() failed");
 			}
 			if(fread(local.buffer, T::disk_size, param.second, local.file) != param.second) {

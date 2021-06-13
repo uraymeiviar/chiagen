@@ -21,11 +21,11 @@ namespace mad {
 	inline
 	uint64_t copy_file(const std::string& src_path, const std::string& dst_path)
 	{
-		FILE* src = fopen(src_path.c_str(), "rb");
+		FILE* src = FOPEN(src_path.c_str(), "rb");
 		if(!src) {
 			throw std::runtime_error("fopen() failed");
 		}
-		FILE* dst = fopen(dst_path.c_str(), "wb");
+		FILE* dst = FOPEN(dst_path.c_str(), "wb");
 		if(!dst) {
 			throw std::runtime_error("fopen() failed");
 		}

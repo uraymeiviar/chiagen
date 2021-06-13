@@ -1,6 +1,6 @@
 #include "Job.hpp"
 #include "imgui.h"
-
+#include <thread>
 
 #include <psapi.h>
 
@@ -148,20 +148,6 @@ void JobTaskItem::removeChild(std::shared_ptr<JobTaskItem> task)
 	),this->tasks.end());
 }
 
-void JobTaskItem::addDiskRead(uint64_t byteSize)
-{
-	if (this->parentTask) {
-		parentTask->addDiskRead(byteSize);
-	}
-}
-
-void JobTaskItem::addDiskWrite(uint64_t byteSize)
-{
-	if (this->parentTask) {
-		parentTask->addDiskWrite(byteSize);
-	}
-}
-
 float JobTaskItem::getProgress()
 {
 	if (!this->tasks.empty()) {
@@ -223,105 +209,95 @@ uint32_t JobTaskItem::getCompletedWorkItems()
 
 void JobTaskItem::start()
 {
-	if (!this->running) {
+	if (!this->state.running) {
 		this->startTime = std::chrono::system_clock::now();
-		this->running = true;
+		this->state.running = true;
 	}
-	this->finished = false;
+	this->state.finished = false;
 }
 
 void JobTaskItem::stop(bool finished /*= true*/)
 {
 	if (finished) {
 		this->finishTime = std::chrono::system_clock::now();
-		this->running = false;
+		this->state.running = false;
 	}
-	this->finished = finished;
+	this->state.finished = finished;
 }
 
 bool JobTaskItem::isRunning() const
 {
-	return this->running;
+	return this->state.running;
 }
 
 bool JobTaskItem::isFinished() const
 {
-	return this->finished;
+	return this->state.finished;
 }
 
-JobProgress::JobProgress(std::string name) :JobTaskItem(name)
+JobActvity::JobActvity(std::string name) :JobTaskItem(name)
 {
 	this->myProcess = ::GetCurrentProcess();
 }
 
-void JobProgress::addDiskRead(uint64_t byteSize)
-{
-	this->diskRead += byteSize;
-}
-
-void JobProgress::addDiskWrite(uint64_t byteSize)
-{
-	this->diskWrite += byteSize;
-}
-
-void JobProgress::start(HANDLE jobThread, uint32_t updateInterval, uint32_t sampleCount)
+void JobActvity::start(uint32_t updateInterval, uint32_t sampleCount)
 {
 	this->statSampleCount = sampleCount;
 	this->statUpdateInterval = updateInterval;	
 	this->lastSampleTime = std::chrono::steady_clock::now();
 	//TODO : start jobThread
 	//if success
-	this->paused = false;
+	this->state.paused = false;
 	JobTaskItem::start();
 }
 
-void JobProgress::stop(bool finished, bool force /*= false*/)
+void JobActvity::stop(bool finished, bool force /*= false*/)
 {
-	this->finished = finished;
+	this->state.finished = finished;
 	samplerUpdate();
-	this->running = false;
+	this->state.running = false;
 	if (!finished) {
 		//TODO:: kill thread ? or wait?
 	}
 	JobTaskItem::stop(finished);
 }
 
-void JobProgress::pause(bool isPause /*= true*/)
+void JobActvity::pause(bool isPause /*= true*/)
 {
-	if (isPause != this->paused) {
+	if (isPause != this->state.paused) {
 		if (!isPause) {
-			this->paused = true;
+			this->state.paused = true;
 			this->lastSampleTime = std::chrono::steady_clock::now();
 			//TODO : suspend jobThread
 		}
 		else {
-			this->paused = false;
+			this->state.paused = false;
 			this->lastSampleTime = std::chrono::steady_clock::now();
 			//TODO : resume jobThread
 		}
 	}
 }
 
-bool JobProgress::isPaused() const
+bool JobActvity::isPaused() const
 {
-	return this->paused;
+	return this->state.paused;
 }
 
-void JobProgress::samplerUpdate()
+void JobActvity::samplerUpdate()
 {
 	this->collectCPUUsage();
 	this->collectMemUsage();
 	this->collectDiskUsage();
 }
 
-void JobProgress::collectCPUUsage()
+void JobActvity::collectCPUUsage()
 {
 	std::chrono::time_point<std::chrono::steady_clock> cur = std::chrono::steady_clock::now();
 	FILETIME creationTime;
 	FILETIME exitTime;
 	FILETIME kernelTime;
 	FILETIME userTime;
-	::GetThreadTimes(this->jobThread, &creationTime, &exitTime, &kernelTime, &userTime);
+	::GetThreadTimes(this->jobThread.native_handle(), &creationTime, &exitTime, &kernelTime, &userTime);
 	ULARGE_INTEGER kernelTimeInt;
 	kernelTimeInt.LowPart = kernelTime.dwLowDateTime;
 	kernelTimeInt.HighPart = kernelTime.dwHighDateTime;
@@ -352,7 +328,7 @@ void JobProgress::collectCPUUsage()
 	this->lastSampleTime = std::chrono::steady_clock::now();
 }
 
-void JobProgress::collectMemUsage()
+void JobActvity::collectMemUsage()
 {
 	PROCESS_MEMORY_COUNTERS_EX pmc;
 	if (GetProcessMemoryInfo(this->myProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
@@ -364,19 +340,42 @@ void JobProgress::collectMemUsage()
 	}
 }
 
-void JobProgress::collectDiskUsage()
+void JobActvity::collectDiskUsage()
 {
-	this->diskWriteHistory.push_back(this->lastDiskWrite - this->diskWrite);
-	this->lastDiskWrite = this->diskWrite;
-	this->diskReadHistory.push_back(this->lastDiskRead - this->diskRead);
-	this->lastDiskRead = this->diskRead;
+	::IO_COUNTERS counter;
+	if (::GetProcessIoCounters(this->myProcess, &counter)) {
+		this->diskWriteHistory.push_back(counter.WriteTransferCount - lastDiskWrite);
+		this->lastDiskWrite = counter.WriteTransferCount;
+		this->diskReadHistory.push_back(counter.ReadTransferCount - lastDiskRead);
+		this->lastDiskRead = counter.ReadTransferCount;
 
-	while (this->diskWriteHistory.size() > this->statSampleCount) {
-		this->diskWriteHistory.erase(this->diskWriteHistory.begin());
+		while (this->diskWriteHistory.size() > this->statSampleCount) {
+			this->diskWriteHistory.erase(this->diskWriteHistory.begin());
+		}
+
+		while (this->diskReadHistory.size() > this->statSampleCount) {
+			this->diskReadHistory.erase(this->diskReadHistory.begin());
+		}
 	}
+}
 
-	while (this->diskReadHistory.size() > this->statSampleCount) {
-		this->diskReadHistory.erase(this->diskReadHistory.begin());
+void JobActvity::samplerThreadProc()
+{
+	while (this->isRunning()) {
+		if (!this->isPaused()) {
+			auto start = std::chrono::steady_clock::now();
+			auto elapsed = start - this->lastSampleTime;
+			if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {
+				this->samplerUpdate();
+				this->lastSampleTime = start;
+			}
+			else {
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+			}
+		}
+		else {
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
 	}
 }
 

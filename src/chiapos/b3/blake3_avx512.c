@@ -1,8 +1,6 @@
 #include "blake3_impl.h"
 
-#include <intrin.h>
 #include <immintrin.h>
-#include <emmintrin.h>
 
 #define _mm_shuffle_ps2(a, b, c)                                               \
   (_mm_castps_si128(                                                           \

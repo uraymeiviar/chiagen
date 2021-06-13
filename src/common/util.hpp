@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 #include <assert.h>
+#include "stdiox.hpp"
 
 template <typename Int>
 constexpr inline Int cdiv(Int a, int b) { return (a + b - 1) / b; }
@@ -238,8 +239,8 @@ inline uint8_t GetSizeBits(uint128_t value)
 // extra 7 bytes to all memory buffers passed to this function.
 inline uint64_t SliceInt64FromBytes(
     const uint8_t *bytes,
-    uint32_t start_bit,
-    const uint32_t num_bits)
+    size_t start_bit,
+    const size_t num_bits)
 {
     uint64_t tmp;
 
@@ -256,10 +257,10 @@ inline uint64_t SliceInt64FromBytes(
 
 inline uint64_t SliceInt64FromBytesFull(
     const uint8_t *bytes,
-    uint32_t start_bit,
-    uint32_t num_bits)
+    size_t start_bit,
+    size_t num_bits)
 {
-    uint32_t last_bit = start_bit + num_bits;
+    size_t last_bit = start_bit + num_bits;
     uint64_t r = SliceInt64FromBytes(bytes, start_bit, num_bits);
     if (start_bit % 8 + num_bits > 64)
         r |= bytes[last_bit / 8] >> (8 - last_bit % 8);
@@ -268,33 +269,33 @@ inline uint64_t SliceInt64FromBytesFull(
 
 inline uint128_t SliceInt128FromBytes(
     const uint8_t *bytes,
-    const uint32_t start_bit,
-    const uint32_t num_bits)
+    const size_t start_bit,
+    const size_t num_bits)
 {
     if (num_bits <= 64)
         return SliceInt64FromBytesFull(bytes, start_bit, num_bits);
 
-    uint32_t num_bits_high = num_bits - 64;
+    size_t num_bits_high = num_bits - 64;
     uint64_t high = SliceInt64FromBytesFull(bytes, start_bit, num_bits_high);
     uint64_t low = SliceInt64FromBytesFull(bytes, start_bit + num_bits_high, 64);
     return ((uint128_t)high << 64) | low;
 }
 
-inline void GetRandomBytes(uint8_t *buf, uint32_t num_bytes)
+inline void GetRandomBytes(uint8_t *buf, size_t num_bytes)
 {
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int> dist(0, 255);
-    for (uint32_t i = 0; i < num_bytes; i++) {
+    for (size_t i = 0; i < num_bytes; i++) {
         buf[i] = dist(mt);
     }
 }
 
 inline uint64_t ExtractNum(
     const uint8_t *bytes,
-    uint32_t len_bytes,
-    uint32_t begin_bits,
-    uint32_t take_bits)
+    size_t len_bytes,
+    size_t begin_bits,
+    size_t take_bits)
 {
     if ((begin_bits + take_bits) / 8 > len_bytes - 1) {
         take_bits = len_bytes * 8 - begin_bits;
@@ -318,16 +319,16 @@ inline uint64_t RoundSize(uint64_t size)
 inline int MemCmpBits(
     uint8_t *left_arr,
     uint8_t *right_arr,
-    uint32_t len,
-    uint32_t bits_begin)
+    size_t len,
+    size_t bits_begin)
 {
-    uint32_t start_byte = bits_begin / 8;
+    size_t start_byte = bits_begin / 8;
     uint8_t mask = ((1 << (8 - (bits_begin % 8))) - 1);
     if ((left_arr[start_byte] & mask) != (right_arr[start_byte] & mask)) {
         return (left_arr[start_byte] & mask) - (right_arr[start_byte] & mask);
     }
 
-    for (uint32_t i = start_byte + 1; i < len; i++) {
+    for (size_t i = start_byte + 1; i < len; i++) {
         if (left_arr[i] != right_arr[i])
             return left_arr[i] - right_arr[i];
     }
@@ -393,7 +394,7 @@ std::vector<uint8_t> hex_to_bytes(const std::string& hex)
 	std::vector<uint8_t> result;
 	for(size_t i = 0; i < hex.length(); i += 2) {
 		const std::string byteString = hex.substr(i, 2);
-		result.push_back(::strtol(byteString.c_str(), NULL, 16));
+		result.push_back((uint8_t)::strtol(byteString.c_str(), NULL, 16));
 	}
 	return result;
 }
@@ -426,7 +427,7 @@ std::ifstream::pos_type get_file_size(const char* file_name)
 
 inline
 void fseek_set(FILE* file, uint64_t offset) {
-	if(fseek(file, offset, SEEK_SET)) {
+	if(FSEEK(file, offset, SEEK_SET)) {
 		throw std::runtime_error("fseek() failed");
 	}
 }

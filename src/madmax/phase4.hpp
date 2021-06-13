@@ -41,7 +41,7 @@ static uint32_t CalculateC3Size(uint8_t k)
 // C1 (checkpoint values)
 // C2 (checkpoint values into)
 // C3 (deltas of f7s between C1 checkpoints)
-uint64_t compute(	DiskPlotterContext& context,
+uint64_t compute(	DiskPlotterContext* context,
 					FILE* plot_file, const int header_size,
 					phase3::DiskSortNP* L_sort_7, int num_threads,
 					const uint64_t final_pointer_7,
@@ -75,13 +75,14 @@ uint64_t compute(	DiskPlotterContext& context,
     uint64_t final_file_writer_3 = final_table_begin_pointers[7];
 
     uint64_t prev_y = 0;
+    uint64_t f7_position = 0;
     uint64_t num_C1_entries = 0;
     
     std::vector<uint32_t> C2;
 
     std::cout << "[P4] Starting to write C1 and C3 tables" << std::endl;
-	context.pushTask("Phase4.C2Write");
-	context.pushTask("Phase4.C1C3Write");
+	context->pushTask("Phase4.C2Write");
+	context->pushTask("Phase4.C1C3Write");
     
 	struct park_deltas_t {
 		uint64_t offset = 0;
@@ -121,12 +122,12 @@ uint64_t compute(	DiskPlotterContext& context,
 		}, &plot_write, std::max(num_threads / 2, 1), "phase4/P7");
     
 	ThreadPool<park_deltas_t, std::vector<write_data_t>> park_threads(
-		[C3_size, &context](park_deltas_t& park, std::vector<write_data_t>& out, size_t&) {
+		[C3_size,context](park_deltas_t& park, std::vector<write_data_t>& out, size_t&) {
 			write_data_t tmp;
 			tmp.offset = park.offset;
 			tmp.buffer.resize(C3_size);
 			const size_t num_bytes =
-					Encoding::ANSEncodeDeltas(context.tmCache, park.deltas, kC3R, tmp.buffer.data() + 2);
+					Encoding::ANSEncodeDeltas(context->tmCache,park.deltas, kC3R, tmp.buffer.data() + 2);
 			
 			if(num_bytes + 2 > C3_size) {
 				throw std::logic_error("C3 overflow");
@@ -219,7 +220,7 @@ uint64_t compute(	DiskPlotterContext& context,
     
     std::cout << "[P4] Finished writing C1 and C3 tables" << std::endl;
     std::cout << "[P4] Writing C2 table" << std::endl;
-	context.popTask();
+	context->popTask();
 
     for(const uint64_t C2_entry : C2) {
         Bits(C2_entry, k).ToBytes(C1_entry_buf);
@@ -231,9 +232,9 @@ uint64_t compute(	DiskPlotterContext& context,
     		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     
     std::cout << "[P4] Finished writing C2 table" << std::endl;
-	context.popTask();
+	context->popTask();
 
-    final_file_writer_1 = header_size - 8 * 3;
+    final_file_writer_1 = (size_t)header_size - 8 * 3;
     uint8_t table_pointer_bytes[8] = {};
 
     // Writes the pointers to the start of the tables, for proving
@@ -255,12 +256,12 @@ void compute(	DiskPlotterContext& context,
 {
 	const auto total_begin = get_wall_time_micros();
 	
-	FILE* plot_file = fopen(input.plot_file_name.c_str(), "rb+");
+	FILE* plot_file = FOPEN(input.plot_file_name.c_str(), "rb+");
 	if(!plot_file) {
 		throw std::runtime_error("fopen() failed");
 	}
 	
-	out.plot_size = compute(context, plot_file, input.header_size, input.sort_7.get(),
+	out.plot_size = compute(&context, plot_file, input.header_size, input.sort_7.get(),
 							num_threads, input.final_pointer_7, input.num_written_7);
 	
 	fclose(plot_file);

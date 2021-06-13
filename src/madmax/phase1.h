@@ -25,6 +25,10 @@ struct input_t {
 	std::array<uint8_t, 32> id = {};
 	std::vector<uint8_t> memo;
 	std::string plot_name;
+	std::string tempDir;
+	std::string tempDir2;
+	int log_num_buckets;
+	int num_threads;
 };
 
 struct entry_1 {

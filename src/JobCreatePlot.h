@@ -5,6 +5,7 @@
 #include <chrono>
 #include <filesystem>
 #include <stack>
+#include <thread>
 
 class JobCratePlotStartRuleParam {
 public:
@@ -53,7 +54,7 @@ public:
 	std::shared_ptr<Job> job;
 	std::shared_ptr<JobTaskItem> getCurrentTask();
 	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem = 0);
-	std::shared_ptr<JobTaskItem> popTask();
+	std::shared_ptr<JobTaskItem> popTask(bool finish=true);
 protected:
 	std::stack<std::shared_ptr<JobTaskItem>> tasks;
 };
@@ -134,7 +135,7 @@ protected:
 	JobCreatePlotParam param;
 	JobCratePlotStartRule startRule;
 	JobCreatePlotFinishRule finishRule;
-	WidgetCreatePlot jobEditor;
+	WidgetCreatePlot jobEditor;	
 };
 
 #endif

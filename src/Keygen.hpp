@@ -3,11 +3,13 @@
 #include <iomanip>
 #include <vector>
 #include <gmp.h>
+
+#pragma warning( push,1 )
 extern "C" {
 #include "relic/include/relic_conf.h"
 #include "relic/include/relic.h"
 }
-
+#pragma warning( pop )
 
 extern void Hash256(uint8_t* output, const uint8_t* message, size_t messageLen);
 
@@ -76,7 +78,7 @@ class PrivateKey {
     // Construct a private key from another private key. Allocates memory in
     // secure heap, and copies keydata.
     PrivateKey(const PrivateKey &k);
-    PrivateKey(PrivateKey &&k);
+    PrivateKey(PrivateKey &&k) noexcept;
 
     PrivateKey& operator=(const PrivateKey& other);
     PrivateKey& operator=(PrivateKey&& other);

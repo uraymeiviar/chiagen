@@ -23,7 +23,7 @@ namespace mad {
 		if(file) {
 			fclose(file);
 		}
-		file = fopen(file_name.c_str(), mode);
+		file = FOPEN(file_name.c_str(), mode);
 		if(!file) {
 			throw std::runtime_error("fopen() failed");
 		}
@@ -93,14 +93,16 @@ namespace mad {
 
 	template<typename T, typename Key>
 	DiskSort<T, Key>::DiskSort(	int key_size, int log_num_buckets,
-								std::string file_prefix, bool read_only)
+								std::string file_prefix, bool read_only, 
+								DiskPlotterContext* context)
 		:	key_size(key_size),
 			log_num_buckets(log_num_buckets),
 			bucket_key_shift(key_size - log_num_buckets),
 			keep_files(read_only),
 			is_finished(read_only),
 			cache(this, key_size - log_num_buckets, 1 << log_num_buckets),
-			buckets(1 << log_num_buckets)
+			buckets(1ull << log_num_buckets),
+			context(context)
 	{
 		for(size_t i = 0; i < buckets.size(); ++i) {
 			auto& bucket = buckets[i];
@@ -138,41 +140,41 @@ namespace mad {
 	}
 
 	template<typename T, typename Key>
-	void DiskSort<T, Key>::read(Processor<std::pair<std::vector<T>, size_t>>* output,
+void DiskSort<T, Key>::read(Processor<std::pair<std::vector<T>, size_t>>* output,
 								int num_threads, int num_threads_read)
 	{
 		if(num_threads_read < 0) {
 			num_threads_read = std::max(num_threads / 4, 2);
 		}
 	
-		ThreadPool<	std::pair<std::vector<T>, size_t>,
-					std::pair<std::vector<T>, size_t>> sort_pool(
-			[](std::pair<std::vector<T>, size_t>& input, std::pair<std::vector<T>, size_t>& out, size_t&) {
-				std::sort(input.first.begin(), input.first.end(),
+	ThreadPool<	std::pair<std::vector<T>, size_t>,
+				std::pair<std::vector<T>, size_t>> sort_pool(
+		[](std::pair<std::vector<T>, size_t>& input, std::pair<std::vector<T>, size_t>& out, size_t&) {
+			std::sort(input.first.begin(), input.first.end(),
 					[](const T& lhs, const T& rhs) -> bool {
 						return Key{}(lhs) < Key{}(rhs);
 					});
 				out = std::move(input);
-			}, output, num_threads, "Disk/sort");
+		}, output, num_threads, "Disk/sort");
 	
-		Thread<std::vector<std::pair<std::vector<T>, size_t>>> sort_thread(
-			[&sort_pool](std::vector<std::pair<std::vector<T>, size_t>>& input) {
+	Thread<std::vector<std::pair<std::vector<T>, size_t>>> sort_thread(
+		[&sort_pool](std::vector<std::pair<std::vector<T>, size_t>>& input) {
 				for(auto& block : input) {
 					sort_pool.take(block);
 				}
-			}, "Disk/sort");
+		}, "Disk/sort");
 	
-		ThreadPool<	std::pair<size_t, size_t>,
-					std::vector<std::pair<std::vector<T>, size_t>>,
-					read_buffer_t<T>> read_pool(
+	ThreadPool<	std::pair<size_t, size_t>,
+				std::vector<std::pair<std::vector<T>, size_t>>,
+				read_buffer_t<T>> read_pool(
 			std::bind(&DiskSort::read_bucket, this,
-					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-			&sort_thread, num_threads_read, "Disk/read");
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+		&sort_thread, num_threads_read, "Disk/read");
 	
-		uint64_t offset = 0;
+	uint64_t offset = 0;
 		for(size_t i = 0; i < buckets.size(); ++i) {
-			read_pool.take_copy(std::make_pair(i, offset));
-			offset += buckets[i].num_entries;
+		read_pool.take_copy(std::make_pair(i, offset));
+		offset += buckets[i].num_entries;
 		}
 		read_pool.close();
 		sort_thread.close();
@@ -180,11 +182,11 @@ namespace mad {
 	}
 
 	template<typename T, typename Key>
-	void DiskSort<T, Key>::read_bucket(	std::pair<size_t, size_t>& index,
-										std::vector<std::pair<std::vector<T>, size_t>>& out,
-										read_buffer_t<T>& buffer)
+void DiskSort<T, Key>::read_bucket(	std::pair<size_t, size_t>& index,
+									std::vector<std::pair<std::vector<T>, size_t>>& out,
+		read_buffer_t<T>& buffer)
 	{
-		auto& bucket = buckets[index.first];
+	auto& bucket = buckets[index.first];
 		bucket.open("rb");
 	
 		const int key_shift = bucket_key_shift - log_num_buckets;
@@ -194,6 +196,9 @@ namespace mad {
 		std::unordered_map<size_t, std::vector<T>> table;
 		table.reserve(size_t(1) << log_num_buckets);
 	
+		if (this->context) {
+			this->context->getCurrentTask()->totalWorkItem += bucket.num_entries;
+		}
 		for(size_t i = 0; i < bucket.num_entries;)
 		{
 			const size_t num_entries = std::min(buffer.capacity, bucket.num_entries - i);
@@ -211,6 +216,9 @@ namespace mad {
 				block.push_back(entry);
 			}
 			i += num_entries;
+			if (this->context) {
+				this->context->getCurrentTask()->completedWorkItem++;
+			}
 		}
 		if(!keep_files) {
 			bucket.remove();
@@ -223,11 +231,11 @@ namespace mad {
 		table.clear();
 	
 		out.reserve(sorted.size());
-		uint64_t offset = index.second;
+	uint64_t offset = index.second;
 		for(auto& entry : sorted) {
-			const auto count = entry.second.size();
-			out.emplace_back(std::move(entry.second), offset);
-			offset += count;
+		const auto count = entry.second.size();
+		out.emplace_back(std::move(entry.second), offset);
+		offset += count;
 		}
 	}
 

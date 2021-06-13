@@ -176,6 +176,6 @@ void b17RunPhase4(
 	FileDisk &tmp2_disk, 
 	b17Phase3Results &res, 
 	const uint8_t flags, 
-	const int max_phase4_progress_updates
+	const size_t max_phase4_progress_updates
 );
 #endif

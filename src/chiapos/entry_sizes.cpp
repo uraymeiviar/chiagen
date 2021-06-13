@@ -49,7 +49,7 @@ uint32_t EntrySizes::CalculateC3Size(uint8_t k)
     if (k < 20) {
         return ByteAlign(8 * kCheckpoint1Interval) / 8;
     } else {
-        return ByteAlign(kC3BitsPerEntry * kCheckpoint1Interval) / 8;
+        return ByteAlign((uint32_t)(kC3BitsPerEntry * (double)kCheckpoint1Interval)) / 8;
     }
 }
 
@@ -58,9 +58,9 @@ uint32_t EntrySizes::CalculateLinePointSize(uint8_t k) { return ByteAlign(2 * k)
 uint32_t EntrySizes::CalculateMaxDeltasSize(uint8_t k, uint8_t table_index)
 {
     if (table_index == 1) {
-        return ByteAlign((kEntriesPerPark - 1) * kMaxAverageDeltaTable1) / 8;
+        return ByteAlign((uint32_t)((double)(kEntriesPerPark - 1) * kMaxAverageDeltaTable1)) / 8;
     }
-    return ByteAlign((kEntriesPerPark - 1) * kMaxAverageDelta) / 8;
+    return ByteAlign((uint32_t)((double)(kEntriesPerPark - 1) * kMaxAverageDelta)) / 8;
 }
 
 uint32_t EntrySizes::CalculateStubsSize(uint32_t k)

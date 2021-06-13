@@ -8,6 +8,8 @@
 
 #define NOMINMAX
 #include <windows.h> 
+#include <thread>
+#include <functional>
 
 class JobRule {
 public:
@@ -24,20 +26,27 @@ class JobFinishRule : public JobRule {
 public:
 };
 
+class JobActivityState {
+public:
+	bool paused {false};
+	bool running {false};
+	bool finished {false};
+	bool cancel {false};
+};
+
+
 class JobTaskItem : public std::enable_shared_from_this<JobTaskItem> {
 public:
 	JobTaskItem(std::string name);
 	virtual void addChild(std::shared_ptr<JobTaskItem> task);
 	virtual void removeChild(std::shared_ptr<JobTaskItem> task);
-	virtual void addDiskRead(uint64_t byteSize);
-	virtual void addDiskWrite(uint64_t byteSize);
 	virtual float getProgress();
 	virtual uint32_t getTotalWorkItems();
 	virtual uint32_t getCompletedWorkItems();
 	virtual void start();
 	virtual void stop(bool finished = true);
-	bool isRunning() const;;
-	bool isFinished() const;;
+	bool isRunning() const;
+	bool isFinished() const;
 	std::string name;
 	std::string status;
 	uint32_t completedWorkItem {0};
@@ -47,22 +56,18 @@ public:
 	std::vector<std::weak_ptr<JobTaskItem>> tasks;
 	std::shared_ptr<JobTaskItem> parentTask {nullptr};
 protected:
-	bool running {false};
-	bool finished {false};
+	JobActivityState state;
 };
 
 class Job;
 
-class JobProgress : public JobTaskItem{
+class JobActvity : public JobTaskItem{
 public:
-	JobProgress(std::string name);
-	void addDiskRead(uint64_t byteSize) override;
-	void addDiskWrite(uint64_t byteSize) override;
-	void start(HANDLE jobThread, uint32_t updateInterval = 10, uint32_t sampleCount = 60);
+	JobActvity(std::string name);
+	void start(uint32_t updateInterval = 10, uint32_t sampleCount = 60);
 	void stop(bool finished, bool force = false);
 	void pause(bool isPause = true);
-	bool isPaused() const;
-	void samplerUpdate();
+	bool isPaused() const;	
 
 	uint64_t diskWrite {0};
 	uint64_t diskRead {0};
@@ -73,13 +78,13 @@ public:
 	std::vector<uint64_t> diskReadHistory;
 	std::vector<uint64_t> memUsageHistory;
 	Job* job {nullptr};
+	std::function<void(JobActivityState*)> mainRoutine;
 protected:
 	uint32_t statUpdateInterval {10};
 	uint32_t statSampleCount {60};
-	HANDLE jobThread {nullptr};
-	HANDLE samplerThread {nullptr};
+	std::thread jobThread {};
+	std::thread samplerThread {};
 	HANDLE myProcess {nullptr};
-	bool paused {false};
 	uint64_t lastDiskWrite {0};
 	uint64_t lastDiskRead {0};
 	uint64_t totalKernelTime{0};
@@ -87,8 +92,10 @@ protected:
 	std::chrono::time_point<std::chrono::steady_clock> lastSampleTime;
 
 	void collectCPUUsage();
-	void collectMemUsage();
-	void collectDiskUsage();
+	void collectMemUsage();  //TODO:move to jobmanager
+	void collectDiskUsage(); //TODO:move to jobmanager
+	void samplerUpdate();
+	void samplerThreadProc();
 };
 
 class JobEvent : public std::enable_shared_from_this<JobEvent> {
@@ -119,7 +126,7 @@ public:
 	virtual void drawStatusWidget();
 	virtual void handleEvent(std::shared_ptr<JobEvent> jobEvent){}
 	std::vector<std::shared_ptr<JobEvent>> events;
-	std::shared_ptr<JobProgress> jobProgress;
+	std::shared_ptr<JobActvity> activity;
 protected:
 	std::string title;
 };

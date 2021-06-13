@@ -570,6 +570,9 @@
     <ClCompile Include="src\chiapos\data.cpp">
       <Filter>chiapos</Filter>
     </ClCompile>
+    <ClCompile Include="src\chiapos\b3\blake3_sse2.c">
+      <Filter>chiapos\b3</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cli.hpp">
@@ -1076,22 +1079,28 @@
     <ClInclude Include="src\madmax\ThreadPool.h">
       <Filter>madmax</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\stdiox.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\libs\relic\arch\lzcnt.inc">
       <Filter>libs\relic\arch</Filter>
     </None>
-    <None Include="src\chiapos\b3\blake3_avx2_x86-64_unix.S">
-      <Filter>chiapos\b3</Filter>
-    </None>
-    <None Include="src\chiapos\b3\blake3_avx512_x86-64_unix.S">
-      <Filter>chiapos\b3</Filter>
-    </None>
-    <None Include="src\chiapos\b3\blake3_sse41_x86-64_unix.S">
-      <Filter>chiapos\b3</Filter>
-    </None>
     <None Include="src\libs\fse\README.md">
       <Filter>libs\fse</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_avx2_x86-64_windows_msvc.asm">
+      <Filter>chiapos\b3</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_avx512_x86-64_windows_msvc.asm">
+      <Filter>chiapos\b3</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_sse2_x86-64_windows_msvc.asm">
+      <Filter>chiapos\b3</Filter>
+    </None>
+    <None Include="src\chiapos\b3\blake3_sse41_x86-64_windows_msvc.asm">
+      <Filter>chiapos\b3</Filter>
     </None>
   </ItemGroup>
 </Project>
