@@ -330,15 +330,18 @@ uint64_t compute_stage2(DiskPlotterContext& context,
 		}, nullptr, std::max(num_threads / 2, 1), "phase3/add");
 	
 	Thread<std::vector<park_out_t>> park_write(
-		[plot_file](std::vector<park_out_t>& input) {
+		[plot_file,&context](std::vector<park_out_t>& input) {
+			context.getCurrentTask()->totalWorkItem += input.size();
 			for(const auto& park : input) {
 				fwrite_at(plot_file, park.offset, park.buffer.data(), park.buffer.size());
+				context.getCurrentTask()->completedWorkItem++;
 			}
 		}, "phase3/write");
 	
 	ThreadPool<std::vector<park_data_t>, std::vector<park_out_t>> park_threads(
 		[L_index, L_final_begin, park_size_bytes, &num_written_final, &context]
 		 (std::vector<park_data_t>& input, std::vector<park_out_t>& out, size_t&) {
+			context.getCurrentTask()->totalWorkItem += input.size();
 			for(const auto& park : input) {
 				const auto& points = park.points;
 				if(points.empty()) {
@@ -369,6 +372,7 @@ uint64_t compute_stage2(DiskPlotterContext& context,
 					tmp.buffer.size());
 				out.emplace_back(std::move(tmp));
 				num_written_final += points.size();
+				context.getCurrentTask()->completedWorkItem++;
 			}
 		}, &park_write, std::max(num_threads / 2, 1), "phase3/park");
 	
@@ -376,7 +380,7 @@ uint64_t compute_stage2(DiskPlotterContext& context,
 		[&R_num_read, &L_add, &park, &park_threads](std::pair<std::vector<entry_lp>, size_t>& input) {
 			std::vector<park_data_t> parks;
 			parks.reserve(input.first.size() / kEntriesPerPark + 2);
-			uint64_t index = input.second;
+			uint64_t index = input.second;			
 			for(const auto& entry : input.first) {
 				if(index >= uint64_t(1) << 32) {
 					break;	// skip 32-bit overflow
@@ -456,19 +460,21 @@ void compute(	DiskPlotterContext& context,
 	auto R_sort_lp = std::make_shared<DiskSortLP>(
 			63, input.log_num_buckets, prefix_2 + L"p3s1.t2");
 
-	context.pushTask("Phase3-Table7-Stage2");
-	context.pushTask("Phase3-Table7-Stage1");
-	context.pushTask("Phase3-Table6-Stage2");
-	context.pushTask("Phase3-Table6-Stage1");
-	context.pushTask("Phase3-Table5-Stage2");
-	context.pushTask("Phase3-Table5-Stage1");
-	context.pushTask("Phase3-Table4-Stage2");
-	context.pushTask("Phase3-Table4-Stage1");
-	context.pushTask("Phase3-Table3-Stage2");
-	context.pushTask("Phase3-Table3-Stage1");
-	context.pushTask("Phase3-Table2-Stage2");
-	context.pushTask("Phase3-Table2-Stage1");
+	std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
+	context.pushTask("Phase3-Table7-Stage2", currentTask);
+	context.pushTask("Phase3-Table7-Stage1", currentTask);
+	context.pushTask("Phase3-Table6-Stage2", currentTask);
+	context.pushTask("Phase3-Table6-Stage1", currentTask);
+	context.pushTask("Phase3-Table5-Stage2", currentTask);
+	context.pushTask("Phase3-Table5-Stage1", currentTask);
+	context.pushTask("Phase3-Table4-Stage2", currentTask);
+	context.pushTask("Phase3-Table4-Stage1", currentTask);
+	context.pushTask("Phase3-Table3-Stage2", currentTask);
+	context.pushTask("Phase3-Table3-Stage1", currentTask);
+	context.pushTask("Phase3-Table2-Stage2", currentTask);
+	context.pushTask("Phase3-Table2-Stage1", currentTask);
 	
+	context.getCurrentTask()->start();
 	compute_stage1<phase2::entry_1, phase2::entry_x, DiskSortNP, phase2::DiskSortT>(
 			1, input.num_threads, nullptr, input.sort[1].get(), R_sort_lp.get(), &L_table_1, input.bitfield_1.get());
 	
@@ -476,6 +482,7 @@ void compute(	DiskPlotterContext& context,
 	_wremove(input.table_1.file_name.c_str());
 	context.popTask();
 	
+	context.getCurrentTask()->start();
 	auto L_sort_np = std::make_shared<DiskSortNP>(
 			32, input.log_num_buckets, prefix_2 + L"p3s2.t2");
 	
@@ -488,6 +495,7 @@ void compute(	DiskPlotterContext& context,
 	{
 		const std::wstring R_t = L"t" + std::to_wstring(L_index + 1);
 		
+		context.getCurrentTask()->start();
 		R_sort_lp = std::make_shared<DiskSortLP>(
 				63, input.log_num_buckets, prefix_2 + L"p3s1." + R_t);
 		
@@ -498,6 +506,7 @@ void compute(	DiskPlotterContext& context,
 		L_sort_np = std::make_shared<DiskSortNP>(
 				32, input.log_num_buckets, prefix_2 + L"p3s2." + R_t);
 		
+		context.getCurrentTask()->start();
 		num_written_final += compute_stage2(context,
 				L_index, input.num_threads, R_sort_lp.get(), L_sort_np.get(),
 				plot_file, final_pointers[L_index], &final_pointers[(size_t)L_index + 1]);
@@ -508,10 +517,12 @@ void compute(	DiskPlotterContext& context,
 	
 	R_sort_lp = std::make_shared<DiskSortLP>(63, input.log_num_buckets, prefix_2 + L"p3s1.t7");
 	
+	context.getCurrentTask()->start();
 	compute_stage1<entry_np, phase2::entry_7, DiskSortNP, phase2::DiskSort7>(
 			6, input.num_threads, L_sort_np.get(), nullptr, R_sort_lp.get(), nullptr, nullptr, &R_table_7);
 	context.popTask();
 	
+	context.getCurrentTask()->start();
 	_wremove(input.table_7.file_name.c_str());
 	
 	L_sort_np = std::make_shared<DiskSortNP>(32, input.log_num_buckets, prefix_2 + L"p3s2.t7");

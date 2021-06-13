@@ -81,9 +81,11 @@ inline uint64_t compute(	DiskPlotterContext* context,
     std::vector<uint32_t> C2;
 
     std::cout << "[P4] Starting to write C1 and C3 tables" << std::endl;
-	context->pushTask("Phase4.C2Write");
-	context->pushTask("Phase4.C1C3Write");
+	std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
+	context->pushTask("Phase4.C2Write", currentTask);
+	context->pushTask("Phase4.C1C3Write", currentTask);
     
+	context->getCurrentTask()->start();
 	struct park_deltas_t {
 		uint64_t offset = 0;
 		std::vector<uint8_t> deltas;
@@ -100,9 +102,11 @@ inline uint64_t compute(	DiskPlotterContext* context,
 	};
     
     Thread<std::vector<write_data_t>> plot_write(
-		[plot_file](std::vector<write_data_t>& input) {
+		[plot_file, context](std::vector<write_data_t>& input) {
+			context->getCurrentTask()->totalWorkItem += input.size();
 			for(const auto& write : input) {
 				fwrite_at(plot_file, write.offset, write.buffer.data(), write.buffer.size());
+				context->getCurrentTask()->completedWorkItem++;
 			}
 		}, "phase4/write");
     
@@ -141,11 +145,12 @@ inline uint64_t compute(	DiskPlotterContext* context,
     Thread<std::pair<std::vector<phase3::entry_np>, size_t>> read_thread(
 	[begin_byte_C3, C3_size, P7_park_size, &num_C1_entries, &prev_y, &C2,
 	 &park_deltas, &park_data, &park_threads, &p7_threads, &plot_write,
-	 &final_file_writer_1, &final_file_writer_3]
+	 &final_file_writer_1, &final_file_writer_3, context]
 	 (std::pair<std::vector<phase3::entry_np>, size_t>& input) {
 		std::vector<park_data_t> parks;
 		parks.reserve(input.first.size() / kEntriesPerPark + 2);
 		uint64_t index = input.second;
+		context->getCurrentTask()->totalWorkItem += input.first.size();
 		for(const auto& entry : input.first) {
 			const uint64_t entry_y = entry.key;
 	
@@ -189,6 +194,7 @@ inline uint64_t compute(	DiskPlotterContext* context,
 			}
 			prev_y = entry_y;
 			index++;
+			context->getCurrentTask()->completedWorkItem++;
 		}
 		p7_threads.take(parks);
 	}, "phase4/read");
@@ -222,6 +228,7 @@ inline uint64_t compute(	DiskPlotterContext* context,
     std::cout << "[P4] Writing C2 table" << std::endl;
 	context->popTask();
 
+	context->getCurrentTask()->start();
     for(const uint64_t C2_entry : C2) {
         Bits(C2_entry, k).ToBytes(C1_entry_buf);
         final_file_writer_1 +=

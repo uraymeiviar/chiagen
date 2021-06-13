@@ -575,7 +575,7 @@ const ImGuiTableFlags tableFlag =
 	ImGuiTableFlags_NoBordersInBodyUntilResize;
 
 MainApp::MainApp(GLFWwindow* window) : ImFrame::ImApp(window) {
-	glfwSetWindowSize(this->GetWindow(),800,400);
+	glfwSetWindowSize(this->GetWindow(),1024,480);
 }
 
 void MainApp::OnUpdate() {
@@ -617,8 +617,8 @@ void MainApp::OnUpdate() {
 		else if (this->activeTab == 3) {
 			this->helpPage();
 		}
-	}
-	ImGui::End();
+		ImGui::End();
+	}	
 }
 
 void MainApp::toolPage() {

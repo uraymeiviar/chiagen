@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <chrono>
+#include <mutex>
 
 #define NOMINMAX
 #include <windows.h> 
@@ -76,9 +77,10 @@ public:
 	std::string status;
 	uint32_t completedWorkItem {0};
 	uint32_t totalWorkItem {0};
+	virtual bool drawStatusWidget();
 	std::chrono::time_point<std::chrono::system_clock> startTime;
 	std::chrono::time_point<std::chrono::system_clock> finishTime;
-	std::vector<std::weak_ptr<JobTaskItem>> tasks;
+	std::vector<std::shared_ptr<JobTaskItem>> tasks;
 	std::shared_ptr<JobTaskItem> parentTask {nullptr};
 protected:
 	JobActivityState state;
@@ -93,6 +95,7 @@ public:
 	bool stop(bool finished = true) override;
 	bool pause(bool isPause = true);
 	bool isPaused() const;	
+	virtual bool drawStatusWidget() override;
 
 	void samplerUpdate();
 	std::vector<float> cpuKernelTimeHistory;
@@ -103,12 +106,15 @@ public:
 	std::function<void(JobActivityState*)> onResume;
 	std::function<void(JobActivityState*)> onFinish;
 	void waitUntilFinish();
+	std::mutex mutex;
 protected:	
+	void drawPlot();
+	std::vector<float> xAxis;
 	std::chrono::time_point<std::chrono::steady_clock> lastSampleTime;
 	std::thread jobThread {};		
 	uint64_t totalKernelTime{0};
 	uint64_t totalUserTime{0};	
-	uint32_t statSampleCount {60};
+	uint32_t statSampleCount {100};
 	bool stopActivity(bool finished);
 
 	void collectCPUUsage();
@@ -170,11 +176,11 @@ public:
 	bool isRunning {true};
 	void stop();
 	void start();
-
+	std::mutex mutex;
 	std::vector<std::shared_ptr<JobFactory>> jobFactories;
 protected:
-	uint32_t statUpdateInterval {10};
-	uint32_t statSampleCount {60};
+	uint32_t statUpdateInterval {1};
+	uint32_t statSampleCount {100};
 	HANDLE myProcess {nullptr};
 	uint64_t lastDiskWrite {0};
 	uint64_t lastDiskRead {0};
@@ -183,8 +189,9 @@ protected:
 	std::vector<uint64_t> memUsageHistory;
 	std::chrono::time_point<std::chrono::steady_clock> lastSampleTime;
 	
-	void collectMemUsage();  //TODO:move to jobmanager
-	void collectDiskUsage(); //TODO:move to jobmanager
+	void collectMemUsage();  
+	void collectDiskUsage(); 
+	void collectPerfSample();
 	void samplerThreadProc();
 
 	std::vector<std::shared_ptr<Job>> activeJobs;

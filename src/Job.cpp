@@ -3,6 +3,8 @@
 #include <thread>
 #include <future>>
 #include <psapi.h>
+#include "util.hpp"
+#include "Implot/implot.h"
 
 JobManager::JobManager()
 {
@@ -94,15 +96,21 @@ void JobManager::collectDiskUsage()
 	}
 }
 
+void JobManager::collectPerfSample()
+{
+	const std::lock_guard<std::mutex> lock(this->mutex);
+	this->collectMemUsage();
+	this->collectDiskUsage();	
+}
+
 void JobManager::samplerThreadProc()
 {
 	while (JobManager::getInstance().isRunning) {
 		auto start = std::chrono::steady_clock::now();
 		auto elapsed = start - this->lastSampleTime;
-		if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {
-			JobManager::getInstance().collectMemUsage();
-			JobManager::getInstance().collectDiskUsage();
+		if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {			
 			JobManager::getInstance().lastSampleTime = start;
+			JobManager::getInstance().collectPerfSample();
 			for (auto job : JobManager::getInstance().activeJobs) {
 				job->update();
 			}
@@ -137,10 +145,12 @@ void JobManager::stop()
 
 void JobManager::start()
 {
-	if (this->myProcess = NULL) {
+	if (this->myProcess == NULL) {
 		this->myProcess = ::GetCurrentProcess();
-		this->isRunning = true;
-		this->samplerThread = std::thread(&JobManager::samplerThreadProc, &JobManager::getInstance());
+		if (this->myProcess != NULL) {
+			this->isRunning = true;
+			this->samplerThread = std::thread(&JobManager::samplerThreadProc, &JobManager::getInstance());
+		}
 	}
 }
 
@@ -374,14 +384,14 @@ void JobTaskItem::removeChild(std::shared_ptr<JobTaskItem> task)
 
 float JobTaskItem::getProgress()
 {
+	if (this->isFinished()) {
+		return 1.0f;
+	}
 	if (!this->tasks.empty()) {
 		float childProgress = 0.0f;
 		float childWeight = 1.0f/(float)this->tasks.size();
 		for (auto child : this->tasks) {
-			auto childPtr = child.lock();
-			if (childPtr) {
-				childProgress += childPtr->getProgress()*childWeight;
-			}			
+			childProgress += child->getProgress()*childWeight;		
 		}
 		if (childProgress > 1.0f) {
 			childProgress = 1.0f;
@@ -393,7 +403,7 @@ float JobTaskItem::getProgress()
 	}
 	else {
 		float val = 0.0f;
-		uint32_t selfWorkItem = this->getCompletedWorkItems();
+		uint32_t selfWorkItem = this->getTotalWorkItems();
 		if (selfWorkItem > 0) {
 			val = (float)this->getCompletedWorkItems() / (float)selfWorkItem;
 		}
@@ -411,10 +421,7 @@ uint32_t JobTaskItem::getTotalWorkItems()
 {
 	uint32_t childTotal = 0;
 	for (auto child : this->tasks) {
-		auto childPtr = child.lock();
-		if (childPtr) {
-			childTotal += childPtr->getTotalWorkItems();
-		}		
+		childTotal += child->getTotalWorkItems();	
 	}
 	return childTotal + this->totalWorkItem;
 }
@@ -423,10 +430,7 @@ uint32_t JobTaskItem::getCompletedWorkItems()
 {
 	uint32_t childTotal = 0;
 	for (auto child : this->tasks) {
-		auto childPtr = child.lock();
-		if (childPtr) {
-			childTotal += childPtr->getCompletedWorkItems();
-		}		
+		childTotal += child->getCompletedWorkItems();	
 	}
 	return childTotal + this->completedWorkItem;
 }
@@ -462,9 +466,47 @@ bool JobTaskItem::isFinished() const
 	return this->state.finished;
 }
 
+bool JobTaskItem::drawStatusWidget()
+{	
+	ImGui::PushID((const void*)this);
+	if (this->isFinished() || this->isRunning()) {
+		ImGui::SetNextItemOpen(true);
+	}
+	if (ImGui::TreeNode(this->name.c_str())) {			
+		if (this->isFinished()) {
+			ImGui::Text("Start %s",systemClockToStr(this->startTime).c_str());
+			ImGui::Text("Finished %s",systemClockToStr(this->finishTime).c_str());
+			auto dt = std::chrono::duration_cast<std::chrono::seconds>(this->finishTime - this->startTime);
+			ImGui::Text("Elapsed %.1f minutes",dt.count()/60.0f);
+		}
+		else if (this->isRunning()) {				
+			ImGui::Text("Start %s",systemClockToStr(this->startTime).c_str());
+			std::chrono::time_point<std::chrono::system_clock> currentTime = std::chrono::system_clock::now();
+			auto dt = std::chrono::duration_cast<std::chrono::seconds>(currentTime - this->startTime);
+			ImGui::Text("Elapsed %.1f minutes",dt.count()/60.0f);
+		}
+		else {
+			ImGui::Text("Not Started");
+		}
+		if (this->isRunning()) {
+			ImGui::ProgressBar(this->getProgress());
+		}
+		for (auto task : this->tasks) {			
+			task->drawStatusWidget();
+		}
+		ImGui::TreePop();
+	}
+	ImGui::PopID();
+	return false;
+}
+
 JobActvity::JobActvity(std::string name, Job* owner) : JobTaskItem(name), job(owner)
 {
-	
+	this->cpuKernelTimeHistory = std::vector<float>(100);
+	this->cpuUserTimeHistory = std::vector<float>(100);
+	for (size_t i = 0; i < 100; i++) {
+		this->xAxis.push_back(i+1);
+	}
 }
 
 bool JobActvity::start(uint32_t sampleCount)
@@ -495,7 +537,7 @@ bool JobActvity::start(uint32_t sampleCount)
 
 bool JobActvity::start()
 {
-	return this->start(60);
+	return this->start(100);
 }
 
 //should NOT be called inside JobThread !!
@@ -529,6 +571,22 @@ bool JobActvity::stop(bool finished, bool force /*= false*/)
 	}
 	else {
 		return false;
+	}
+}
+
+void JobActvity::drawPlot()
+{
+	const std::lock_guard<std::mutex> lock(this->mutex);
+	if (!this->cpuUserTimeHistory.empty() && !this->cpuKernelTimeHistory.empty()) {
+		float fieldWidth = ImGui::GetWindowContentRegionWidth();
+		ImPlot::SetNextPlotLimits(0,100,0,100);
+		if(ImPlot::BeginPlot("CPU Usage", nullptr, nullptr,ImVec2(fieldWidth,180.0f),ImPlotFlags_CanvasOnly,ImPlotAxisFlags_NoDecorations|ImPlotAxisFlags_Lock,ImPlotAxisFlags_NoDecorations|ImPlotAxisFlags_Lock)) {
+			ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
+			ImPlot::PlotLine("User CPU Time",this->xAxis.data(),this->cpuUserTimeHistory.data(),this->cpuUserTimeHistory.size());
+			ImPlot::PlotLine("kernel CPU Time",this->xAxis.data(),this->cpuKernelTimeHistory.data(),this->cpuKernelTimeHistory.size());
+			ImPlot::PopStyleVar();
+			ImPlot::EndPlot();
+		}
 	}
 }
 
@@ -584,6 +642,33 @@ bool JobActvity::isPaused() const
 	return this->state.paused;
 }
 
+bool JobActvity::drawStatusWidget()
+{
+	if (!this->tasks.empty()) {
+		ImGui::PushID((const void*)this);
+		//this->drawPlot();
+		if (this->isFinished()) {
+			ImGui::Text("Start %s",systemClockToStr(this->startTime).c_str());
+			ImGui::Text("Finished %s",systemClockToStr(this->finishTime).c_str());
+			auto dt = std::chrono::duration_cast<std::chrono::seconds>(this->finishTime - this->startTime);
+			ImGui::Text("Elapsed %.1f minutes",dt.count()/60.0f);
+		}
+		else if (this->isRunning()) {				
+			ImGui::Text("Start %s",systemClockToStr(this->startTime).c_str());
+			std::chrono::time_point<std::chrono::system_clock> currentTime = std::chrono::system_clock::now();
+			auto dt = std::chrono::duration_cast<std::chrono::seconds>(currentTime - this->startTime);
+			ImGui::Text("Elapsed %.1f minutes",dt.count()/60.0f);
+		}
+		ImGui::Text("Sub Tasks");
+		ImGui::Separator();
+		for (auto task : this->tasks) {
+			task->drawStatusWidget();
+		}
+		ImGui::PopID();
+	}
+	return false;
+}
+
 void JobActvity::samplerUpdate()
 {
 	this->collectCPUUsage();
@@ -598,6 +683,7 @@ void JobActvity::waitUntilFinish()
 
 void JobActvity::collectCPUUsage()
 {
+	const std::lock_guard<std::mutex> lock(this->mutex);
 	std::chrono::time_point<std::chrono::steady_clock> cur = std::chrono::steady_clock::now();
 	FILETIME creationTime;
 	FILETIME exitTime;
@@ -607,20 +693,20 @@ void JobActvity::collectCPUUsage()
 	ULARGE_INTEGER kernelTimeInt;
 	kernelTimeInt.LowPart = kernelTime.dwLowDateTime;
 	kernelTimeInt.HighPart = kernelTime.dwHighDateTime;
-	uint64_t intervalKernelTime = this->totalKernelTime - kernelTimeInt.QuadPart;
+	uint64_t intervalKernelTime = kernelTimeInt.QuadPart - this->totalKernelTime;
 	this->totalKernelTime = kernelTimeInt.QuadPart;
 
 	ULARGE_INTEGER userTimeInt;
 	userTimeInt.LowPart = userTime.dwLowDateTime;
 	userTimeInt.HighPart = userTime.dwHighDateTime;
-	uint64_t intervalUserTime = this->totalUserTime - userTimeInt.QuadPart;
-	this->totalUserTime = kernelTimeInt.QuadPart;
+	uint64_t intervalUserTime = userTimeInt.QuadPart - this->totalUserTime;
+	this->totalUserTime = userTimeInt.QuadPart;
 
 	uint64_t intervalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-		this->lastSampleTime - cur).count();
-	float cpuKernelTime = (float)(((double)intervalKernelTime / 10000.0) / (double)intervalMs);
-	float cpuUserTime = (float)(((double)intervalUserTime / 10000.0) / (double)intervalMs);
-
+		cur - this->lastSampleTime).count();
+	float cpuKernelTime = (float)(100.0f*((double)intervalKernelTime / 10000.0) / (double)intervalMs);
+	float cpuUserTime   = (float)(100.0f*((double)intervalUserTime   / 10000.0) / (double)intervalMs);
+	
 	this->cpuKernelTimeHistory.push_back(cpuKernelTime);
 	this->cpuUserTimeHistory.push_back(cpuUserTime);
 

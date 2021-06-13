@@ -50,6 +50,9 @@ bool JobCreatePlot::drawStatusWidget() {
 	if (!this->isRunning()) {
 		result &= this->drawEditor();
 	}
+	else if (this->activity) {
+		this->activity->drawStatusWidget();
+	}
 	return result;
 }
 
@@ -73,21 +76,26 @@ bool JobCratePlotStartRuleParam::drawEditor()
 {
 	ImGui::PushID((const void*)this);
 	bool result = false;
+	ImGui::Text("these start rule are under development");
+	ImGui::Text("just use start immediately only for now");
+	ImGui::Separator();
 	if (ImGui::Checkbox("Paused", &this->startPaused)) {
 		this->startDelayed = false;
 		this->startConditional = false;
 		this->startImmediate = false;
+		this->startOnEvent = false;
 		result |= true;
 	}
 	if (ImGui::Checkbox("Immediately", &this->startImmediate)) {
 		this->startDelayed = false;
 		this->startConditional = false;
 		this->startPaused = false;
+		this->startOnEvent = false;
 		result |= true;
 	}
+
 	if (ImGui::Checkbox("Delayed",&this->startDelayed)) {
 		this->startImmediate = false;
-		this->startConditional = false;
 		this->startPaused = false;
 		result |= true;
 	}
@@ -108,6 +116,14 @@ bool JobCratePlotStartRuleParam::drawEditor()
 		ImGui::EndGroupPanel();
 		ImGui::Unindent(20.0f);
 	}
+
+	if (ImGui::Checkbox("Wait for Event",&this->startOnEvent)) {
+		this->startImmediate = false;
+		this->startPaused = false;
+		this->startOnEvent = true;
+		result |= true;
+	}
+
 	if (ImGui::Checkbox("Conditional",&this->startConditional)) {
 		this->startImmediate = false;
 		this->startDelayed = false;
@@ -272,6 +288,9 @@ bool JobCratePlotStartRule::isRuleFullfilled()
 			}
 		}
 	}
+	if (this->param.startPaused) {
+		return false;
+	}
 	return result;
 }
 
@@ -279,6 +298,10 @@ bool JobCreatePlotFinishRuleParam::drawEditor()
 {
 	ImGui::PushID((const void*)this);
 	bool result = false;
+	ImGui::Text("these start rule are under development");
+	ImGui::Text("just use start immediately only for now");
+	ImGui::Separator();
+
 	result |= ImGui::Checkbox("Relaunch",&this->repeatJob);
 	if (this->repeatJob) {
 		ImGui::Indent(20.0f);
@@ -390,11 +413,10 @@ std::shared_ptr<JobTaskItem> CreatePlotContext::getCurrentTask()
 	}
 }
 
-std::shared_ptr<JobTaskItem> CreatePlotContext::pushTask(std::string name, uint32_t totalWorkItem)
+std::shared_ptr<JobTaskItem> CreatePlotContext::pushTask(std::string name, std::shared_ptr<JobTaskItem> parent)
 {
 	std::shared_ptr<JobTaskItem> newTask = std::make_shared<JobTaskItem>(name);
-	newTask->totalWorkItem = totalWorkItem;
-	this->getCurrentTask()->addChild(newTask);
+	parent->addChild(newTask);
 	this->tasks.push(newTask);
 	return newTask;
 }

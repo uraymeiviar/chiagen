@@ -20,7 +20,8 @@ void compute_table(	int R_index, int num_threads,
 					DS* R_sort, DiskTable<S>* R_file,
 					const table_t& R_table,
 					bitfield* L_used,
-					const bitfield* R_used)
+					const bitfield* R_used,
+					DiskPlotterContext& context)
 {
 	const int num_threads_read = std::max(num_threads / 4, 2);
 	
@@ -29,14 +30,17 @@ void compute_table(	int R_index, int num_threads,
 		const auto begin = get_wall_time_micros();
 		
 		ThreadPool<std::pair<std::vector<T>, size_t>, size_t> pool(
-			[L_used, R_used](std::pair<std::vector<T>, size_t>& input, size_t&, size_t&) {
+			[L_used, R_used, &context](std::pair<std::vector<T>, size_t>& input, size_t&, size_t&) {
 				uint64_t offset = 0;
+				context.getCurrentTask()->totalWorkItem += input.first.size();
 				for(const auto& entry : input.first) {
 					if(R_used && !R_used->get(input.second + (offset++))) {
+						context.getCurrentTask()->completedWorkItem++;
 						continue;	// drop it
 					}
 					L_used->set(entry.pos);
 					L_used->set(uint64_t(entry.pos) + entry.off);
+					context.getCurrentTask()->completedWorkItem++;
 				}
 			}, nullptr, num_threads*2, "phase2/mark");
 		
@@ -55,19 +59,23 @@ void compute_table(	int R_index, int num_threads,
 	typedef typename DS::WriteCache WriteCache;
 	
 	Thread<std::vector<S>> R_write(
-		[R_file](std::vector<S>& input) {
+		[R_file, &context](std::vector<S>& input) {
+			context.getCurrentTask()->totalWorkItem += input.size();
 			for(auto& entry : input) {
 				R_file->write(entry);
+				context.getCurrentTask()->completedWorkItem++;
 			}
 		}, "phase2/write");
 	
 	ThreadPool<std::vector<S>, size_t, std::shared_ptr<WriteCache>> R_add(
-		[R_sort](std::vector<S>& input, size_t&, std::shared_ptr<WriteCache>& cache) {
+		[R_sort,&context](std::vector<S>& input, size_t&, std::shared_ptr<WriteCache>& cache) {
 			if(!cache) {
 				cache = R_sort->add_cache();
 			}
+			context.getCurrentTask()->totalWorkItem += input.size();
 			for(auto& entry : input) {
 				cache->add(entry);
+				context.getCurrentTask()->completedWorkItem++;
 			}
 		}, nullptr, std::max(num_threads / 2, 1), "phase2/add");
 	
@@ -77,19 +85,23 @@ void compute_table(	int R_index, int num_threads,
 	}
 	
 	Thread<std::vector<S>> R_count(
-		[R_out, &num_written](std::vector<S>& input) {
+		[R_out, &num_written, &context](std::vector<S>& input) {
+			context.getCurrentTask()->totalWorkItem += input.size();
 			for(auto& entry : input) {
 				set_sort_key<S>{}(entry, num_written++);
+				context.getCurrentTask()->completedWorkItem++;
 			}
 			R_out->take(input);
 		}, "phase2/count");
 	
 	ThreadPool<std::pair<std::vector<T>, size_t>, std::vector<S>> map_pool(
-		[&index, R_used](std::pair<std::vector<T>, size_t>& input, std::vector<S>& out, size_t&) {
+		[&index, R_used, &context](std::pair<std::vector<T>, size_t>& input, std::vector<S>& out, size_t&) {
 			out.reserve(input.first.size());
 			uint64_t offset = 0;
+			context.getCurrentTask()->totalWorkItem += input.first.size();
 			for(const auto& entry : input.first) {
 				if(R_used && !R_used->get(input.second + (offset++))) {
+					context.getCurrentTask()->completedWorkItem++;
 					continue;	// drop it
 				}
 				S tmp;
@@ -98,6 +110,7 @@ void compute_table(	int R_index, int num_threads,
 				tmp.pos = pos_off.first;
 				tmp.off = pos_off.second;
 				out.push_back(tmp);
+				context.getCurrentTask()->completedWorkItem++;
 			}
 		}, &R_count, num_threads*2, "phase2/remap");
 	
@@ -129,14 +142,16 @@ void compute(	DiskPlotterContext& context,
 	const std::wstring prefix = input.tempDir + input.plot_name + L".p2.";
 	const std::wstring prefix_2 = input.tempDir2 + input.plot_name + L".p2.";
 
-	context.pushTask("Phase2.Table1");
-	context.pushTask("Phase2.Table2");
-	context.pushTask("Phase2.Table3");
-	context.pushTask("Phase2.Table4");
-	context.pushTask("Phase2.Table5");
-	context.pushTask("Phase2.Table6");
-	context.pushTask("Phase2.Table7");
+	std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
+	context.pushTask("Phase2.Table1", currentTask);
+	context.pushTask("Phase2.Table2", currentTask);
+	context.pushTask("Phase2.Table3", currentTask);
+	context.pushTask("Phase2.Table4", currentTask);
+	context.pushTask("Phase2.Table5", currentTask);
+	context.pushTask("Phase2.Table6", currentTask);
+	context.pushTask("Phase2.Table7", currentTask);
 	
+	context.getCurrentTask()->start();
 	size_t max_table_size = 0;
 	for(const auto& table : input.table) {
 		max_table_size = std::max(max_table_size, table.num_entries);
@@ -149,7 +164,7 @@ void compute(	DiskPlotterContext& context,
 	DiskTable<entry_7> table_7(prefix_2 + L"table7.tmp");
 	
 	compute_table<entry_7, entry_7, DiskSort7>(
-			7, input.num_threads, nullptr, &table_7, input.table[6], next_bitfield.get(), nullptr);
+			7, input.num_threads, nullptr, &table_7, input.table[6], next_bitfield.get(), nullptr, context);
 	
 	table_7.close();
 	_wremove(input.table[6].file_name.c_str());
@@ -158,11 +173,12 @@ void compute(	DiskPlotterContext& context,
 	
 	for(int i = 5; i >= 1; --i)
 	{
+		context.getCurrentTask()->start();
 		std::swap(curr_bitfield, next_bitfield);
 		out.sort[i] = std::make_shared<DiskSortT>(32, input.log_num_buckets, prefix + L"t" + std::to_wstring(i + 1));
 		
 		compute_table<phase1::tmp_entry_x, entry_x, DiskSortT>(
-			i + 1, input.num_threads, out.sort[i].get(), nullptr, input.table[i], next_bitfield.get(), curr_bitfield.get());
+			i + 1, input.num_threads, out.sort[i].get(), nullptr, input.table[i], next_bitfield.get(), curr_bitfield.get(), context);
 		
 		_wremove(input.table[i].file_name.c_str());
 		context.popTask();

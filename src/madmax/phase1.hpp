@@ -267,21 +267,24 @@ namespace mad::phase1 {
 			typedef typename DS::WriteCache WriteCache;
 	
 			ThreadPool<std::vector<entry_1>, size_t, std::shared_ptr<WriteCache>> output(
-				[T1_sort](std::vector<entry_1>& input, size_t&, std::shared_ptr<WriteCache>& cache) {
+				[T1_sort, this](std::vector<entry_1>& input, size_t&, std::shared_ptr<WriteCache>& cache) {
 					if(!cache) {
 						cache = T1_sort->add_cache();
 					}
+					this->context->getCurrentTask()->totalWorkItem += input.size();
 					for(auto& entry : input) {
 						cache->add(entry);
+						this->context->getCurrentTask()->completedWorkItem++;
 					}
 				}, nullptr, std::max(num_threads / 2, 1), "phase1/add");
 	
 			ThreadPool<uint64_t, std::vector<entry_1>> pool(
-				[id](uint64_t& block, std::vector<entry_1>& out, size_t&) {
+				[id, this](uint64_t& block, std::vector<entry_1>& out, size_t&) {
 					out.resize(M * 16);
 					F1Calculator F1(id);
+					
 					for(size_t i = 0; i < M; ++i) {
-						F1.compute_block(block * M + i, &out[i * 16]);
+						F1.compute_block(block * M + i, &out[i * 16]);						
 					}
 				}, &output, num_threads, "phase1/F1");
 	
@@ -423,18 +426,22 @@ namespace mad::phase1 {
 								DiskTable<R>* L_tmp, DiskTable<S>* R_tmp = nullptr)
 		{
 			Thread<std::vector<T>> L_write(
-				[L_tmp](std::vector<T>& input) {
+				[L_tmp, this](std::vector<T>& input) {
+					this->context->getCurrentTask()->totalWorkItem += input.size();
 					for(const auto& entry : input) {
 						R tmp;
 						tmp.assign(entry);
 						L_tmp->write(tmp);
+						this->context->getCurrentTask()->completedWorkItem++;
 					}
 				}, "phase1/write/L");
 	
 			Thread<std::vector<S>> R_write(
-				[R_tmp](std::vector<S>& input) {
+				[R_tmp, this](std::vector<S>& input) {
+					this->context->getCurrentTask()->totalWorkItem += input.size();
 					for(const auto& entry : input) {
 						R_tmp->write(entry);
+						this->context->getCurrentTask()->completedWorkItem++;
 					}
 				}, "phase1/write/R");
 	
@@ -470,14 +477,16 @@ namespace mad::phase1 {
 			const std::wstring prefix_2 = input.tempDir2 + input.plot_name + L".p1.";
 			const uint8_t k = 32;
 
-			context->pushTask("Phase1.Table7");
-			context->pushTask("Phase1.Table6");
-			context->pushTask("Phase1.Table5");
-			context->pushTask("Phase1.Table4");
-			context->pushTask("Phase1.Table3");
-			context->pushTask("Phase1.Table2");
+			std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
+			context->pushTask("Phase1.Table7", currentTask);
+			context->pushTask("Phase1.Table6", currentTask);
+			context->pushTask("Phase1.Table5", currentTask);
+			context->pushTask("Phase1.Table4", currentTask);
+			context->pushTask("Phase1.Table3", currentTask);
+			context->pushTask("Phase1.Table2", currentTask);
+			context->pushTask("Phase1.Table1", currentTask);
 
-			context->pushTask("Phase1.Table1")->start();
+			context->getCurrentTask()->start();
 			DiskSort1 sort_1(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t1", false, context);
 			compute_f1(input.id.data(), input.num_threads, &sort_1);
 			context->popTask();

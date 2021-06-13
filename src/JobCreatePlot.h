@@ -15,6 +15,7 @@ public:
 	bool startConditional {false};
 	bool startCondActiveJob {true};
 	bool startCondTime {false};
+	bool startOnEvent {false};
 	int startDelayedMinute {15};
 	int startCondTimeStart {1};
 	int startCondTimeEnd {6};
@@ -66,7 +67,7 @@ class CreatePlotContext {
 public:
 	std::shared_ptr<Job> job;
 	std::shared_ptr<JobTaskItem> getCurrentTask();
-	std::shared_ptr<JobTaskItem> pushTask(std::string name, uint32_t totalWorkItem = 0);
+	std::shared_ptr<JobTaskItem> pushTask(std::string name, std::shared_ptr<JobTaskItem> parent);
 	std::shared_ptr<JobTaskItem> popTask(bool finish=true);
 protected:
 	std::stack<std::shared_ptr<JobTaskItem>> tasks;
@@ -84,9 +85,8 @@ public:
 	JobRule* getStartRule() override;
 	JobRule* getFinishRule() override;
 
-	virtual bool drawEditor() = 0;
-	virtual bool drawItemWidget();
-	virtual bool drawStatusWidget();
+	virtual bool drawItemWidget() override;
+	virtual bool drawStatusWidget() override;
 
 	std::shared_ptr<JobEvent> startEvent;
 	std::shared_ptr<JobEvent> finishEvent;

@@ -456,44 +456,46 @@ void JobCreatePlotMax::initActivity()
 				context.job = this->shared_from_this();
 
 				if (context.job->activity) {
-					context.pushTask("PlotCopy");
-					context.pushTask("Phase4");
-					context.pushTask("Phase3");
-					context.pushTask("Phase2");
-					context.pushTask("Phase1");
+					std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
+					context.pushTask("PlotCopy", currentTask);
+					context.pushTask("Phase4", currentTask);
+					context.pushTask("Phase3", currentTask);
+					context.pushTask("Phase2", currentTask);
+					context.pushTask("Phase1", currentTask);
 	
 					try {
 						std::shared_ptr<JobCreatePlot> plottingJob = std::dynamic_pointer_cast<JobCreatePlot>(context.job);
 						plottingJob->startEvent->trigger(context.job);
 
+						context.getCurrentTask()->start();
 						mad::phase1::output_t out_1;
 						mad::phase1::Phase1 p1(&context);
 						p1.compute(params, out_1);
-	
 						context.popTask();
 						plottingJob->phase1FinishEvent->trigger(context.job);
 
+						context.getCurrentTask()->start();
 						mad::phase2::output_t out_2;
-						mad::phase2::compute(context, out_1, out_2);
-	
+						mad::phase2::compute(context, out_1, out_2);	
 						context.popTask();
 						plottingJob->phase2FinishEvent->trigger(context.job);
 
+						context.getCurrentTask()->start();
 						mad::phase3::output_t out_3;
 						mad::phase3::compute(context, out_2, out_3);
-	
 						context.popTask();
 						plottingJob->phase3FinishEvent->trigger(context.job);
 
+						context.getCurrentTask()->start();
 						mad::phase4::output_t out_4;
 						mad::phase4::compute(context, out_3, out_4);
-			
 						context.popTask();
 						plottingJob->phase4FinishEvent->trigger(context.job);
 
 						std::cout << "Total plot creation time was "
 							<< (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
 
+						context.getCurrentTask()->start();
 						if(param.tempPathStr != param.destPathStr)
 						{
 							std::wcout << L"Started copy to " << param.destFile.wstring() << std::endl;
