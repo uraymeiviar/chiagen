@@ -41,7 +41,7 @@ static uint32_t CalculateC3Size(uint8_t k)
 // C1 (checkpoint values)
 // C2 (checkpoint values into)
 // C3 (deltas of f7s between C1 checkpoints)
-uint64_t compute(	DiskPlotterContext* context,
+inline uint64_t compute(	DiskPlotterContext* context,
 					FILE* plot_file, const int header_size,
 					phase3::DiskSortNP* L_sort_7, int num_threads,
 					const uint64_t final_pointer_7,
@@ -248,28 +248,25 @@ uint64_t compute(	DiskPlotterContext* context,
 
 inline
 void compute(	DiskPlotterContext& context,
-				const phase3::output_t& input, output_t& out,
-				const int num_threads, const int log_num_buckets,
-				const std::string plot_name,
-				const std::string tmp_dir,
-				const std::string tmp_dir_2)
+				const phase3::output_t& input, output_t& out)
 {
 	const auto total_begin = get_wall_time_micros();
 	
-	FILE* plot_file = FOPEN(input.plot_file_name.c_str(), "rb+");
+	FILE* plot_file = FOPEN(input.plot_file_name.c_str(), L"rb+");
 	if(!plot_file) {
 		throw std::runtime_error("fopen() failed");
 	}
 	
 	out.plot_size = compute(&context, plot_file, input.header_size, input.sort_7.get(),
-							num_threads, input.final_pointer_7, input.num_written_7);
+							input.num_threads, input.final_pointer_7, input.num_written_7);
 	
+	fflush(plot_file);
 	fclose(plot_file);
 	
 	out.params = input.params;
-	out.plot_file_name = tmp_dir + plot_name + ".plot";
+	out.plot_file_name = input.tempDir + input.plot_name + L".plot";
 	
-	std::rename(input.plot_file_name.c_str(), out.plot_file_name.c_str());
+	::_wrename(input.plot_file_name.c_str(), out.plot_file_name.c_str());
 	
 	std::cout << "Phase 4 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec"
 			", final plot size is " << out.plot_size << " bytes" << std::endl;

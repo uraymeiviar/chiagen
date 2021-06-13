@@ -232,6 +232,8 @@
     <ClCompile Include="src\gui.cpp" />
     <ClCompile Include="src\Job.cpp" />
     <ClCompile Include="src\JobCreatePlot.cpp" />
+    <ClCompile Include="src\JobCreatePlotMax.cpp" />
+    <ClCompile Include="src\JobCreatePlotRef.cpp" />
     <ClCompile Include="src\Keygen.cpp" />
     <ClCompile Include="src\libs\fse\debug.c" />
     <ClCompile Include="src\libs\fse\entropy_common.c" />
@@ -386,6 +388,8 @@
     <ClInclude Include="src\gui.hpp" />
     <ClInclude Include="src\Job.hpp" />
     <ClInclude Include="src\JobCreatePlot.h" />
+    <ClInclude Include="src\JobCreatePlotMax.h" />
+    <ClInclude Include="src\JobCreatePlotRef.h" />
     <ClInclude Include="src\Keygen.hpp" />
     <ClInclude Include="src\libs\freetype\include\freetype\config\ftconfig.h" />
     <ClInclude Include="src\libs\freetype\include\freetype\config\ftheader.h" />

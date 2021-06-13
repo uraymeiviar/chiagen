@@ -18,7 +18,7 @@
 namespace mad {
 
 	template<typename T, typename Key>
-	void DiskSort<T, Key>::bucket_t::open(const char* mode)
+	void DiskSort<T, Key>::bucket_t::open(const wchar_t* mode)
 	{
 		if(file) {
 			fclose(file);
@@ -54,7 +54,7 @@ namespace mad {
 	void DiskSort<T, Key>::bucket_t::remove()
 	{
 		close();
-		std::remove(file_name.c_str());
+		_wremove(file_name.c_str());
 	}
 
 	template<typename T, typename Key>
@@ -93,7 +93,7 @@ namespace mad {
 
 	template<typename T, typename Key>
 	DiskSort<T, Key>::DiskSort(	int key_size, int log_num_buckets,
-								std::string file_prefix, bool read_only, 
+								std::wstring file_prefix, bool read_only, 
 								DiskPlotterContext* context)
 		:	key_size(key_size),
 			log_num_buckets(log_num_buckets),
@@ -106,11 +106,11 @@ namespace mad {
 	{
 		for(size_t i = 0; i < buckets.size(); ++i) {
 			auto& bucket = buckets[i];
-			bucket.file_name = file_prefix + ".sort_bucket_" + std::to_string(i) + ".tmp";
+			bucket.file_name = file_prefix + L".sort_bucket_" + std::to_wstring(i) + L".tmp";
 			if(read_only) {
 				bucket.num_entries = get_file_size(bucket.file_name.c_str()) / T::disk_size;
 			} else {
-				bucket.open("wb");
+				bucket.open(L"wb");
 			}
 		}
 	}
@@ -187,7 +187,7 @@ void DiskSort<T, Key>::read_bucket(	std::pair<size_t, size_t>& index,
 		read_buffer_t<T>& buffer)
 	{
 	auto& bucket = buckets[index.first];
-		bucket.open("rb");
+		bucket.open(L"rb");
 	
 		const int key_shift = bucket_key_shift - log_num_buckets;
 		if(key_shift < 0) {

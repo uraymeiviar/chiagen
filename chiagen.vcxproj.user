@@ -12,6 +12,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>create -k 32 -r 8 -b 128 -s 65536 -t E:\chia-temp -d E:\chia-plots -f 99a40d5f77b750aa3901afab537aea9cde04700301f7922aac3c34a7f55f0a6f00de77b74312106ef1e7dda41916dd6c -p a1c5cf82e5fac76d640a2cd47fdddff9301eaec0d17caede7b75fd67d73ac9630c088bbb0a037be8de033111bdad5eab -m 8192</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

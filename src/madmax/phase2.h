@@ -80,6 +80,11 @@ struct output_t {
 	table_t table_7;
 	std::shared_ptr<bitfield> bitfield_1;
 	std::shared_ptr<DiskSortT> sort[6];
+	std::wstring plot_name;
+	std::wstring tempDir;
+	std::wstring tempDir2;
+	int log_num_buckets;
+	int num_threads;
 };
 
 

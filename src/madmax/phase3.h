@@ -97,8 +97,13 @@ struct output_t {
 	uint64_t num_written_7 = 0;
 	uint64_t final_pointer_7 = 0;
 	phase1::input_t params;
-	std::string plot_file_name;
+	std::wstring plot_file_name;
 	std::shared_ptr<DiskSortNP> sort_7;
+	std::wstring plot_name;
+	std::wstring tempDir;
+	std::wstring tempDir2;
+	int log_num_buckets;
+	int num_threads;
 };
 
 

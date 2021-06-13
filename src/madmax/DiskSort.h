@@ -25,10 +25,10 @@ namespace mad {
 		struct bucket_t {
 			FILE* file = nullptr;
 			std::mutex mutex;
-			std::string file_name;
+			std::wstring file_name;
 			size_t num_entries = 0;
 		
-			void open(const char* mode);
+			void open(const wchar_t* mode);
 			void write(const void* data, size_t count);
 			void close();
 			void remove();
@@ -49,7 +49,7 @@ namespace mad {
 		};
 	
 		DiskSort(	int key_size, int log_num_buckets,
-					std::string file_prefix, bool read_only = false,
+					std::wstring file_prefix, bool read_only = false,
 					DiskPlotterContext* context = nullptr);
 	
 		~DiskSort() {

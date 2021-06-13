@@ -160,7 +160,7 @@ void FileDisk::Open(uint8_t flags /*= 0*/)
 
     // Opens the file for reading and writing
     do {
-        f_ = FOPEN((const char*)filename_.string().c_str(), (flags & writeFlag) ? "w+b" : "r+b");
+        f_ = FOPEN(filename_.wstring().c_str(), (flags & writeFlag) ? L"w+b" : L"r+b");
         if (f_ == nullptr) {
             char err_buffer[256];
             if (::strerror_s(err_buffer, 255, errno) != 0) {

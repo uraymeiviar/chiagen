@@ -122,16 +122,12 @@ void compute_table(	int R_index, int num_threads,
 
 inline
 void compute(	DiskPlotterContext& context,
-				const phase1::output_t& input, output_t& out,
-				const int num_threads, const int log_num_buckets,
-				const std::string plot_name,
-				const std::string tmp_dir,
-				const std::string tmp_dir_2)
+				const phase1::output_t& input, output_t& out)
 {
 	const auto total_begin = get_wall_time_micros();
 	
-	const std::string prefix = tmp_dir + plot_name + ".p2.";
-	const std::string prefix_2 = tmp_dir_2 + plot_name + ".p2.";
+	const std::wstring prefix = input.tempDir + input.plot_name + L".p2.";
+	const std::wstring prefix_2 = input.tempDir2 + input.plot_name + L".p2.";
 
 	context.pushTask("Phase2.Table1");
 	context.pushTask("Phase2.Table2");
@@ -150,25 +146,25 @@ void compute(	DiskPlotterContext& context,
 	auto curr_bitfield = std::make_shared<bitfield>(max_table_size);
 	auto next_bitfield = std::make_shared<bitfield>(max_table_size);
 	
-	DiskTable<entry_7> table_7(prefix_2 + "table7.tmp");
+	DiskTable<entry_7> table_7(prefix_2 + L"table7.tmp");
 	
 	compute_table<entry_7, entry_7, DiskSort7>(
-			7, num_threads, nullptr, &table_7, input.table[6], next_bitfield.get(), nullptr);
+			7, input.num_threads, nullptr, &table_7, input.table[6], next_bitfield.get(), nullptr);
 	
 	table_7.close();
-	remove(input.table[6].file_name);
+	_wremove(input.table[6].file_name.c_str());
 
 	context.popTask();
 	
 	for(int i = 5; i >= 1; --i)
 	{
 		std::swap(curr_bitfield, next_bitfield);
-		out.sort[i] = std::make_shared<DiskSortT>(32, log_num_buckets, prefix + "t" + std::to_string(i + 1));
+		out.sort[i] = std::make_shared<DiskSortT>(32, input.log_num_buckets, prefix + L"t" + std::to_wstring(i + 1));
 		
 		compute_table<phase1::tmp_entry_x, entry_x, DiskSortT>(
-			i + 1, num_threads, out.sort[i].get(), nullptr, input.table[i], next_bitfield.get(), curr_bitfield.get());
+			i + 1, input.num_threads, out.sort[i].get(), nullptr, input.table[i], next_bitfield.get(), curr_bitfield.get());
 		
-		remove(input.table[i].file_name);
+		_wremove(input.table[i].file_name.c_str());
 		context.popTask();
 	}
 	
@@ -176,6 +172,11 @@ void compute(	DiskPlotterContext& context,
 	out.table_1 = input.table[0];
 	out.table_7 = table_7.get_info();
 	out.bitfield_1 = next_bitfield;
+	out.num_threads = input.num_threads;
+	out.plot_name = input.plot_name;
+	out.log_num_buckets = input.log_num_buckets;
+	out.tempDir = input.tempDir;
+	out.tempDir2 = input.tempDir2;
 	
 	std::cout << "Phase 2 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
 }

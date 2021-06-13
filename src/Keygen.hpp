@@ -63,8 +63,7 @@ class PrivateKey {
     // Private keys are represented as 32 byte field elements. Note that
     // not all 32 byte integers are valid keys, the private key must be
     // less than the group order (which is in bls.hpp).
-    static const size_t PRIVATE_KEY_SIZE = 32;
-	static bool initResult;
+    static const size_t PRIVATE_KEY_SIZE = 32;	
 
     // Construct a private key from a bytearray.
     static PrivateKey FromBytes(const Bytes& bytes, bool modOrder = false);

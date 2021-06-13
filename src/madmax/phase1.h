@@ -24,9 +24,9 @@ namespace mad::phase1 {
 struct input_t {
 	std::array<uint8_t, 32> id = {};
 	std::vector<uint8_t> memo;
-	std::string plot_name;
-	std::string tempDir;
-	std::string tempDir2;
+	std::wstring plot_name;
+	std::wstring tempDir;
+	std::wstring tempDir2;
 	int log_num_buckets;
 	int num_threads;
 };
@@ -214,6 +214,11 @@ typedef DiskSort<entry_7, get_y<entry_7>> DiskSort7;
 struct output_t {
 	input_t params;
 	std::array<table_t, 7> table;
+	std::wstring plot_name;
+	std::wstring tempDir;
+	std::wstring tempDir2;
+	int log_num_buckets;
+	int num_threads;
 };
 
 

@@ -7,6 +7,8 @@
 #include <string>
 #include <intrin.h>
 
+static thread_local bool relicInited = false;
+
 #if FP_PRIME < 1536
 
 #define RLC_G1_LOWER			ep_
@@ -302,6 +304,9 @@ void ExtractExpand(uint8_t* output, size_t outputLen,
 
 PrivateKey KeyGen(const Bytes& seed)
 {
+	if (!relicInited) {
+		relicInited = Init();
+	}
 	// KeyGen
 	// 1. PRK = HKDF-Extract("BLS-SIG-KEYGEN-SALT-", IKM || I2OSP(0, 1))
 	// 2. OKM = HKDF-Expand(PRK, keyInfo || I2OSP(L, 2), L)
@@ -430,7 +435,6 @@ PrivateKey master_sk_to_local_sk(PrivateKey master) {
 	return derive_path(master,{12381,8444,3,0});
 }
 
-bool PrivateKey::initResult = Init();
 
 // Construct a private key from a bytearray.
 PrivateKey PrivateKey::FromBytes(const Bytes& bytes, bool modOrder)
@@ -468,6 +472,9 @@ PrivateKey::PrivateKey() {
 // Construct a private key from another private key.
 PrivateKey::PrivateKey(const PrivateKey &privateKey)
 {
+	if (!relicInited) {
+		relicInited = Init();
+	}
 	privateKey.CheckKeyData();
 	AllocateKeyData();
 	bn_copy((bn_st*)keydata, (bn_st*)privateKey.keydata);

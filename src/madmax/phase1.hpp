@@ -466,8 +466,8 @@ namespace mad::phase1 {
 	
 			initialize();
 	
-			const std::string prefix = input.tempDir + input.plot_name + ".p1.";
-			const std::string prefix_2 = input.tempDir2 + input.plot_name + ".p1.";
+			const std::wstring prefix = input.tempDir + input.plot_name + L".p1.";
+			const std::wstring prefix_2 = input.tempDir2 + input.plot_name + L".p1.";
 			const uint8_t k = 32;
 
 			context->pushTask("Phase1.Table7");
@@ -478,48 +478,48 @@ namespace mad::phase1 {
 			context->pushTask("Phase1.Table2");
 
 			context->pushTask("Phase1.Table1")->start();
-			DiskSort1 sort_1(k + kExtraBits, input.log_num_buckets, prefix_2 + "t1", false, context);
+			DiskSort1 sort_1(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t1", false, context);
 			compute_f1(input.id.data(), input.num_threads, &sort_1);
 			context->popTask();
 
 			context->getCurrentTask()->start();
-			DiskTable<tmp_entry_1> tmp_1(prefix + "table1.tmp",0,context);
-			DiskSort2 sort_2(k + kExtraBits, input.log_num_buckets, prefix_2 + "t2", false, context);
+			DiskTable<tmp_entry_1> tmp_1(prefix + L"table1.tmp",0,context);
+			DiskSort2 sort_2(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t2", false, context);
 			compute_table<entry_1, entry_2, tmp_entry_1>(
 					2, input.num_threads, &sort_1, &sort_2, &tmp_1);
 			context->popTask();
 	
 			context->getCurrentTask()->start();
-			DiskTable<tmp_entry_x> tmp_2(prefix + "table2.tmp",0,context);
-			DiskSort3 sort_3(k + kExtraBits, input.log_num_buckets, prefix_2 + "t3", false, context);
+			DiskTable<tmp_entry_x> tmp_2(prefix + L"table2.tmp",0,context);
+			DiskSort3 sort_3(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t3", false, context);
 			compute_table<entry_2, entry_3, tmp_entry_x>(
 					3, input.num_threads, &sort_2, &sort_3, &tmp_2);
 			context->popTask();
 	
 			context->getCurrentTask()->start();
-			DiskTable<tmp_entry_x> tmp_3(prefix + "table3.tmp",0,context);
-			DiskSort4 sort_4(k + kExtraBits, input.log_num_buckets, prefix_2 + "t4", false, context);
+			DiskTable<tmp_entry_x> tmp_3(prefix + L"table3.tmp",0,context);
+			DiskSort4 sort_4(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t4", false, context);
 			compute_table<entry_3, entry_4, tmp_entry_x>(
 					4, input.num_threads, &sort_3, &sort_4, &tmp_3);
 			context->popTask();
 	
 			context->getCurrentTask()->start();
-			DiskTable<tmp_entry_x> tmp_4(prefix + "table4.tmp",0,context);
-			DiskSort5 sort_5(k + kExtraBits, input.log_num_buckets, prefix_2 + "t5", false, context);
+			DiskTable<tmp_entry_x> tmp_4(prefix + L"table4.tmp",0,context);
+			DiskSort5 sort_5(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t5", false, context);
 			compute_table<entry_4, entry_5, tmp_entry_x>(
 					5, input.num_threads, &sort_4, &sort_5, &tmp_4);
 			context->popTask();
 	
 			context->getCurrentTask()->start();
-			DiskTable<tmp_entry_x> tmp_5(prefix + "table5.tmp",0,context);
-			DiskSort6 sort_6(k + kExtraBits, input.log_num_buckets, prefix_2 + "t6", false, context);
+			DiskTable<tmp_entry_x> tmp_5(prefix + L"table5.tmp",0,context);
+			DiskSort6 sort_6(k + kExtraBits, input.log_num_buckets, prefix_2 + L"t6", false, context);
 			compute_table<entry_5, entry_6, tmp_entry_x>(
 					6, input.num_threads, &sort_5, &sort_6, &tmp_5);
 			context->popTask();
 	
 			context->getCurrentTask()->start();
-			DiskTable<tmp_entry_x> tmp_6(prefix + "table6.tmp",0,context);
-			DiskTable<entry_7> tmp_7(prefix_2 + "table7.tmp",0,context);
+			DiskTable<tmp_entry_x> tmp_6(prefix + L"table6.tmp",0,context);
+			DiskTable<entry_7> tmp_7(prefix_2 + L"table7.tmp",0,context);
 			compute_table<entry_6, entry_7, tmp_entry_x, DiskSort6, DiskSort7>(
 					7, input.num_threads, &sort_6, nullptr, &tmp_6, &tmp_7);
 			context->popTask();
@@ -532,6 +532,11 @@ namespace mad::phase1 {
 			out.table[4] = tmp_5.get_info();
 			out.table[5] = tmp_6.get_info();
 			out.table[6] = tmp_7.get_info();
+			out.plot_name = input.plot_name;
+			out.tempDir = input.tempDir;
+			out.tempDir2 = input.tempDir2;
+			out.log_num_buckets = input.log_num_buckets;
+			out.num_threads = input.num_threads;
 	
 			std::cout << "Phase 1 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
 		}

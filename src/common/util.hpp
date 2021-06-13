@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 #include <assert.h>
+#include <algorithm>
 #include "stdiox.hpp"
 
 template <typename Int>
@@ -419,7 +420,7 @@ std::string get_date_string_ex(const char* format, bool UTC = false, int64_t tim
 }
 
 inline
-std::ifstream::pos_type get_file_size(const char* file_name)
+std::ifstream::pos_type get_file_size(const wchar_t* file_name)
 {
 	std::ifstream in(file_name, std::ifstream::ate | std::ifstream::binary);
 	return in.tellg(); 
@@ -450,6 +451,65 @@ size_t fwrite_at(FILE* file, uint64_t offset, const void* buf, size_t length) {
 inline
 void remove(const std::string& file_name) {
 	std::remove(file_name.c_str());
+}
+
+inline std::wstring s2ws(const std::string& str)
+{
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+	return converterX.from_bytes(str);
+}
+
+inline std::string ws2s(const std::wstring& wstr)
+{
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+	return converterX.to_bytes(wstr);
+}
+
+inline void HexToBytes(const std::string &hex, uint8_t *result)
+{
+	for (uint32_t i = 0; i < hex.length(); i += 2) {
+		std::string byteString = hex.substr(i, 2);
+		uint8_t byte = (uint8_t)strtol(byteString.c_str(), NULL, 16);
+		result[i / 2] = byte;
+	}
+}
+
+inline std::vector<unsigned char> intToBytes(uint32_t paramInt, uint32_t numBytes)
+{
+	std::vector<unsigned char> arrayOfByte(numBytes, 0);
+	for (uint32_t i = 0; paramInt > 0; i++) {
+		arrayOfByte[numBytes - i - 1] = paramInt & 0xff;
+		paramInt >>= 8;
+	}
+	return arrayOfByte;
+}
+
+inline std::string Strip0x(const std::string &hex)
+{
+	if (hex.size() > 1 && (hex.substr(0, 2) == "0x" || hex.substr(0, 2) == "0X")) {
+		return hex.substr(2);
+	}
+	return hex;
+}
+
+inline std::string hexStr(const std::vector<uint8_t>& data)
+{
+	 std::stringstream ss;
+	 ss << std::hex;
+
+	 for( int i(0) ; i < data.size(); ++i )
+		 ss << std::setw(2) << std::setfill('0') << (int)data[i];
+
+	 return ss.str();
+}
+
+template <class T> T lowercase(const T& inp) {
+	T data = inp;
+	std::transform(data.begin(), data.end(), data.begin(),
+	[](T::value_type c){ return std::tolower(c); });
+	return data;
 }
 
 #endif  // SRC_CPP_UTIL_HPP_

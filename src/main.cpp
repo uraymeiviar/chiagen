@@ -141,6 +141,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 #endif
 	LPWSTR *args;
 	int nArgs;
+	JobManager::getInstance().start();
 	args = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 	if (nArgs < 2) {
 		ImFrame::Run("uraymeiviar", "Chia Plotter", [] (const auto & params) { 
@@ -394,7 +395,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 							else {
 								cli_create(farmkey,poolkey,dest,temp,temp2,filename,memo,id,ksize,buckets,stripes,nthreads,mem,!bitfield);
 							}
-							std::cin.get();
 						}
 						catch (...) {
 							return 0;
@@ -479,9 +479,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 			std::cout << "done, press any key to exit" << std::endl;
 			FreeConsole();
 		}
-		
-		return 0;
 	}
+	JobManager::getInstance().stop();
 	return 1;
 }
 
@@ -635,10 +634,13 @@ void MainApp::toolPage() {
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
 		if (ImGui::BeginChild("col1", ImVec2(0.0f, 0.0f))) {
-			if (ImGui::CollapsingHeader("Create Plot")) {
-				ImGui::Indent(20.0f);
-				this->createPlotDialog();
-				ImGui::Unindent(20.0f);
+			JobManager& jm = JobManager::getInstance();
+			for (auto jobFactory : jm.jobFactories) {
+				if (ImGui::CollapsingHeader(jobFactory->getName().c_str())) {
+					ImGui::Indent(20.0f);
+					jobFactory->drawEditor();
+					ImGui::Unindent(20.0f);
+				}
 			}
 			if (ImGui::CollapsingHeader("Check Plot")) {
 				ImGui::Text("Under development");
@@ -697,24 +699,3 @@ void MainApp::systemPage() {}
 
 void MainApp::helpPage() {}
 
-void MainApp::createPlotDialog() {
-	JobCreatePlotParam* jobPram = JobCreatePlot::drawUI();
-
-	float fieldWidth = ImGui::GetWindowContentRegionWidth();
-
-	ImGui::Text("Job Name");
-	ImGui::SameLine(90.0f);
-	ImGui::PushItemWidth(fieldWidth-(jobPram?160.0f:90.0f));
-	std::string jobName = "createplot-"+std::to_string(JobCreatePlot::jobIdCounter);
-	ImGui::InputText("##jobName",&jobName);
-	ImGui::PopItemWidth();
-	if (jobPram) {
-		ImGui::SameLine();
-		ImGui::PushItemWidth(50.0f);
-		if (ImGui::Button("Add Job")) {
-			JobManager::getInstance().addJob(std::make_shared<JobCreatePlot>(jobName, *jobPram));
-			JobCreatePlot::jobIdCounter++;
-		}
-		ImGui::PopItemWidth();
-	}		
-}

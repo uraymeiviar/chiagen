@@ -29,13 +29,13 @@ namespace mad {
 		};
 		DiskPlotterContext* context;
 	public:
-		DiskTable(std::string file_name, size_t num_entries = 0, DiskPlotterContext* context = nullptr)
+		DiskTable(std::wstring file_name, size_t num_entries = 0, DiskPlotterContext* context = nullptr)
 			:	file_name(file_name),
 				num_entries(num_entries),
 				context(context)
 		{
 			if(!num_entries) {
-				file_out = FOPEN(file_name.c_str(), "wb");
+				file_out = FOPEN(file_name.c_str(), L"wb");
 			}
 		}
 	
@@ -71,7 +71,7 @@ namespace mad {
 		
 			for(size_t i = 0; i < pool.num_threads(); ++i)
 			{
-				FILE* file = FOPEN(file_name.c_str(), "rb");
+				FILE* file = FOPEN(file_name.c_str(), L"rb");
 				if(!file) {
 					throw std::runtime_error("fopen() failed");
 				}
@@ -138,7 +138,7 @@ namespace mad {
 		}
 	
 	private:
-		std::string file_name;
+		std::wstring file_name;
 		size_t num_entries;
 	
 		write_buffer_t<T> cache;

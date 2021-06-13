@@ -573,6 +573,12 @@
     <ClCompile Include="src\chiapos\b3\blake3_sse2.c">
       <Filter>chiapos\b3</Filter>
     </ClCompile>
+    <ClCompile Include="src\JobCreatePlotRef.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JobCreatePlotMax.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cli.hpp">
@@ -1081,6 +1087,12 @@
     </ClInclude>
     <ClInclude Include="src\common\stdiox.hpp">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JobCreatePlotRef.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JobCreatePlotMax.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

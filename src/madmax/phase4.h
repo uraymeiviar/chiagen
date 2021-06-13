@@ -16,7 +16,7 @@ namespace mad::phase4 {
 struct output_t {
 	phase1::input_t params;
 	uint64_t plot_size = 0;
-	std::string plot_file_name;
+	std::wstring plot_file_name;
 };
 
 

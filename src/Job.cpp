@@ -1,19 +1,26 @@
 #include "Job.hpp"
 #include "imgui.h"
 #include <thread>
-
+#include <future>>
 #include <psapi.h>
+
+JobManager::JobManager()
+{
+	this->myProcess = NULL;
+}
 
 JobManager& JobManager::getInstance() {
 	static JobManager instance;
 	return instance;
 }
 
-void JobManager::triggerEvent(std::shared_ptr<JobEvent> jobEvent)
+void JobManager::triggerEvent(std::shared_ptr<JobEvent> jobEvent,std::shared_ptr<Job> source)
 {
 	for (auto job : this->activeJobs) {
 		try {
-			job->handleEvent(jobEvent);
+			if (source && job != source) {
+				job->handleEvent(jobEvent, source);
+			}			
 		}
 		catch (...) {
 
@@ -56,6 +63,54 @@ size_t JobManager::countRunningJob() const {
 	return result;
 }
 
+void JobManager::collectMemUsage()
+{
+	PROCESS_MEMORY_COUNTERS_EX pmc;
+	if (GetProcessMemoryInfo(this->myProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+	{
+		this->memUsageHistory.push_back(pmc.PrivateUsage);
+		while (this->memUsageHistory.size() > this->statSampleCount) {
+			this->memUsageHistory.erase(this->memUsageHistory.begin());
+		}
+	}
+}
+
+void JobManager::collectDiskUsage()
+{
+	::IO_COUNTERS counter;
+	if (::GetProcessIoCounters(this->myProcess, &counter)) {
+		this->diskWriteHistory.push_back(counter.WriteTransferCount - lastDiskWrite);
+		this->lastDiskWrite = counter.WriteTransferCount;
+		this->diskReadHistory.push_back(counter.ReadTransferCount - lastDiskRead);
+		this->lastDiskRead = counter.ReadTransferCount;
+
+		while (this->diskWriteHistory.size() > this->statSampleCount) {
+			this->diskWriteHistory.erase(this->diskWriteHistory.begin());
+		}
+
+		while (this->diskReadHistory.size() > this->statSampleCount) {
+			this->diskReadHistory.erase(this->diskReadHistory.begin());
+		}
+	}
+}
+
+void JobManager::samplerThreadProc()
+{
+	while (JobManager::getInstance().isRunning) {
+		auto start = std::chrono::steady_clock::now();
+		auto elapsed = start - this->lastSampleTime;
+		if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {
+			JobManager::getInstance().collectMemUsage();
+			JobManager::getInstance().collectDiskUsage();
+			JobManager::getInstance().lastSampleTime = start;
+			for (auto job : JobManager::getInstance().activeJobs) {
+				job->update();
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+}
+
 std::vector<std::shared_ptr<Job>>::const_iterator JobManager::jobIteratorBegin() const  {
 	return this->activeJobs.begin();
 }
@@ -64,19 +119,145 @@ std::vector<std::shared_ptr<Job>>::const_iterator JobManager::jobIteratorEnd() c
 	return this->activeJobs.end();
 }
 
+void JobManager::registerJobFactory(std::shared_ptr<JobFactory> factory)
+{
+	this->jobFactories.push_back(factory);
+}
+
+void JobManager::stop()
+{
+	for (auto job : JobManager::getInstance().activeJobs) {
+		job->cancel(true);
+	}
+	this->isRunning = false;
+	if (this->samplerThread.joinable()) {
+		this->samplerThread.join();
+	}
+}
+
+void JobManager::start()
+{
+	if (this->myProcess = NULL) {
+		this->myProcess = ::GetCurrentProcess();
+		this->isRunning = true;
+		this->samplerThread = std::thread(&JobManager::samplerThreadProc, &JobManager::getInstance());
+	}
+}
+
 Job::Job(std::string title) :title(title)
 {
 
 }
 
-std::string Job::getTitle() const { return this->title; }
-
-void Job::drawItemWidget() {
-	ImGui::Text(this->getTitle().c_str());
-	ImGui::ProgressBar(this->getProgress());
+bool Job::isRunning() const
+{
+	if (this->activity) {
+		return this->activity->isRunning();
+	}
+	else {
+		return false;
+	}
 }
 
-void Job::drawStatusWidget() {
+bool Job::isPaused() const
+{
+	if (this->activity) {
+		return this->activity->isPaused();
+	}
+	else {
+		return false;
+	}
+}
+
+bool Job::isFinished() const
+{
+	if (this->activity) {
+		return this->activity->isFinished();
+	}
+	else {
+		return false;
+	}
+}
+
+bool Job::start(bool overrideRule)
+{
+	bool doStart = false;
+	if (!overrideRule) {
+		JobRule* startRule = this->getStartRule();
+		if (startRule) {
+			doStart = startRule->evaluate();
+		}
+		else {
+			doStart = true;
+		}		
+	}
+	else {
+		doStart = true;
+	}
+	
+	if (doStart && !this->isFinished() && !this->isRunning()) {
+		this->initActivity();
+		if (this->activity) {
+			return this->activity->start();
+		}
+	}	
+	return false;
+}
+
+bool Job::pause()
+{
+	if (this->activity) {
+		return this->activity->pause();
+	}
+	else {
+		return false;
+	}
+}
+
+bool Job::cancel(bool forced)
+{
+	if (this->activity) {
+		return this->activity->stop(false, forced);
+	}
+	else {
+		return false;
+	}
+}
+
+float Job::getProgress()
+{
+	if (this->activity) {
+		return this->activity->getProgress();
+	}
+	else {
+		return 0.0f;;
+	}
+}
+
+JobRule* Job::getStartRule()
+{
+	return nullptr;
+}
+
+JobRule* Job::getFinishRule()
+{
+	return nullptr;
+}
+
+std::string Job::getTitle() const { return this->title; }
+
+bool Job::drawEditor()
+{
+	return false;
+}
+
+bool Job::drawItemWidget() {
+	ImGui::Text(this->getTitle().c_str());
+	ImGui::ProgressBar(this->getProgress());
+	return false;
+}
+
+bool Job::drawStatusWidget() {
 	ImGui::Text(this->getTitle().c_str());
 	ImGui::ProgressBar(this->getProgress());
 	if (this->isRunning()) {
@@ -92,17 +273,20 @@ void Job::drawStatusWidget() {
 		}
 	}
 	else {
-		if (this->getStartRule().evaluate()) {
+		JobRule* startRule = this->getStartRule();
+		if (startRule) {
+			if (startRule->evaluate() && ImGui::Button("Start")) {
+				this->start(false);
+			}
+			if (ImGui::Button("Overide Start")) {
+				this->start(true);
+			}
+		}
+		else {
 			if (ImGui::Button("Start")) {
 				this->start();
 			}
 		}
-		else {
-			if (ImGui::Button("Overide Start")) {
-				this->start();
-			}
-		}
-			
 	}
 	ImGui::SameLine();
 	if (this->isRunning()) {
@@ -115,6 +299,46 @@ void Job::drawStatusWidget() {
 			this->cancel();
 		}
 	}
+	return false;
+}
+
+void Job::handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source)
+{
+	JobRule* startRule = this->getStartRule();
+	JobRule* finishRule = this->getFinishRule();
+	if (startRule) {
+		startRule->handleEvent(jobEvent, source);
+	}
+	if (finishRule) {
+		finishRule->handleEvent(jobEvent, source);
+	}
+}
+
+void Job::update()
+{
+	JobRule* startRule = this->getStartRule();
+	JobRule* finishRule = this->getFinishRule();
+
+	if (startRule) {
+		startRule->update();
+	}
+	
+	if (!this->isRunning() && !this->isFinished()) {
+		this->start(false);
+	}
+	
+	if (finishRule) {
+		finishRule->update();
+	}
+
+	if (this->activity) {
+		this->activity->samplerUpdate();
+	}
+}
+
+void Job::initActivity()
+{
+	this->activity = std::make_shared<JobActvity>(this->getTitle(), this);
 }
 
 JobTaskItem::JobTaskItem(std::string name) :name(name)
@@ -207,22 +431,25 @@ uint32_t JobTaskItem::getCompletedWorkItems()
 	return childTotal + this->completedWorkItem;
 }
 
-void JobTaskItem::start()
+bool JobTaskItem::start()
 {
-	if (!this->state.running) {
+	if (!this->state.running && !this->state.finished) {
 		this->startTime = std::chrono::system_clock::now();
 		this->state.running = true;
+		this->state.finished = false;
+		return true;
 	}
-	this->state.finished = false;
+	return false;
 }
 
-void JobTaskItem::stop(bool finished /*= true*/)
+bool JobTaskItem::stop(bool finished /*= true*/)
 {
 	if (finished) {
-		this->finishTime = std::chrono::system_clock::now();
-		this->state.running = false;
+		this->finishTime = std::chrono::system_clock::now();	
 	}
+	this->state.running = false;
 	this->state.finished = finished;
+	return true;
 }
 
 bool JobTaskItem::isRunning() const
@@ -235,47 +462,121 @@ bool JobTaskItem::isFinished() const
 	return this->state.finished;
 }
 
-JobActvity::JobActvity(std::string name) :JobTaskItem(name)
+JobActvity::JobActvity(std::string name, Job* owner) : JobTaskItem(name), job(owner)
 {
-	this->myProcess = ::GetCurrentProcess();
+	
 }
 
-void JobActvity::start(uint32_t updateInterval, uint32_t sampleCount)
+bool JobActvity::start(uint32_t sampleCount)
 {
 	this->statSampleCount = sampleCount;
-	this->statUpdateInterval = updateInterval;	
-	this->lastSampleTime = std::chrono::steady_clock::now();
-	//TODO : start jobThread
-	//if success
-	this->state.paused = false;
-	JobTaskItem::start();
-}
+	if (!this->isFinished() && !this->isRunning() && this->mainRoutine) {
+		this->lastSampleTime = std::chrono::steady_clock::now();
+		if (JobTaskItem::start()) {
+			this->jobThread = std::thread([=](){
+				try {
+					this->mainRoutine(&this->state);
+				}
+				catch (...) {
 
-void JobActvity::stop(bool finished, bool force /*= false*/)
-{
-	this->state.finished = finished;
-	samplerUpdate();
-	this->state.running = false;
-	if (!finished) {
-		//TODO:: kill thread ? or wait?
+				}
+				this->stopActivity(true);
+			});
+			if (this->jobThread.joinable()) {
+				return true;
+			}
+		}
+		else {
+			return false;
+		}
 	}
-	JobTaskItem::stop(finished);
+	return false;
 }
 
-void JobActvity::pause(bool isPause /*= true*/)
+bool JobActvity::start()
+{
+	return this->start(60);
+}
+
+//should NOT be called inside JobThread !!
+bool JobActvity::stop(bool finished, bool force /*= false*/)
+{
+	if (this->isRunning()) {
+		if (this->stopActivity(finished)) {
+			if (force) {
+				auto future = std::async(std::launch::async, &std::thread::join, &this->jobThread);
+				if (future.wait_for(std::chrono::seconds(10)) == std::future_status::timeout) {
+					::TerminateThread(this->jobThread.native_handle(),0);
+					if (finished && this->onFinish) {
+						this->onFinish(&this->state);
+					}
+				}
+				else {
+					if (finished && this->onFinish) {
+						this->onFinish(&this->state);
+					}
+				}
+			}
+			else {
+				if (this->jobThread.joinable()) {
+					this->jobThread.join();
+				}
+				if (finished && this->onFinish) {
+					this->onFinish(&this->state);
+				}
+			}
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool JobActvity::stopActivity(bool finished)
+{
+	this->samplerUpdate();
+	bool result = JobTaskItem::stop(finished);
+	if (result && finished && this->job) {
+		JobRule* finishRule = this->job->getFinishRule();
+		if (finishRule) {
+			finishRule->evaluate();
+		}
+	}
+	return result;
+}
+
+bool JobActvity::stop(bool finished /*= true*/)
+{
+	return this->stop(finished, false);
+}
+
+bool JobActvity::pause(bool isPause /*= true*/)
 {
 	if (isPause != this->state.paused) {
-		if (!isPause) {
-			this->state.paused = true;
+		if (!isPause) {			
 			this->lastSampleTime = std::chrono::steady_clock::now();
-			//TODO : suspend jobThread
+			if (::SuspendThread(this->jobThread.native_handle()) >= 0) {
+				this->state.paused = true;
+				if (this->onPause) {
+					this->onPause(&this->state);
+				}
+				return true;
+			}
 		}
 		else {
 			this->state.paused = false;
 			this->lastSampleTime = std::chrono::steady_clock::now();
-			//TODO : resume jobThread
+			if (::ResumeThread(this->jobThread.native_handle()) >= 0) {
+				this->state.paused = false;
+				if (this->onResume) {
+					this->onResume(&this->state);
+				}
+				return true;
+			}
 		}
+		return true;
 	}
+	return false;
 }
 
 bool JobActvity::isPaused() const
@@ -286,8 +587,13 @@ bool JobActvity::isPaused() const
 void JobActvity::samplerUpdate()
 {
 	this->collectCPUUsage();
-	this->collectMemUsage();
-	this->collectDiskUsage();
+}
+
+void JobActvity::waitUntilFinish()
+{
+	if (this->jobThread.joinable()) {
+		this->jobThread.join();
+	}
 }
 
 void JobActvity::collectCPUUsage()
@@ -328,68 +634,34 @@ void JobActvity::collectCPUUsage()
 	this->lastSampleTime = std::chrono::steady_clock::now();
 }
 
-void JobActvity::collectMemUsage()
-{
-	PROCESS_MEMORY_COUNTERS_EX pmc;
-	if (GetProcessMemoryInfo(this->myProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
-	{
-		this->memUsageHistory.push_back(pmc.PrivateUsage);
-		while (this->memUsageHistory.size() > this->statSampleCount) {
-			this->memUsageHistory.erase(this->memUsageHistory.begin());
-		}
-	}
-}
-
-void JobActvity::collectDiskUsage()
-{
-	::IO_COUNTERS counter;
-	if (::GetProcessIoCounters(this->myProcess, &counter)) {
-		this->diskWriteHistory.push_back(counter.WriteTransferCount - lastDiskWrite);
-		this->lastDiskWrite = counter.WriteTransferCount;
-		this->diskReadHistory.push_back(counter.ReadTransferCount - lastDiskRead);
-		this->lastDiskRead = counter.ReadTransferCount;
-
-		while (this->diskWriteHistory.size() > this->statSampleCount) {
-			this->diskWriteHistory.erase(this->diskWriteHistory.begin());
-		}
-
-		while (this->diskReadHistory.size() > this->statSampleCount) {
-			this->diskReadHistory.erase(this->diskReadHistory.begin());
-		}
-	}
-}
-
-void JobActvity::samplerThreadProc()
-{
-	while (this->isRunning()) {
-		if (!this->isPaused()) {
-			auto start = std::chrono::steady_clock::now();
-			auto elapsed = start - this->lastSampleTime;
-			if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {
-				this->samplerUpdate();
-				this->lastSampleTime = start;
-			}
-			else {
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-			}
-		}
-		else {
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-	}
-}
-
 JobEvent::JobEvent(std::string type) : type(type)
 {
 
 }
 
-void JobEvent::trigger()
+void JobEvent::trigger(std::shared_ptr<Job> source)
 {
-	JobManager::getInstance().triggerEvent(this->shared_from_this());
+	JobManager::getInstance().triggerEvent(this->shared_from_this(), source);
 }
 
 std::string JobEvent::getType() const
 {
 	return this->type;
+}
+
+bool JobEventId::isEmpty()
+{
+	return type.empty();
+}
+
+bool JobEventId::match(JobEvent* event)
+{
+	if (event) {
+		if (this->type == event->getType()) {
+			if (!this->name.empty()) {
+				return this->name == event->name;
+			}
+		}
+	}
+	return false;
 }

@@ -16,6 +16,5 @@ protected:
 	void statPage();
 	void systemPage();
 	void helpPage();
-	void createPlotDialog();
 	int wx,wy,ww,wh;
 };

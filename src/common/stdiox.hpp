@@ -12,13 +12,9 @@
 #include <string>
 #include <iostream>
 
-    inline FILE* _wfopenX(const char* _FileName, const char* _Mode) {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-        std::wstring w_FileName = converter.from_bytes(_FileName);
-        std::wstring w_Mode = converter.from_bytes(_Mode);
-
+    inline FILE* _wfopenX(const wchar_t* filename, const wchar_t* mode) {
         FILE* file = NULL;
-		_wfopen_s(&file, w_FileName.c_str(), w_Mode.c_str());
+		_wfopen_s(&file, filename, mode);
 
         return file;
     }

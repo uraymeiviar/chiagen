@@ -180,7 +180,7 @@ static uint32_t CalculateParkSize(uint8_t k, uint8_t table_index)
 }
 
 // Writes the plot file header to a file
-size_t WriteHeader(
+inline size_t WriteHeader(
 	FILE* file,
 	uint8_t k,
 	const uint8_t* id,
@@ -430,20 +430,16 @@ uint64_t compute_stage2(DiskPlotterContext& context,
 
 inline
 void compute(	DiskPlotterContext& context,
-				phase2::output_t& input, output_t& out,
-				const int num_threads, const int log_num_buckets,
-				const std::string plot_name,
-				const std::string tmp_dir,
-				const std::string tmp_dir_2)
+				phase2::output_t& input, output_t& out)
 {
 	const auto total_begin = get_wall_time_micros();
 	
-	const std::string prefix_2 = tmp_dir_2 + plot_name + ".";
+	const std::wstring prefix_2 = input.tempDir2 + input.plot_name + L".";
 	
 	out.params = input.params;
-	out.plot_file_name = tmp_dir + plot_name + ".plot.tmp";
+	out.plot_file_name = input.tempDir + input.plot_name + L".plot.tmp";
 	
-	FILE* plot_file = FOPEN(out.plot_file_name.c_str(), "wb");
+	FILE* plot_file = FOPEN(out.plot_file_name.c_str(), L"wb");
 	if(!plot_file) {
 		throw std::runtime_error("fopen() failed");
 	}
@@ -458,7 +454,7 @@ void compute(	DiskPlotterContext& context,
 	DiskTable<phase2::entry_1> L_table_1(input.table_1);
 	
 	auto R_sort_lp = std::make_shared<DiskSortLP>(
-			63, log_num_buckets, prefix_2 + "p3s1.t2");
+			63, input.log_num_buckets, prefix_2 + L"p3s1.t2");
 
 	context.pushTask("Phase3-Table7-Stage2");
 	context.pushTask("Phase3-Table7-Stage1");
@@ -474,54 +470,54 @@ void compute(	DiskPlotterContext& context,
 	context.pushTask("Phase3-Table2-Stage1");
 	
 	compute_stage1<phase2::entry_1, phase2::entry_x, DiskSortNP, phase2::DiskSortT>(
-			1, num_threads, nullptr, input.sort[1].get(), R_sort_lp.get(), &L_table_1, input.bitfield_1.get());
+			1, input.num_threads, nullptr, input.sort[1].get(), R_sort_lp.get(), &L_table_1, input.bitfield_1.get());
 	
 	input.bitfield_1 = nullptr;
-	remove(input.table_1.file_name);
+	_wremove(input.table_1.file_name.c_str());
 	context.popTask();
 	
 	auto L_sort_np = std::make_shared<DiskSortNP>(
-			32, log_num_buckets, prefix_2 + "p3s2.t2");
+			32, input.log_num_buckets, prefix_2 + L"p3s2.t2");
 	
 	num_written_final += compute_stage2(context,
-			1, num_threads, R_sort_lp.get(), L_sort_np.get(),
+			1, input.num_threads, R_sort_lp.get(), L_sort_np.get(),
 			plot_file, final_pointers[1], &final_pointers[2]);
 	context.popTask();
 	
 	for(int L_index = 2; L_index < 6; ++L_index)
 	{
-		const std::string R_t = "t" + std::to_string(L_index + 1);
+		const std::wstring R_t = L"t" + std::to_wstring(L_index + 1);
 		
 		R_sort_lp = std::make_shared<DiskSortLP>(
-				63, log_num_buckets, prefix_2 + "p3s1." + R_t);
+				63, input.log_num_buckets, prefix_2 + L"p3s1." + R_t);
 		
 		compute_stage1<entry_np, phase2::entry_x, DiskSortNP, phase2::DiskSortT>(
-				L_index, num_threads, L_sort_np.get(), input.sort[L_index].get(), R_sort_lp.get());
+				L_index, input.num_threads, L_sort_np.get(), input.sort[L_index].get(), R_sort_lp.get());
 		context.popTask();
 		
 		L_sort_np = std::make_shared<DiskSortNP>(
-				32, log_num_buckets, prefix_2 + "p3s2." + R_t);
+				32, input.log_num_buckets, prefix_2 + L"p3s2." + R_t);
 		
 		num_written_final += compute_stage2(context,
-				L_index, num_threads, R_sort_lp.get(), L_sort_np.get(),
+				L_index, input.num_threads, R_sort_lp.get(), L_sort_np.get(),
 				plot_file, final_pointers[L_index], &final_pointers[(size_t)L_index + 1]);
 		context.popTask();
 	}
 	
 	DiskTable<phase2::entry_7> R_table_7(input.table_7);
 	
-	R_sort_lp = std::make_shared<DiskSortLP>(63, log_num_buckets, prefix_2 + "p3s1.t7");
+	R_sort_lp = std::make_shared<DiskSortLP>(63, input.log_num_buckets, prefix_2 + L"p3s1.t7");
 	
 	compute_stage1<entry_np, phase2::entry_7, DiskSortNP, phase2::DiskSort7>(
-			6, num_threads, L_sort_np.get(), nullptr, R_sort_lp.get(), nullptr, nullptr, &R_table_7);
+			6, input.num_threads, L_sort_np.get(), nullptr, R_sort_lp.get(), nullptr, nullptr, &R_table_7);
 	context.popTask();
 	
-	remove(input.table_7.file_name);
+	_wremove(input.table_7.file_name.c_str());
 	
-	L_sort_np = std::make_shared<DiskSortNP>(32, log_num_buckets, prefix_2 + "p3s2.t7");
+	L_sort_np = std::make_shared<DiskSortNP>(32, input.log_num_buckets, prefix_2 + L"p3s2.t7");
 	
 	const auto num_written_final_7 = compute_stage2(context,
-			6, num_threads, R_sort_lp.get(), L_sort_np.get(),
+			6, input.num_threads, R_sort_lp.get(), L_sort_np.get(),
 			plot_file, final_pointers[6], &final_pointers[7]);
 	num_written_final += num_written_final_7;
 	
@@ -537,6 +533,11 @@ void compute(	DiskPlotterContext& context,
 	out.sort_7 = L_sort_np;
 	out.num_written_7 = num_written_final_7;
 	out.final_pointer_7 = final_pointers[7];
+	out.plot_name = input.plot_name;
+	out.tempDir = input.tempDir;
+	out.tempDir2 = input.tempDir2;
+	out.log_num_buckets = input.log_num_buckets;
+	out.num_threads = input.num_threads;
 
 	context.popTask();
 	
