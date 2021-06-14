@@ -582,49 +582,52 @@ void MainApp::OnUpdate() {
 	Style();
 	glfwGetWindowPos(this->GetWindow(),&wx,&wy);
 	glfwGetWindowSize(this->GetWindow(),&ww,&wh);
-	ImGui::SetNextWindowPos(ImVec2((float)wx,(float)wy));
-	ImGui::SetNextWindowSize(ImVec2((float)(ww),(float)(wh)));
-	ImGui::SetNextWindowSizeConstraints(ImVec2((float)ww,(float)wh),ImVec2(float(ww),float(wh)));
-	if (ImGui::Begin("gfg",nullptr,ImGuiWindowFlags_NoDecoration)) {
-		if (ImGui::BeginTabBar("MainTab")) {
-			if(ImGui::BeginTabItem("Tools")){
-				this->activeTab = 0;
-				ImGui::EndTabItem();
+	if (ww > 8 && wh > 8) {
+		ImGui::SetNextWindowPos(ImVec2((float)wx,(float)wy));
+		ImGui::SetNextWindowSize(ImVec2((float)(ww),(float)(wh)));
+		ImGui::SetNextWindowSizeConstraints(ImVec2((float)ww,(float)wh),ImVec2(float(ww),float(wh)));
+		if (ImGui::Begin("gfg",nullptr,ImGuiWindowFlags_NoDecoration)) {
+			if (ImGui::BeginTabBar("MainTab")) {
+				if(ImGui::BeginTabItem("Tools")){
+					this->activeTab = 0;
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("Stats")) {
+					this->activeTab = 1;
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("System")) {
+					this->activeTab = 2;
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("Help")) {
+					this->activeTab = 3;
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
 			}
-			if (ImGui::BeginTabItem("Stats")) {
-				this->activeTab = 1;
-				ImGui::EndTabItem();
+			if (this->activeTab == 0) {
+				this->toolPage();
 			}
-			if (ImGui::BeginTabItem("System")) {
-				this->activeTab = 2;
-				ImGui::EndTabItem();
+			else if (this->activeTab == 1) {
+				this->statPage();
 			}
-			if (ImGui::BeginTabItem("Help")) {
-				this->activeTab = 3;
-				ImGui::EndTabItem();
+			else if(this->activeTab == 2){
+				this->systemPage();
 			}
-			ImGui::EndTabBar();
-		}
-		if (this->activeTab == 0) {
-			this->toolPage();
-		}
-		else if (this->activeTab == 1) {
-			this->statPage();
-		}
-		else if(this->activeTab == 2){
-			this->systemPage();
-		}
-		else if (this->activeTab == 3) {
-			this->helpPage();
-		}
-		ImGui::End();
-	}	
+			else if (this->activeTab == 3) {
+				this->helpPage();
+			}
+			ImGui::End();
+		}	
+	}
 }
 
 void MainApp::toolPage() {
 	ImGui::PushID("toolpage");
-		
+	
 	if(ImGui::BeginTable("toolTable",3,tableFlag)){
+
 		ImGui::TableSetupScrollFreeze(1, 1);
 		ImGui::TableSetupColumn("Create Job",ImGuiTableColumnFlags_WidthFixed,340.0f);
 		ImGui::TableSetupColumn("Active Job",ImGuiTableColumnFlags_WidthFixed,230.0f);
