@@ -16,6 +16,14 @@
 
 FactoryRegistration<JobCreatePlotMaxFactory> JobCreatePlotMaxFactoryRegistration;
 
+JobCreatePlotMaxParam::JobCreatePlotMaxParam()
+{
+	this->threads = std::thread::hardware_concurrency()/2;
+	if (this->threads < 2) {
+		this->threads = 2;
+	}
+}
+
 void JobCreatePlotMaxParam::loadDefault()
 {
 	this->readChunkSize = 65536;
@@ -364,8 +372,8 @@ bool JobCreatePlotMaxParam::drawEditor()
 			if (this->buckets < 16) {
 				this->buckets = 16;
 			}
-			if (this->buckets > 128) {
-				this->buckets = 128;
+			if (this->buckets > 256) {
+				this->buckets = 256;
 			}
 			bucketInput= this->buckets;
 			result |= true;
@@ -500,11 +508,10 @@ void JobCreatePlotMax::initActivity()
 						{
 							std::wcout << L"Started copy to " << param.destFile.wstring() << std::endl;
 							const auto total_begin = get_wall_time_micros();
-							std::filesystem::copy(out_4.plot_file_name, param.destFileTempPath);
-							const auto time = (get_wall_time_micros() - total_begin) / 1e6;	
-							_wrename(param.destFileTempPath.c_str(), param.destFile.c_str());
+							std::filesystem::copy(out_4.plot_file_name, param.destFile);
 							_wremove(out_4.plot_file_name.c_str());
-							std::wcout << L"Copy to " << param.destFile.wstring() << L" finished, took " << time << L" sec " << std::endl;
+							const auto time = (get_wall_time_micros() - total_begin) / 1e6;	
+							std::wcout << L"Move to " << param.destFile.wstring() << L" finished, took " << time << L" sec " << std::endl;
 						}
 						context.popTask();
 						plottingJob->finishEvent->trigger(context.job);

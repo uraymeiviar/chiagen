@@ -143,7 +143,6 @@ void compute(	DiskPlotterContext& context,
 	const std::wstring prefix_2 = input.tempDir2 + input.plot_name + L".p2.";
 
 	std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
-	context.pushTask("Phase2.Table1", currentTask);
 	context.pushTask("Phase2.Table2", currentTask);
 	context.pushTask("Phase2.Table3", currentTask);
 	context.pushTask("Phase2.Table4", currentTask);

@@ -489,7 +489,7 @@ constexpr auto ColorFromBytes = [](uint8_t r, uint8_t g, uint8_t b)
 	return ImVec4((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0f);
 };
 
-const ImVec4 bgColor           = ColorFromBytes(4, 16, 8);
+const ImVec4 bgColor           = ColorFromBytes(0, 0, 0);
 const ImVec4 lightBgColor      = ColorFromBytes(40, 65, 50);
 const ImVec4 veryLightBgColor  = ColorFromBytes(70, 115, 90);
 
@@ -497,7 +497,7 @@ const ImVec4 panelColor        = ColorFromBytes(80, 140, 110);
 const ImVec4 panelHoverColor   = ColorFromBytes(30, 215, 140);
 const ImVec4 panelActiveColor  = ColorFromBytes(0, 200, 120);
 
-const ImVec4 textColor         = ColorFromBytes(200, 255, 210);
+const ImVec4 textColor         = ColorFromBytes(240, 255, 225);
 const ImVec4 textDisabledColor = ColorFromBytes(96, 96, 96);
 const ImVec4 borderColor       = ColorFromBytes(30, 48, 40);
 
@@ -521,18 +521,18 @@ void Style()
 	colors[ImGuiCol_TitleBgActive]        = bgColor;
 	colors[ImGuiCol_TitleBgCollapsed]     = bgColor;
 	colors[ImGuiCol_MenuBarBg]            = panelColor;
-	colors[ImGuiCol_ScrollbarBg]          = borderColor;
+	colors[ImGuiCol_ScrollbarBg]          = ColorFromBytes(16,16,16);
 	colors[ImGuiCol_ScrollbarGrab]        = lightBgColor;
 	colors[ImGuiCol_ScrollbarGrabHovered] = veryLightBgColor;
 	colors[ImGuiCol_ScrollbarGrabActive]  = panelActiveColor;
 	colors[ImGuiCol_CheckMark]            = textColor;
 	colors[ImGuiCol_SliderGrab]           = panelHoverColor;
 	colors[ImGuiCol_SliderGrabActive]     = panelActiveColor;
-	colors[ImGuiCol_Button]               = lightBgColor;
-	colors[ImGuiCol_ButtonHovered]        = veryLightBgColor;
+	colors[ImGuiCol_Button]               = ColorFromBytes(190, 100, 20);
+	colors[ImGuiCol_ButtonHovered]        = ColorFromBytes(250, 150, 45);
 	colors[ImGuiCol_ButtonActive]         = panelHoverColor;
-	colors[ImGuiCol_Header]               = panelColor;
-	colors[ImGuiCol_HeaderHovered]        = panelHoverColor;
+	colors[ImGuiCol_Header]               = ColorFromBytes(16,32,24);
+	colors[ImGuiCol_HeaderHovered]        = veryLightBgColor;
 	colors[ImGuiCol_HeaderActive]         = panelActiveColor;
 	colors[ImGuiCol_Separator]            = borderColor;
 	colors[ImGuiCol_SeparatorHovered]     = borderColor;
@@ -542,30 +542,30 @@ void Style()
 	colors[ImGuiCol_ResizeGripActive]     = veryLightBgColor;
 	colors[ImGuiCol_PlotLines]            = panelActiveColor;
 	colors[ImGuiCol_PlotLinesHovered]     = panelHoverColor;
-	colors[ImGuiCol_PlotHistogram]        = panelActiveColor;
+	colors[ImGuiCol_PlotHistogram]        = ColorFromBytes(255, 100, 0);
 	colors[ImGuiCol_PlotHistogramHovered] = panelHoverColor;
 	colors[ImGuiCol_DragDropTarget]       = bgColor;
 	colors[ImGuiCol_NavHighlight]         = bgColor;
 	colors[ImGuiCol_Tab]                  = bgColor;
-	colors[ImGuiCol_TabActive]            = panelActiveColor;
+	colors[ImGuiCol_TabActive]            = lightBgColor;
 	colors[ImGuiCol_TabUnfocused]         = bgColor;
 	colors[ImGuiCol_TabUnfocusedActive]   = panelActiveColor;
 	colors[ImGuiCol_TabHovered]           = panelHoverColor;
-	colors[ImGuiCol_TableHeaderBg]        = lightBgColor;
+	colors[ImGuiCol_TableHeaderBg]        = ColorFromBytes(16,16,16);
 
 	style.WindowRounding    = 8.0f;
 	style.ChildRounding     = 4.0f;
-	style.FrameRounding     = 7.0f;
+	style.FrameRounding     = 6.0f;
 	style.GrabRounding      = 4.0f;
 	style.PopupRounding     = 4.0f;
 	style.ScrollbarRounding = 4.0f;
 	style.TabRounding       = 0.0f;
 	style.FramePadding		= ImVec2(6.0f,3.0f);
-	style.WindowPadding     = ImVec2(4.0f,0.0f);
-	style.ItemSpacing		= ImVec2(2.0f,4.0f);
+	style.WindowPadding     = ImVec2(4.0f,2.0f);
+	style.ItemSpacing		= ImVec2(3.0f,6.0f);
 	style.AntiAliasedLines = true;
 	style.AntiAliasedFill = true;
-	style.TabRounding       = 0.0f;
+	style.TabRounding       = 4.0f;
 }
 
 const ImGuiTableFlags tableFlag = 

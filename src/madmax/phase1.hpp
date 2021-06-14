@@ -356,12 +356,12 @@ namespace mad::phase1 {
 					num_written += out.size();
 				}, &eval_pool, num_threads, "phase1/match");
 	
-	Thread<std::pair<std::vector<T>, size_t>> read_thread(
+			Thread<std::pair<std::vector<T>, size_t>> read_thread(		
 				[&L_index, &L_offset, &L_bucket, &avg_bucket_size, &match_pool, L_tmp_out]
-		 (std::pair<std::vector<T>, size_t>& input) {
+				(std::pair<std::vector<T>, size_t>& input) {
 					std::vector<match_input_t> out;
 					out.reserve(1024);
-			for(const auto& entry : input.first) {
+					for(const auto& entry : input.first) {
 						const uint64_t index = entry.y / kBC;
 						if(index < L_index[0]) {
 							throw std::logic_error("input not sorted");

@@ -399,6 +399,9 @@ float JobTaskItem::getProgress()
 		if (childProgress < 0.0f) {
 			childProgress = 0.0f;
 		}
+		if (!this->isFinished() && childProgress >= 0.999) {
+			childProgress = 0.99;
+		}
 		return childProgress;
 	}
 	else {
@@ -412,6 +415,9 @@ float JobTaskItem::getProgress()
 		}
 		if (val < 0.0f) {
 			val = 0.0f;
+		}
+		if (!this->isFinished() && val >= 0.999) {
+			val = 0.99;
 		}
 		return val;
 	}
@@ -469,10 +475,11 @@ bool JobTaskItem::isFinished() const
 bool JobTaskItem::drawStatusWidget()
 {	
 	ImGui::PushID((const void*)this);
-	if (this->isFinished() || this->isRunning()) {
+	if (this->isRunning()) {
 		ImGui::SetNextItemOpen(true);
 	}
-	if (ImGui::TreeNode(this->name.c_str())) {			
+	if (ImGui::TreeNode(this->name.c_str())) {
+		ImGui::Indent(8);
 		if (this->isFinished()) {
 			ImGui::Text("Start %s",systemClockToStr(this->startTime).c_str());
 			ImGui::Text("Finished %s",systemClockToStr(this->finishTime).c_str());
@@ -494,6 +501,7 @@ bool JobTaskItem::drawStatusWidget()
 		for (auto task : this->tasks) {			
 			task->drawStatusWidget();
 		}
+		ImGui::Unindent(8);
 		ImGui::TreePop();
 	}
 	ImGui::PopID();
@@ -567,6 +575,10 @@ bool JobActvity::stop(bool finished, bool force /*= false*/)
 					this->onFinish(&this->state);
 				}
 			}
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	else {

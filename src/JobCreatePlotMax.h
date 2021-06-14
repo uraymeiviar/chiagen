@@ -6,6 +6,7 @@
 
 class JobCreatePlotMaxParam {
 public:
+	JobCreatePlotMaxParam();
 	std::filesystem::path destPath;
 	std::filesystem::path tempPath;
 	std::filesystem::path temp2Path;
@@ -13,7 +14,7 @@ public:
 	std::string farmKey;
 	
 	uint8_t threads {2};
-	uint32_t buckets {128};
+	uint32_t buckets {256};
 	size_t readChunkSize {65536};
 	void loadDefault();
 	bool isValid(std::vector<std::string>& errs) const;
