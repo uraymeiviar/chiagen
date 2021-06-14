@@ -338,14 +338,14 @@ bool Job::drawStatusWidget() {
 		}
 	}
 	if (ImGui::CollapsingHeader("Logs")) {
-		if(ImGui::BeginChild("##Log",ImVec2(0,180.0f))){
-			ImGui::TextUnformatted(this->logText.c_str());
+		if(ImGui::BeginChild("##Log",ImVec2(0,180.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)){
+			ImGui::TextWrapped(this->logText.c_str());
 			if (this->logScroll){
 				ImGui::SetScrollHere(1.0f);
 			}
 			this->logScroll = false;
-			ImGui::EndChild();
 		}
+		ImGui::EndChild();
 	}
 	return false;
 }
@@ -518,7 +518,6 @@ bool JobTaskItem::isFinished() const
 
 bool JobTaskItem::drawStatusWidget()
 {	
-	ImGui::PushID((const void*)this);
 	if (this->isRunning()) {
 		ImGui::SetNextItemOpen(true);
 	}
@@ -548,7 +547,6 @@ bool JobTaskItem::drawStatusWidget()
 		ImGui::Unindent(8);
 		ImGui::TreePop();
 	}
-	ImGui::PopID();
 	return false;
 }
 
@@ -701,7 +699,6 @@ bool JobActvity::isPaused() const
 bool JobActvity::drawStatusWidget()
 {
 	if (!this->tasks.empty()) {
-		ImGui::PushID((const void*)this);
 		//this->drawPlot();
 		if (this->isFinished()) {
 			ImGui::Text("Start %s",systemClockToStr(this->startTime).c_str());
@@ -720,7 +717,6 @@ bool JobActvity::drawStatusWidget()
 		for (auto task : this->tasks) {
 			task->drawStatusWidget();
 		}
-		ImGui::PopID();
 	}
 	return false;
 }

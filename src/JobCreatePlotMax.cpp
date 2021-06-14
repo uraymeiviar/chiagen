@@ -197,7 +197,6 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 bool JobCreatePlotMaxParam::drawEditor()
 {
 	bool result = false;
-	ImGui::PushID((const void*)this);
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
 	ImGui::PushItemWidth(80.0f);
@@ -382,7 +381,6 @@ bool JobCreatePlotMaxParam::drawEditor()
 		ImGui::Unindent(20.0f);
 	}
 
-	ImGui::PopID();
 	return result;
 }
 
@@ -410,7 +408,6 @@ JobCreatePlotMax::JobCreatePlotMax(std::string title,
 
 bool JobCreatePlotMax::drawEditor()
 {
-	ImGui::PushID((const void*)this);	
 	bool result = this->param.drawEditor();
 	if (ImGui::CollapsingHeader("Start Rule")) {
 		ImGui::Indent(20.0f);
@@ -432,7 +429,6 @@ bool JobCreatePlotMax::drawEditor()
 			ImGui::Text(err.c_str());
 		}		
 	}
-	ImGui::PopID();
 	return result;
 }
 
@@ -546,7 +542,7 @@ std::shared_ptr<Job> JobCreatePlotMaxFactory::create(std::string jobName)
 
 bool JobCreatePlotMaxFactory::drawEditor()
 {
-	ImGui::PushID((const void*)this);	
+		
 	bool result = this->param.drawEditor();
 	if (ImGui::CollapsingHeader("Start Rule")) {
 		ImGui::Indent(20.0f);
@@ -587,6 +583,5 @@ bool JobCreatePlotMaxFactory::drawEditor()
 		ImGui::PopItemWidth();
 	}		
 
-	ImGui::PopID();
 	return result;
 }

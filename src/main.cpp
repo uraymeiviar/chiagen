@@ -582,7 +582,7 @@ void MainApp::OnUpdate() {
 	Style();
 	glfwGetWindowPos(this->GetWindow(),&wx,&wy);
 	glfwGetWindowSize(this->GetWindow(),&ww,&wh);
-	if (ww > 8 && wh > 8) {
+	if (ww > 80 && wh > 80) {
 		ImGui::SetNextWindowPos(ImVec2((float)wx,(float)wy));
 		ImGui::SetNextWindowSize(ImVec2((float)(ww),(float)(wh)));
 		ImGui::SetNextWindowSizeConstraints(ImVec2((float)ww,(float)wh),ImVec2(float(ww),float(wh)));
@@ -624,10 +624,7 @@ void MainApp::OnUpdate() {
 }
 
 void MainApp::toolPage() {
-	ImGui::PushID("toolpage");
-	
-	if(ImGui::BeginTable("toolTable",3,tableFlag)){
-
+	if(ImGui::BeginTable("##toolTable",3,tableFlag)){
 		ImGui::TableSetupScrollFreeze(1, 1);
 		ImGui::TableSetupColumn("Create Job",ImGuiTableColumnFlags_WidthFixed,340.0f);
 		ImGui::TableSetupColumn("Active Job",ImGuiTableColumnFlags_WidthFixed,230.0f);
@@ -635,65 +632,68 @@ void MainApp::toolPage() {
 		ImGui::TableHeadersRow();			
 
 		ImGui::TableNextRow();
-		ImGui::TableSetColumnIndex(0);
-		if (ImGui::BeginChild("col1", ImVec2(0.0f, 0.0f))) {
-			JobManager& jm = JobManager::getInstance();
-			for (auto jobFactory : jm.jobFactories) {
-				if (ImGui::CollapsingHeader(jobFactory->getName().c_str())) {
-					ImGui::Indent(20.0f);
-					jobFactory->drawEditor();
-					ImGui::Unindent(20.0f);
+		if (ImGui::TableSetColumnIndex(0)) {
+			if (ImGui::BeginChild("##col1", ImVec2(0.0f, 0.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+				JobManager& jm = JobManager::getInstance();
+				for (auto jobFactory : jm.jobFactories) {
+					if (ImGui::CollapsingHeader(jobFactory->getName().c_str())) {
+						ImGui::Indent(20.0f);
+						ImGui::PushID((const void*)jobFactory.get());
+						jobFactory->drawEditor();
+						ImGui::PopID();
+						ImGui::Unindent(20.0f);
+					}
 				}
-			}
-			if (ImGui::CollapsingHeader("Check Plot")) {
-				ImGui::Text("Under development");
+				if (ImGui::CollapsingHeader("Check Plot")) {
+					ImGui::Text("Under development");
+				}					
 			}
 			ImGui::EndChild();
 		}
 
-		ImGui::TableSetColumnIndex(1);
-		if (JobManager::getInstance().countJob() < 1) {
-			ImGui::Text("No Active Job, create from left panel");
-		}
-		else {
-			if (ImGui::BeginChild("col2", ImVec2(0.0f, 0.0f))) {
-				for(auto it = JobManager::getInstance().jobIteratorBegin() ; it != JobManager::getInstance().jobIteratorEnd() ; it++){
-					ImGui::PushID((const void*)it->get());
-					ImVec2 cursorBegin = ImGui::GetCursorPos();
-					if (*it == JobManager::getInstance().getSelectedJob()) {
-						ImGui::GetStyle().Colors[ImGuiCol_Border] = textColor;
-					}
-					else {
-						ImGui::GetStyle().Colors[ImGuiCol_Border] = lightBgColor;
-					}
-					ImGui::BeginGroupPanel();
-					(*it)->drawItemWidget();
-					ImVec2 cursorEnd = ImGui::GetCursorPos();
-					float invisWidth = ImGui::GetContentRegionAvailWidth();
-					ImGui::SetCursorPos(cursorBegin);
-					if(ImGui::InvisibleButton("select", ImVec2(ImGui::GetContentRegionAvailWidth(), cursorEnd.y - cursorBegin.y))){
-						JobManager::getInstance().setSelectedJob(*it);
-					}					
-					ImGui::EndGroupPanel();
-					ImGui::GetStyle().Colors[ImGuiCol_Border] = borderColor;
-					ImGui::PopID();
+		if (ImGui::TableSetColumnIndex(1)) {
+			if (JobManager::getInstance().countJob() < 1) {
+				ImGui::Text("No Active Job, create from left panel");
+			}
+			else {
+				if (ImGui::BeginChild("##col2", ImVec2(0.0f, 0.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+					for(auto it = JobManager::getInstance().jobIteratorBegin() ; it != JobManager::getInstance().jobIteratorEnd() ; it++){
+						ImGui::PushID((const void*)it->get());
+						ImVec2 cursorBegin = ImGui::GetCursorPos();
+						if (*it == JobManager::getInstance().getSelectedJob()) {
+							ImGui::GetStyle().Colors[ImGuiCol_Border] = textColor;
+						}
+						else {
+							ImGui::GetStyle().Colors[ImGuiCol_Border] = lightBgColor;
+						}
+						ImGui::BeginGroupPanel();
+						(*it)->drawItemWidget();
+						ImVec2 cursorEnd = ImGui::GetCursorPos();
+						float invisWidth = ImGui::GetContentRegionAvailWidth();
+						ImGui::SetCursorPos(cursorBegin);
+						if(ImGui::InvisibleButton("select", ImVec2(ImGui::GetContentRegionAvailWidth(), cursorEnd.y - cursorBegin.y))){
+							JobManager::getInstance().setSelectedJob(*it);
+						}					
+						ImGui::EndGroupPanel();
+						ImGui::GetStyle().Colors[ImGuiCol_Border] = borderColor;
+						ImGui::PopID();
+					}						
 				}
 				ImGui::EndChild();
 			}
 		}
 
-		ImGui::TableSetColumnIndex(2);
-		std::shared_ptr<Job> job = JobManager::getInstance().getSelectedJob();
-		if (job) {
-			if (ImGui::BeginChild(job->getTitle().c_str())) {
-				job->drawStatusWidget();
+		if (ImGui::TableSetColumnIndex(2)) {
+			std::shared_ptr<Job> job = JobManager::getInstance().getSelectedJob();
+			if (job) {
+				if (ImGui::BeginChild("##col3",ImVec2(0,0),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+					job->drawStatusWidget();						
+				}
 				ImGui::EndChild();
-			}
+			}			
 		}
-
 		ImGui::EndTable();
 	}
-	ImGui::PopID();
 }
 
 void MainApp::statPage() {}

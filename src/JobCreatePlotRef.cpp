@@ -33,7 +33,6 @@ void JobCreatePlotRefParam::loadDefault()
 bool JobCreatePlotRefParam::drawEditor()
 {
 	bool result = false;
-	ImGui::PushID((const void*)this);
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
 	ImGui::PushItemWidth(80.0f);
@@ -270,8 +269,6 @@ bool JobCreatePlotRefParam::drawEditor()
 
 		ImGui::Unindent(20.0f);
 	}
-
-	ImGui::PopID();
 	return result;
 }
 
@@ -475,7 +472,6 @@ JobCreatePlotRef::JobCreatePlotRef(std::string title, JobCreatePlotRefParam& par
 
 bool JobCreatePlotRef::drawEditor()
 {
-	ImGui::PushID((const void*)this);	
 	bool result = this->param.drawEditor();
 	if (ImGui::CollapsingHeader("Start Rule")) {
 		ImGui::Indent(20.0f);
@@ -497,7 +493,6 @@ bool JobCreatePlotRef::drawEditor()
 			ImGui::Text(err.c_str());
 		}		
 	}
-	ImGui::PopID();
 	return result;
 }
 
@@ -672,7 +667,6 @@ std::shared_ptr<Job> JobCreatePlotRefFactory::create(std::string jobName)
 
 bool JobCreatePlotRefFactory::drawEditor()
 {
-	ImGui::PushID((const void*)this);	
 	bool result = this->param.drawEditor();
 	if (ImGui::CollapsingHeader("Start Rule")) {
 		ImGui::Indent(20.0f);
@@ -713,6 +707,5 @@ bool JobCreatePlotRefFactory::drawEditor()
 		ImGui::PopItemWidth();
 	}		
 
-	ImGui::PopID();
 	return result;
 }

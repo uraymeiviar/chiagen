@@ -74,7 +74,6 @@ void JobCreatePlot::init()
 
 bool JobCratePlotStartRuleParam::drawEditor()
 {
-	ImGui::PushID((const void*)this);
 	bool result = false;
 	ImGui::Text("these start rule are under development");
 	ImGui::Text("just use start immediately only for now");
@@ -281,7 +280,6 @@ bool JobCratePlotStartRuleParam::drawEditor()
 	if (!this->startImmediate && !this->startDelayed && !this->startConditional && !this->startPaused) {
 		this->startPaused = true;
 	}
-	ImGui::PopID();
 	return result;
 }
 
@@ -392,7 +390,6 @@ bool JobCratePlotStartRule::isRuleFullfilled()
 
 bool JobCreatePlotFinishRuleParam::drawEditor()
 {
-	ImGui::PushID((const void*)this);
 	bool result = false;
 	ImGui::Text("these start rule are under development");
 	ImGui::Text("just use start immediately only for now");
@@ -465,7 +462,6 @@ bool JobCreatePlotFinishRuleParam::drawEditor()
 		ImGui::EndGroupPanel();
 		ImGui::Unindent(20.0f);
 	}
-	ImGui::PopID();
 	return result;
 }
 
