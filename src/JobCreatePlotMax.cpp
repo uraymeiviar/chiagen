@@ -463,6 +463,12 @@ void JobCreatePlotMax::initActivity()
 				mad::DiskPlotterContext context;
 				context.job = this->shared_from_this();
 
+				context.log("plotname   "+ws2s(param.plot_name));
+				context.log("target dir "+param.destPath.string());
+				context.log("temp dir   "+param.tempPath.string());
+				context.log("temp2 dir  "+param.temp2Path.string());
+				context.log("threads    "+std::to_string(param.threads));
+
 				if (context.job->activity) {
 					std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
 					context.pushTask("PlotCopy", currentTask);
@@ -500,18 +506,18 @@ void JobCreatePlotMax::initActivity()
 						context.popTask();
 						plottingJob->phase4FinishEvent->trigger(context.job);
 
-						std::cout << "Total plot creation time was "
-							<< (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
+						context.log("Total plot creation time was "
+							+ std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec");
 
 						context.getCurrentTask()->start();
 						if(param.tempPathStr != param.destPathStr)
 						{
-							std::wcout << L"Started copy to " << param.destFile.wstring() << std::endl;
+							context.log("Started copy to " + param.destFile.string());
 							const auto total_begin = get_wall_time_micros();
 							std::filesystem::copy(out_4.plot_file_name, param.destFile);
 							_wremove(out_4.plot_file_name.c_str());
 							const auto time = (get_wall_time_micros() - total_begin) / 1e6;	
-							std::wcout << L"Move to " << param.destFile.wstring() << L" finished, took " << time << L" sec " << std::endl;
+							context.log("Move to " + param.destFile.string() +" finished, took " + std::to_string(time) +" sec ");
 						}
 						context.popTask();
 						plottingJob->finishEvent->trigger(context.job);

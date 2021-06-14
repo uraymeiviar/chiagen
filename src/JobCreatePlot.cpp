@@ -120,10 +120,10 @@ bool JobCratePlotStartRuleParam::drawEditor()
 	if (ImGui::Checkbox("Wait for Event",&this->startOnEvent)) {
 		this->startImmediate = false;
 		this->startPaused = false;
-		this->startOnEvent = true;
 		result |= true;
 	}
-	if (this->startOnEvent) {		
+	if (this->startOnEvent) {
+		ImGui::Indent(20.0f);
 		if (JobManager::getInstance().countJob() < 1) {
 			ImGui::Text("No event to attach to, create one or more active jobs first");
 			this->eventToRespond.name = "";
@@ -131,7 +131,8 @@ bool JobCratePlotStartRuleParam::drawEditor()
 		}
 		else {
 			static bool anyJob = false;
-			if (!ImGui::Checkbox("Respond from any jobs", &anyJob)) {
+			ImGui::Checkbox("From Any Jobs", &anyJob);
+			if (!anyJob) {
 				static std::shared_ptr<Job> selectedJob = nullptr;
 				static std::string preview = this->eventToRespond.name;
 				if (preview.empty()) {
@@ -143,7 +144,7 @@ bool JobCratePlotStartRuleParam::drawEditor()
 					}
 				}
 				ImGui::Text("Select Job:");
-				if (ImGui::BeginCombo("Select event source",preview.c_str())) {
+				if (ImGui::BeginCombo("##SelectJob",preview.c_str())) {
 					for (auto it  = JobManager::getInstance().jobIteratorBegin(); 
 							  it != JobManager::getInstance().jobIteratorEnd(); 
 							  it++) {
@@ -167,7 +168,8 @@ bool JobCratePlotStartRuleParam::drawEditor()
 					else {
 						jobEventPreview = selectedJobEvent->getType();
 					}
-					if (ImGui::BeginCombo("Select Event",jobEventPreview.c_str())) {
+					ImGui::Text("Event Type:");
+					if (ImGui::BeginCombo("##EventType",jobEventPreview.c_str())) {
 						for (auto jobEvent : selectedJob->events) {
 							bool selected = selectedJobEvent == jobEvent;
 							if (ImGui::Selectable(jobEvent->getType().c_str(), &selected)) {
@@ -197,8 +199,9 @@ bool JobCratePlotStartRuleParam::drawEditor()
 						}
 					}
 				}
+				ImGui::Text("Event Type:");
 				static std::string selectedName = this->eventToRespond.name;				
-				if (ImGui::BeginCombo("Select Event",eventPreview.c_str())) {
+				if (ImGui::BeginCombo("##EventType",eventPreview.c_str())) {
 					for (auto name : eventNames) {
 						bool selected = selectedName == name;
 						if (ImGui::Selectable(name.c_str(), &selected)) {
@@ -214,6 +217,7 @@ bool JobCratePlotStartRuleParam::drawEditor()
 				}
 			}
 		}
+		ImGui::Unindent(20.0f);
 	}
 
 	if (ImGui::Checkbox("Conditional",&this->startConditional)) {
@@ -493,6 +497,16 @@ bool JobCreatePlotFinishRule::drawItemWidget() {
 		}
 	}
 	return false;
+}
+
+void CreatePlotContext::log(std::string text)
+{
+	JobManager::getInstance().log(text, this->job);
+}
+
+void CreatePlotContext::logErr(std::string text)
+{
+	JobManager::getInstance().logErr(text, this->job);
 }
 
 std::shared_ptr<JobTaskItem> CreatePlotContext::getCurrentTask()

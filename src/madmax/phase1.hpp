@@ -295,7 +295,7 @@ namespace mad::phase1 {
 			output.close();
 			T1_sort->finish();
 	
-			std::cout << "[P1] Table 1 took " << (get_wall_time_micros() - begin) / 1e6 << " sec" << std::endl;
+			context->log("[P1] Table 1 took " + std::to_string((get_wall_time_micros() - begin) / 1e6) + " sec");
 		}
 
 		template<typename T, typename S, typename R, typename DS_L, typename DS_R>
@@ -414,8 +414,7 @@ namespace mad::phase1 {
 				R_sort->finish();
 			}
 			if(num_written < num_found) {
-		//		std::cout << "[P1] Lost " << num_found - num_written
-		//				<< " matches due to 32-bit overflow." << std::endl;
+				context->logErr("[P1] Lost " + std::to_string(num_found - num_written) + " matches due to 32-bit overflow.");
 			}
 			return num_written;
 		}
@@ -461,8 +460,10 @@ namespace mad::phase1 {
 			if(R_tmp) {
 				R_tmp->close();
 			}
-			std::cout << "[P1] Table " << R_index << " took " << (get_wall_time_micros() - begin) / 1e6 << " sec"
-					<< ", found " << num_matches << " matches" << std::endl;
+
+			context->log("[P1] Table " + std::to_string(R_index) + " took " + 
+					std::to_string((get_wall_time_micros() - begin) / 1e6) + " sec"+ 
+					", found " + std::to_string(num_matches) + " matches");
 			return num_matches;
 		}
 
@@ -547,7 +548,7 @@ namespace mad::phase1 {
 			out.log_num_buckets = input.log_num_buckets;
 			out.num_threads = input.num_threads;
 	
-			std::cout << "Phase 1 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
+			context->log("Phase 1 took " + std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec");
 		}
 	}; // phase1
 }

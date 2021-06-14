@@ -80,7 +80,7 @@ inline uint64_t compute(	DiskPlotterContext* context,
     
     std::vector<uint32_t> C2;
 
-    std::cout << "[P4] Starting to write C1 and C3 tables" << std::endl;
+    context->log("[P4] Starting to write C1 and C3 tables");
 	std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
 	context->pushTask("Phase4.C2Write", currentTask);
 	context->pushTask("Phase4.C1C3Write", currentTask);
@@ -224,8 +224,8 @@ inline uint64_t compute(	DiskPlotterContext* context,
     final_file_writer_1 +=
     		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     
-    std::cout << "[P4] Finished writing C1 and C3 tables" << std::endl;
-    std::cout << "[P4] Writing C2 table" << std::endl;
+    context->log("[P4] Finished writing C1 and C3 tables");
+    context->log("[P4] Writing C2 table");
 	context->popTask();
 
 	context->getCurrentTask()->start();
@@ -238,7 +238,7 @@ inline uint64_t compute(	DiskPlotterContext* context,
     final_file_writer_1 +=
     		fwrite_at(plot_file, final_file_writer_1, C1_entry_buf, sizeof(C1_entry_buf));
     
-    std::cout << "[P4] Finished writing C2 table" << std::endl;
+    context->log("[P4] Finished writing C2 table");
 	context->popTask();
 
     final_file_writer_1 = (size_t)header_size - 8 * 3;
@@ -275,8 +275,8 @@ void compute(	DiskPlotterContext& context,
 	
 	::_wrename(input.plot_file_name.c_str(), out.plot_file_name.c_str());
 	
-	std::cout << "Phase 4 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec"
-			", final plot size is " << out.plot_size << " bytes" << std::endl;
+	context.log("Phase 4 took " + std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec"
+			", final plot size is " + std::to_string(out.plot_size) + " bytes");
 }
 
 

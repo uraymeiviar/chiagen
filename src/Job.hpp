@@ -139,11 +139,14 @@ public:
 	virtual bool drawStatusWidget();
 	virtual void handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source);
 	virtual void update();
+	void log(std::string text);
 	std::vector<std::shared_ptr<JobEvent>> events;
 	std::shared_ptr<JobActvity> activity;
+	std::string logText;
 protected:
 	virtual void initActivity();
 	std::string title;
+	bool logScroll {false};
 };
 
 class JobFactory {
@@ -178,6 +181,8 @@ public:
 	void start();
 	std::mutex mutex;
 	std::vector<std::shared_ptr<JobFactory>> jobFactories;
+	void log(std::string text, std::shared_ptr<Job> job = nullptr);
+	void logErr(std::string text, std::shared_ptr<Job> job = nullptr);
 protected:
 	uint32_t statUpdateInterval {1};
 	uint32_t statSampleCount {100};

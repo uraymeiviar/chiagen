@@ -217,7 +217,7 @@ inline size_t WriteHeader(
 	num_bytes += fwrite((pointers), 8, 10, file) * 8;
 
 	fflush(file);
-	std::cout << "Wrote plot header with " << num_bytes << " bytes" << std::endl;
+	
 	return num_bytes;
 }
 
@@ -423,12 +423,12 @@ uint64_t compute_stage2(DiskPlotterContext& context,
 	Encoding::ANSFree(kRValues[L_index - 1]);
 	
 	if(L_num_write < R_num_read) {
-//		std::cout << "[P3-2] Lost " << R_num_read - L_num_write << " entries due to 32-bit overflow." << std::endl;
+		context.logErr("[P3-2] Lost " + std::to_string(R_num_read - L_num_write) + " matches due to 32-bit overflow.");
 	}
-	std::cout << "[P3-2] Table " << L_index + 1 << " took "
-				<< (get_wall_time_micros() - begin) / 1e6 << " sec"
-				<< ", wrote " << L_num_write << " left entries"
-				<< ", " << num_written_final << " final" << std::endl;
+	context.log("[P3-2] Table " + std::to_string(L_index + 1) + " took "
+				+ std::to_string((get_wall_time_micros() - begin) / 1e6) + " sec"
+				+ ", wrote " + std::to_string(L_num_write) + " left entries"
+				+ ", " + std::to_string(num_written_final) + " final");
 	return num_written_final;
 }
 
@@ -449,7 +449,8 @@ void compute(	DiskPlotterContext& context,
 	}
 	out.header_size = WriteHeader(	plot_file, 32, input.params.id.data(),
 									input.params.memo.data(), input.params.memo.size());
-	
+	context.log("Wrote plot header with " + std::to_string(out.header_size) + " bytes");
+
 	std::vector<uint64_t> final_pointers(8, 0);
 	final_pointers[1] = out.header_size;
 	
@@ -552,8 +553,8 @@ void compute(	DiskPlotterContext& context,
 
 	context.popTask();
 	
-	std::cout << "Phase 3 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec"
-			", wrote " << num_written_final << " entries to final plot" << std::endl;
+	context.log("Phase 3 took " + std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec"
+			", wrote " + std::to_string(num_written_final) + " entries to final plot");
 }
 
 

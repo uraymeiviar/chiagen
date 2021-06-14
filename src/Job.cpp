@@ -154,6 +154,34 @@ void JobManager::start()
 	}
 }
 
+void JobManager::log(std::string text, std::shared_ptr<Job> job)
+{
+	const std::lock_guard<std::mutex> lock(this->mutex);
+	std::string prefix = "[] ";
+	if (job) {
+		prefix = "[" + job->getTitle() + "] ";
+	}
+	std::string clockStr = "["+systemClockToStr(std::chrono::system_clock::now())+"] ";
+	std::cout << prefix + clockStr + text << std::endl;
+	if (job) {
+		job->log(clockStr + text);
+	}
+}
+
+void JobManager::logErr(std::string text, std::shared_ptr<Job> job /*= nullptr*/)
+{
+	const std::lock_guard<std::mutex> lock(this->mutex);
+	std::string prefix = "[] ";
+	if (job) {
+		prefix = "[" + job->getTitle() + "] ";
+	}
+	std::string clockStr = systemClockToStr(std::chrono::system_clock::now());
+	std::cerr << prefix + clockStr + " " + text << std::endl;
+	if (job) {
+		job->log(clockStr + text);
+	}
+}
+
 Job::Job(std::string title) :title(title)
 {
 
@@ -309,6 +337,16 @@ bool Job::drawStatusWidget() {
 			this->cancel();
 		}
 	}
+	if (ImGui::CollapsingHeader("Logs")) {
+		if(ImGui::BeginChild("##Log",ImVec2(0,180.0f))){
+			ImGui::TextUnformatted(this->logText.c_str());
+			if (this->logScroll){
+				ImGui::SetScrollHere(1.0f);
+			}
+			this->logScroll = false;
+			ImGui::EndChild();
+		}
+	}
 	return false;
 }
 
@@ -344,6 +382,12 @@ void Job::update()
 	if (this->activity) {
 		this->activity->samplerUpdate();
 	}
+}
+
+void Job::log(std::string text)
+{
+	this->logText += text +"\n";
+	this->logScroll = true;
 }
 
 void Job::initActivity()

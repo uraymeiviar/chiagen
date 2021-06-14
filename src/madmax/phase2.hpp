@@ -48,8 +48,8 @@ void compute_table(	int R_index, int num_threads,
 		R_input.read(&pool, num_threads_read);
 		pool.close();
 		
-		std::cout << "[P2] Table " << R_index << " scan took "
-				<< (get_wall_time_micros() - begin) / 1e6 << " sec" << std::endl;
+		context.log("[P2] Table " + std::to_string(R_index) + " scan took "
+				+ std::to_string((get_wall_time_micros() - begin) / 1e6) + " sec");
 	}
 	const auto begin = get_wall_time_micros();
 	
@@ -127,10 +127,10 @@ void compute_table(	int R_index, int num_threads,
 	if(R_file) {
 		R_file->flush();
 	}
-	std::cout << "[P2] Table " << R_index << " rewrite took "
-				<< (get_wall_time_micros() - begin) / 1e6 << " sec"
-				<< ", dropped " << R_table.num_entries - num_written << " entries"
-				<< " (" << 100 * (1 - double(num_written) / R_table.num_entries) << " %)" << std::endl;
+	context.log("[P2] Table " + std::to_string(R_index) + " rewrite took "
+				+ std::to_string((get_wall_time_micros() - begin) / 1e6) + " sec"
+				+ ", dropped " +std::to_string( R_table.num_entries - num_written) + " entries"
+				+ " (" + std::to_string(100 * (1 - double(num_written) / R_table.num_entries)) + " %)");
 }
 
 inline
@@ -155,7 +155,7 @@ void compute(	DiskPlotterContext& context,
 	for(const auto& table : input.table) {
 		max_table_size = std::max(max_table_size, table.num_entries);
 	}
-	std::cout << "[P2] max_table_size = " << max_table_size << std::endl;	
+	context.log("[P2] max_table_size = " + std::to_string(max_table_size));
 	
 	auto curr_bitfield = std::make_shared<bitfield>(max_table_size);
 	auto next_bitfield = std::make_shared<bitfield>(max_table_size);
@@ -193,7 +193,7 @@ void compute(	DiskPlotterContext& context,
 	out.tempDir = input.tempDir;
 	out.tempDir2 = input.tempDir2;
 	
-	std::cout << "Phase 2 took " << (get_wall_time_micros() - total_begin) / 1e6 << " sec" << std::endl;
+	context.log("Phase 2 took " + std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec");
 }
 
 

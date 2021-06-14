@@ -65,6 +65,8 @@ protected:
 
 class CreatePlotContext {
 public:
+	void log(std::string text);
+	void logErr(std::string text);
 	std::shared_ptr<Job> job;
 	std::shared_ptr<JobTaskItem> getCurrentTask();
 	std::shared_ptr<JobTaskItem> pushTask(std::string name, std::shared_ptr<JobTaskItem> parent);
@@ -86,7 +88,7 @@ public:
 	JobRule* getFinishRule() override;
 
 	virtual bool drawItemWidget() override;
-	virtual bool drawStatusWidget() override;
+	virtual bool drawStatusWidget() override;	
 
 	std::shared_ptr<JobEvent> startEvent;
 	std::shared_ptr<JobEvent> finishEvent;
