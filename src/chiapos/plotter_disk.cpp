@@ -149,7 +149,16 @@ void DiskPlotter::CreatePlotDisk(
     std::ios_base::sync_with_stdio(false);
     std::ostream* prevstr = std::cin.tie(NULL);
 
+	std::shared_ptr<JobCreatePlot> plottingJob = std::dynamic_pointer_cast<JobCreatePlot>(this->context.job);
+	std::shared_ptr<JobTaskItem> currentTask = this->context.getCurrentTask();
+	context.pushTask("PlotCopy", currentTask);
+	context.pushTask("Phase4", currentTask);
+	context.pushTask("Phase3", currentTask);
+	context.pushTask("Phase2", currentTask);
+	context.pushTask("Phase1", currentTask);
+
     {
+		plottingJob->startEvent->trigger(context.job);
         // Scope for FileDisk
         std::vector<FileDisk> tmp_1_disks;
         for (auto const& fname : tmp_1_filenames) tmp_1_disks.emplace_back(fname);
@@ -158,6 +167,7 @@ void DiskPlotter::CreatePlotDisk(
 
         assert(id_len == kIdLen);
 
+		context.getCurrentTask()->start();
         std::cout << std::endl
                   << "Starting phase 1/4: Forward Propagation into tmp files... "
                   << Timer::GetNow();
@@ -179,6 +189,8 @@ void DiskPlotter::CreatePlotDisk(
             !nobitfield,
             show_progress);
         p1.PrintElapsed("Time for phase 1 =");
+		context.popTask();
+		plottingJob->phase1FinishEvent->trigger(context.job);
 
         uint64_t finalsize = 0;
 
@@ -234,6 +246,7 @@ void DiskPlotter::CreatePlotDisk(
             p4.PrintElapsed("Time for phase 4 =");
             finalsize = res.final_table_begin_pointers[11];
         } else {
+			context.getCurrentTask()->start();
             std::cout << std::endl
                       << "Starting phase 2/4: Backpropagation into tmp files... "
                       << Timer::GetNow();
@@ -252,10 +265,13 @@ void DiskPlotter::CreatePlotDisk(
                 log_num_buckets,
                 show_progress);
             p2.PrintElapsed("Time for phase 2 =");
+			context.popTask();
+			plottingJob->phase2FinishEvent->trigger(context.job);
 
             // Now we open a new file, where the final contents of the plot will be stored.
             uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
 
+			context.getCurrentTask()->start();
             std::cout << std::endl
                       << "Starting phase 3/4: Compression from tmp files into " << tmp_2_filename
                       << " ... " << Timer::GetNow();
@@ -274,7 +290,10 @@ void DiskPlotter::CreatePlotDisk(
                 log_num_buckets,
                 show_progress);
             p3.PrintElapsed("Time for phase 3 =");
+			context.popTask();
+			plottingJob->phase3FinishEvent->trigger(context.job);
 
+			context.getCurrentTask()->start();
             std::cout << std::endl
                       << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                       << " ... " << Timer::GetNow();
@@ -282,6 +301,8 @@ void DiskPlotter::CreatePlotDisk(
             RunPhase4(&context, k, k + 1, tmp2_disk, res, show_progress, 16);
             p4.PrintElapsed("Time for phase 4 =");
             finalsize = res.final_table_begin_pointers[11];
+			context.popTask();
+			plottingJob->phase4FinishEvent->trigger(context.job);
         }
 
         // The total number of bytes used for sort is saved to table_sizes[0]. All other
@@ -301,7 +322,8 @@ void DiskPlotter::CreatePlotDisk(
                   << " GiB" << std::endl;
         all_phases.PrintElapsed("Total time =");
     }
-
+	
+	context.getCurrentTask()->start();
     std::cin.tie(prevstr);
     std::ios_base::sync_with_stdio(true);
 
@@ -366,6 +388,8 @@ void DiskPlotter::CreatePlotDisk(
 #endif
         }
     } while (!bRenamed);
+	context.popTask();
+	plottingJob->finishEvent->trigger(context.job);
 }
 
 uint32_t DiskPlotter::WriteHeader(

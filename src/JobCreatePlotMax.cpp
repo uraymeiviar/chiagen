@@ -118,7 +118,7 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 	oss << std::put_time(&tm, L"%Y-%m-%d-%H-%M");
 	std::wstring timestr = oss.str();
 
-	this->plot_name = L"plot-k32-"+timestr+L"-"+s2ws(this->id)+L".plot";
+	this->plot_name = L"plot-k32-"+timestr+L"-"+s2ws(this->id);
 	this->filename = this->plot_name+L".plot";
 
 

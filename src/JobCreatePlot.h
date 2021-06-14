@@ -20,7 +20,7 @@ public:
 	int startCondTimeStart {1};
 	int startCondTimeEnd {6};
 	int startCondActiveJobCount {1};
-
+	JobEventId eventToRespond;
 	virtual bool drawEditor();
 };
 

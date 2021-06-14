@@ -123,6 +123,98 @@ bool JobCratePlotStartRuleParam::drawEditor()
 		this->startOnEvent = true;
 		result |= true;
 	}
+	if (this->startOnEvent) {		
+		if (JobManager::getInstance().countJob() < 1) {
+			ImGui::Text("No event to attach to, create one or more active jobs first");
+			this->eventToRespond.name = "";
+			this->eventToRespond.type = "";
+		}
+		else {
+			static bool anyJob = false;
+			if (!ImGui::Checkbox("Respond from any jobs", &anyJob)) {
+				static std::shared_ptr<Job> selectedJob = nullptr;
+				static std::string preview = this->eventToRespond.name;
+				if (preview.empty()) {
+					if (selectedJob == nullptr) {
+						preview = (*JobManager::getInstance().jobIteratorBegin())->getTitle();
+					}
+					else {
+						preview = selectedJob->getTitle();
+					}
+				}
+				ImGui::Text("Select Job:");
+				if (ImGui::BeginCombo("Select event source",preview.c_str())) {
+					for (auto it  = JobManager::getInstance().jobIteratorBegin(); 
+							  it != JobManager::getInstance().jobIteratorEnd(); 
+							  it++) {
+						bool isSelected = selectedJob == *it;
+						if (ImGui::Selectable((*it)->getTitle().c_str(), &isSelected)) {
+							selectedJob = *it;
+							this->eventToRespond.name = selectedJob->getTitle();
+						}
+						if (isSelected) {
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+				if (selectedJob != nullptr) {
+					static std::shared_ptr<JobEvent> selectedJobEvent = nullptr;
+					static std::string jobEventPreview = "";
+					if (selectedJobEvent == nullptr) {
+						jobEventPreview = (*selectedJob->events.begin())->getType();
+					}
+					else {
+						jobEventPreview = selectedJobEvent->getType();
+					}
+					if (ImGui::BeginCombo("Select Event",jobEventPreview.c_str())) {
+						for (auto jobEvent : selectedJob->events) {
+							bool selected = selectedJobEvent == jobEvent;
+							if (ImGui::Selectable(jobEvent->getType().c_str(), &selected)) {
+								selectedJobEvent = jobEvent;
+								this->eventToRespond.type = selectedJobEvent->getType();
+							}
+							if (selected) {
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
+				}
+			}
+			else {
+				static std::string eventPreview = "";
+				if (eventPreview.empty()) {
+					eventPreview = (*(*JobManager::getInstance().jobIteratorBegin())->events.begin())->getType();
+				}
+				std::vector<std::string> eventNames;
+				for (auto it  = JobManager::getInstance().jobIteratorBegin(); 
+							it != JobManager::getInstance().jobIteratorEnd(); 
+							it++) {
+					for (auto jobEvent : (*it)->events) {
+						if (std::find(eventNames.begin(), eventNames.end(), jobEvent->getType()) == eventNames.end()) {
+							eventNames.push_back(jobEvent->getType());
+						}
+					}
+				}
+				static std::string selectedName = this->eventToRespond.name;				
+				if (ImGui::BeginCombo("Select Event",eventPreview.c_str())) {
+					for (auto name : eventNames) {
+						bool selected = selectedName == name;
+						if (ImGui::Selectable(name.c_str(), &selected)) {
+							selectedName = name;
+						}
+						if (selected) {
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+					this->eventToRespond.type = selectedName;
+					this->eventToRespond.name = "";
+				}
+			}
+		}
+	}
 
 	if (ImGui::Checkbox("Conditional",&this->startConditional)) {
 		this->startImmediate = false;

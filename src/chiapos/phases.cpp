@@ -85,6 +85,7 @@ void* F1thread(DiskPlotterContext* context, int const index, uint8_t const k, co
 		for (uint32_t i = 0; i < right_writer_count; i++) {
 			context->globals.L_sort_manager->AddToCache(&(right_writer_buf[i * entry_size_bytes]));
 		}
+		context->getCurrentTask()->completedWorkItem++;
 	}
 
 	return 0;
@@ -190,7 +191,7 @@ void* phase1_thread(DiskPlotterContext* context,THREADDATA* ptd)
 	// will already be sorted by y
 	uint64_t totalstripes = (prevtableentries + context->globals.stripe_size - 1) / context->globals.stripe_size;
 	uint64_t threadstripes = (totalstripes + context->globals.num_threads - 1) / context->globals.num_threads;
-
+	context->getCurrentTask()->totalWorkItem += threadstripes;
 	for (uint64_t stripe = 0; stripe < threadstripes; stripe++) {
 		uint64_t pos = (stripe * context->globals.num_threads + ptd->index) * context->globals.stripe_size;
 		uint64_t const endpos = pos + context->globals.stripe_size + 1;  // one y value overlap
@@ -568,6 +569,7 @@ void* phase1_thread(DiskPlotterContext* context,THREADDATA* ptd)
 
 		context->globals.matches += matches;
 		Sem::Post(ptd->mine);
+		context->getCurrentTask()->completedWorkItem++;
 	}
 
 	return 0;
@@ -588,6 +590,16 @@ std::vector<uint64_t> RunPhase1(
 	uint8_t const flags,
 	bool show_progress)
 {
+	std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
+	context->pushTask("Phase1.Table7", currentTask);
+	context->pushTask("Phase1.Table6", currentTask);
+	context->pushTask("Phase1.Table5", currentTask);
+	context->pushTask("Phase1.Table4", currentTask);
+	context->pushTask("Phase1.Table3", currentTask);
+	context->pushTask("Phase1.Table2", currentTask);
+	context->pushTask("Phase1.Table1", currentTask);
+
+	context->getCurrentTask()->start();
 	std::cout << "Computing table 1" << std::endl;
 	context->globals.stripe_size = stripe_size;
 	context->globals.num_threads = num_threads;
@@ -613,6 +625,7 @@ std::vector<uint64_t> RunPhase1(
 	std::mutex sort_manager_mutex;
 
 	{
+		context->getCurrentTask()->totalWorkItem += (((uint64_t)1) << (k - kBatchSizes));
 		// Start of parallel execution
 		std::vector<std::thread> threads;
 		for (int i = 0; i < num_threads; i++) {
@@ -627,6 +640,8 @@ std::vector<uint64_t> RunPhase1(
 
 	uint64_t prevtableentries = 1ULL << k;
 	f1_start_time.PrintElapsed("F1 complete, time:");
+	context->popTask();
+
 	context->globals.L_sort_manager->FlushCache();
 	table_sizes[1] = x + 1;
 
@@ -639,6 +654,7 @@ std::vector<uint64_t> RunPhase1(
 	//// For tables 1 through 6, sort the table, calculate matches, and write
 	//// the next table. This is the left table index.
 	for (uint8_t table_index = 1; table_index < 7; table_index++) {
+		context->getCurrentTask()->start();
 		Timer table_timer;
 		uint8_t const metadata_size = kVectorLens[table_index + 1] * k;
 
@@ -751,6 +767,7 @@ std::vector<uint64_t> RunPhase1(
 		//if ((flags & SHOW_PROGRESS) || show_progress) {
 		//	progress(1, table_index, 6);
 		//}
+		context->popTask();
 	}
 	table_sizes[0] = 0;
 	context->globals.R_sort_manager.reset();
@@ -770,6 +787,13 @@ Phase2Results RunPhase2(
 	uint32_t const log_num_buckets,
 	uint8_t const flags)
 {
+	std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
+	context->pushTask("Phase2.Table2", currentTask);
+	context->pushTask("Phase2.Table3", currentTask);
+	context->pushTask("Phase2.Table4", currentTask);
+	context->pushTask("Phase2.Table5", currentTask);
+	context->pushTask("Phase2.Table6", currentTask);
+	context->pushTask("Phase2.Table7", currentTask);
 	// After pruning each table will have 0.865 * 2^k or fewer entries on
 	// average
 	uint8_t const pos_size = k;
@@ -812,6 +836,7 @@ Phase2Results RunPhase2(
 	// since it contains different data. We'll do an extra scan of table 1 at
 	// the end, just to compact it.
 	for (int table_index = 7; table_index > 1; --table_index) {
+		context->getCurrentTask()->start();		
 		std::cout << "Backpropagating on table " << table_index << std::endl;
 
 		Timer scan_timer;
@@ -820,7 +845,7 @@ Phase2Results RunPhase2(
 
 		int64_t const table_size = table_sizes[table_index];
 		int16_t const entry_size = cdiv(k + kOffsetSize + (table_index == 7 ? k : 0), 8);
-
+		context->getCurrentTask()->totalWorkItem += table_size*2;
 		BufferedDisk disk(&tmp_1_disks[table_index], table_size * entry_size);
 
 		// read_index is the number of entries we've processed so far (in the
@@ -850,6 +875,7 @@ Phase2Results RunPhase2(
 			// mark the two matching entries as used (pos and pos+offset)
 			next_bitfield.set(entry_pos);
 			next_bitfield.set(entry_pos + entry_offset);
+			context->getCurrentTask()->completedWorkItem++;
 		}
 
 		std::cout << "scanned table " << table_index << std::endl;
@@ -937,6 +963,7 @@ Phase2Results RunPhase2(
 				sort_manager->AddToCache(bytes);
 			}
 			++write_counter;
+			context->getCurrentTask()->completedWorkItem++;
 		}
 
 		if (table_index != 7) {
@@ -965,6 +992,7 @@ Phase2Results RunPhase2(
 		//if (flags & SHOW_PROGRESS) {
 		//	progress(2, 8 - table_index, 6);
 		//}
+		context->popTask();
 	}
 
 	// lazy-compact table 1 based on current_bitfield
@@ -1013,6 +1041,20 @@ Phase3Results RunPhase3(
 	uint32_t log_num_buckets,
 	const uint8_t flags)
 {
+	std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
+	context->pushTask("Phase3-Table7-Stage2", currentTask);
+	context->pushTask("Phase3-Table7-Stage1", currentTask);
+	context->pushTask("Phase3-Table6-Stage2", currentTask);
+	context->pushTask("Phase3-Table6-Stage1", currentTask);
+	context->pushTask("Phase3-Table5-Stage2", currentTask);
+	context->pushTask("Phase3-Table5-Stage1", currentTask);
+	context->pushTask("Phase3-Table4-Stage2", currentTask);
+	context->pushTask("Phase3-Table4-Stage1", currentTask);
+	context->pushTask("Phase3-Table3-Stage2", currentTask);
+	context->pushTask("Phase3-Table3-Stage1", currentTask);
+	context->pushTask("Phase3-Table2-Stage2", currentTask);
+	context->pushTask("Phase3-Table2-Stage1", currentTask);
+
 	uint8_t const pos_size = k;
 	uint8_t const line_point_size = 2 * k - 1;
 
@@ -1050,6 +1092,7 @@ Phase3Results RunPhase3(
 	for (int table_index = 1; table_index < 7; table_index++) {
 		Timer table_timer;
 		Timer computation_pass_1_timer;
+		context->getCurrentTask()->start();
 		std::cout << "Compressing tables " << table_index << " and " << (table_index + 1)
 				  << std::endl;
 
@@ -1116,6 +1159,7 @@ Phase3Results RunPhase3(
 		uint64_t cached_entry_pos = 0;
 		uint64_t cached_entry_offset = 0;
 
+		context->getCurrentTask()->totalWorkItem += 2*(kReadMinusWrite + end_of_table_pos);
 		// Similar algorithm as Backprop, to read both L and R tables simultaneously
 		while (!end_of_right_table || (current_pos - end_of_table_pos <= kReadMinusWrite)) {
 			old_counters[current_pos % kReadMinusWrite] = 0;
@@ -1236,8 +1280,11 @@ Phase3Results RunPhase3(
 				}
 			}
 			current_pos += 1;
+			context->getCurrentTask()->completedWorkItem++;
 		}
 		computation_pass_1_timer.PrintElapsed("\tFirst computation pass time:");
+		context->popTask();
+		context->getCurrentTask()->start();
 
 		// Remove no longer needed file
 		left_disk.Truncate(0);
@@ -1297,6 +1344,7 @@ Phase3Results RunPhase3(
 		int added_to_cache = 0;
 		uint8_t const sort_key_shift = 128 - right_sort_key_size;
 		uint8_t const index_shift = sort_key_shift - (k + (table_index == 6 ? 1 : 0));
+		
 		for (uint64_t index = 0; index < total_r_entries; index++) {
 			right_reader_entry_buf = R_sort_manager->ReadEntry(right_reader);
 			right_reader += right_entry_size_bytes;
@@ -1360,6 +1408,7 @@ Phase3Results RunPhase3(
 				park_stubs.push_back(stub);
 			}
 			last_line_point = line_point;
+			context->getCurrentTask()->completedWorkItem++;
 		}
 		R_sort_manager.reset();
 		L_sort_manager->FlushCache();
@@ -1396,6 +1445,7 @@ Phase3Results RunPhase3(
 		final_table_writer += 8;
 
 		table_timer.PrintElapsed("Total compress table time:");
+		context->popTask();
 
 		left_disk.FreeMemory();
 		right_disk.FreeMemory();
@@ -1426,6 +1476,10 @@ void RunPhase4(
 	const uint8_t flags,
 	const int max_phase4_progress_updates)
 {
+	std::shared_ptr<JobTaskItem> currentTask = context->getCurrentTask();
+	context->pushTask("Phase4.C2Write", currentTask);
+	context->pushTask("Phase4.C1C3Write", currentTask);
+
 	uint32_t P7_park_size = ByteAlign((k + 1) * kEntriesPerPark) / 8;
 	uint64_t number_of_p7_parks =
 		((res.final_entries_written == 0 ? 0 : res.final_entries_written - 1) / kEntriesPerPark) +
@@ -1462,6 +1516,7 @@ void RunPhase4(
 	auto C3_entry_buf = new uint8_t[size_C3];
 	auto P7_entry_buf = new uint8_t[P7_park_size];
 
+	context->getCurrentTask()->start();
 	std::cout << "\tStarting to write C1 and C3 tables" << std::endl;
 
 	ParkBits to_write_p7;
@@ -1469,6 +1524,7 @@ void RunPhase4(
 
 	// We read each table7 entry, which is sorted by f7, but we don't need f7 anymore. Instead,
 	// we will just store pos6, and the deltas in table C3, and checkpoints in tables C1 and C2.
+	context->getCurrentTask()->totalWorkItem += res.final_entries_written;
 	for (uint64_t f7_position = 0; f7_position < res.final_entries_written; f7_position++) {
 		right_entry_buf = res.table7_sm->ReadEntry(plot_file_reader);
 
@@ -1519,6 +1575,7 @@ void RunPhase4(
 		//if (flags & SHOW_PROGRESS && f7_position % progress_update_increment == 0) {
 		//	progress(4, f7_position, res.final_entries_written);
 		//}
+		context->getCurrentTask()->completedWorkItem++;
 	}
 	Encoding::ANSFree(kC3R);
 	res.table7_sm.reset();
@@ -1547,6 +1604,9 @@ void RunPhase4(
 	tmp2_disk.Write(final_file_writer_1, (C1_entry_buf), ByteAlign(k) / 8);
 	final_file_writer_1 += ByteAlign(k) / 8;
 	std::cout << "\tFinished writing C1 and C3 tables" << std::endl;
+	context->popTask();
+
+	context->getCurrentTask()->start();
 	std::cout << "\tWriting C2 table" << std::endl;
 
 	for (Bits& C2_entry : C2) {
@@ -1580,4 +1640,5 @@ void RunPhase4(
 		std::cout << ": 0x" << res.final_table_begin_pointers[i] << std::endl;
 	}
 	std::cout << std::dec;
+	context->popTask();
 }

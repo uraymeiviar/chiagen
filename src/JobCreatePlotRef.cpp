@@ -516,6 +516,8 @@ void JobCreatePlotRef::initActivity()
 
 			if (result) {
 				DiskPlotter plotter = DiskPlotter();
+				plotter.context.job = this->shared_from_this();
+
 				uint8_t phases_flags = 0;
 				if (this->param.bitfield) {
 					phases_flags = ENABLE_BITFIELD;

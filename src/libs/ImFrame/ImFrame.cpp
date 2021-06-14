@@ -608,7 +608,7 @@ namespace ImFrame
 			}
 			if (s_data->appPtr)
 				s_data->appPtr->OnWindowSizeChange(width, height);
-
+			
 			RenderWindow(window);
 		}
 
