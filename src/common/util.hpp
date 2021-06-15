@@ -521,4 +521,47 @@ template <class T> T lowercase(const T& inp) {
 	return data;
 }
 
+inline std::string strRemoveChars(const std::string& inp, const std::string& chars) {
+	std::string result = inp;
+	result.erase(
+		std::remove_if(
+			result.begin(), 
+			result.end(),
+			[=](char c) {
+				for (const auto tc : chars) {
+					if (tc == c) {
+						return true;
+					}
+				}
+				return false;
+			}
+		),
+		result.end()
+	);
+	return result;
+}
+
+inline std::string strFilterHexStr(const std::string& inp) {
+	std::string result = inp;
+	if (result.substr(0, 2) == "0x" || result.substr(0, 2) == "0X") {
+		result = inp.substr(2);
+	}
+	result.erase(
+		std::remove_if(
+			result.begin(), 
+			result.end(),
+			[=](char c) {
+				if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			}
+		),
+		result.end()
+	);
+	return result;
+}
+
 #endif  // SRC_CPP_UTIL_HPP_

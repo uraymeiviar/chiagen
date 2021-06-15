@@ -5,11 +5,13 @@
 #include "chiapos/pos_constants.hpp"
 #include "chiapos/entry_sizes.hpp"
 #include "Imgui/misc/cpp/imgui_stdlib.h"
+#include <chrono>
 
 #include <vector>
 #include <filesystem>
 #include "Keygen.hpp"
 #include "util.hpp"
+#include "main.hpp"
 
 #include "chiapos/picosha2.hpp"
 #include "chiapos/plotter_disk.hpp"
@@ -18,6 +20,24 @@
 #include "chiapos/thread_pool.hpp"
 
 FactoryRegistration<JobCreatePlotRefFactory> JobCreatePlotRefFactoryRegistration;
+
+JobCreatePlotRefParam::JobCreatePlotRefParam()
+{
+	this->loadPreset();
+}
+
+JobCreatePlotRefParam::JobCreatePlotRefParam(const JobCreatePlotRefParam& rhs)
+{
+	this->buckets   = rhs.buckets;
+	this->stripes   = rhs.stripes;
+	this->threads   = rhs.threads;
+	this->buffer    = rhs.buffer;
+	this->ksize     = rhs.ksize;
+	this->temp2Path = rhs.temp2Path;
+	this->tempPath  = rhs.tempPath;
+	this->destPath  = rhs.destPath;
+	this->bitfield  = rhs.bitfield;
+}
 
 void JobCreatePlotRefParam::loadDefault()
 {
@@ -28,6 +48,22 @@ void JobCreatePlotRefParam::loadDefault()
 	this->ksize = 32;
 	this->temp2Path = "";
 	this->bitfield = true;
+}
+
+void JobCreatePlotRefParam::loadPreset()
+{
+	MainApp::settings.load();
+	this->buckets = MainApp::settings.buckets;
+	this->stripes = MainApp::settings.stripes;
+	this->threads = MainApp::settings.threads;
+	this->buffer = MainApp::settings.buffer;
+	this->ksize = MainApp::settings.ksize;
+	this->temp2Path = MainApp::settings.tempDir2;
+	this->tempPath = MainApp::settings.tempDir;
+	this->destPath = MainApp::settings.finalDir;
+	this->bitfield = MainApp::settings.bitfield;
+	this->poolKey = MainApp::settings.poolKey;
+	this->farmKey = MainApp::settings.farmKey;
 }
 
 bool JobCreatePlotRefParam::drawEditor()
@@ -50,7 +86,7 @@ bool JobCreatePlotRefParam::drawEditor()
 	ImGui::SameLine();
 	ImGui::PushItemWidth(55.0f);
 	if (ImGui::Button("Paste##pool")) {
-		this->poolKey = ImGui::GetClipboardText();
+		this->poolKey = strFilterHexStr(ImGui::GetClipboardText());
 		result |= true;
 	}
 	ImGui::PopItemWidth();
@@ -70,7 +106,7 @@ bool JobCreatePlotRefParam::drawEditor()
 	ImGui::SameLine();
 	ImGui::PushItemWidth(55.0f);
 	if (ImGui::Button("Paste##farm")) {
-		this->farmKey = ImGui::GetClipboardText();
+		this->farmKey = strFilterHexStr(ImGui::GetClipboardText());
 		result |= true;
 	}
 	ImGui::PopItemWidth();
@@ -79,7 +115,7 @@ bool JobCreatePlotRefParam::drawEditor()
 	ImGui::Text("Temp Dir");
 	ImGui::PopItemWidth();
 	ImGui::SameLine(80.0f);
-	static std::string tempDir;
+	static std::string tempDir = this->tempPath.string();
 	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
 	if (ImGui::InputText("##tempDir", &tempDir)) {
 		this->tempPath = tempDir;
@@ -116,7 +152,7 @@ bool JobCreatePlotRefParam::drawEditor()
 	ImGui::Text("Dest Dir");
 	ImGui::PopItemWidth();
 	ImGui::SameLine(80.0f);
-	static std::string destDir;
+	static std::string destDir = this->destPath.string();
 	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
 	if (ImGui::InputText("##destDir", &destDir)) {
 		this->destPath = destDir;
@@ -143,8 +179,8 @@ bool JobCreatePlotRefParam::drawEditor()
 		if (dirPath) {
 			destDir = dirPath.value().string();
 			this->destPath = dirPath.value();
-		}
-		result |= true;
+			result |= true;
+		}		
 	}
 	ImGui::PopItemWidth();
 
@@ -163,14 +199,15 @@ bool JobCreatePlotRefParam::drawEditor()
 			}
 			if (this->ksize > 50) {
 				this->ksize = 50;
-			}				
+			}
+			kinput = (int)this->ksize;
 			result |= true;
 		}
 		ImGui::PopItemWidth();
 			
 		ImGui::Text("Temp Dir2");
 		ImGui::SameLine(120.0f);
-		static std::string tempDir2;
+		static std::string tempDir2 = this->temp2Path.string();
 		ImGui::PushItemWidth(fieldWidth-225.0f);
 		if (ImGui::InputText("##tempDir2", &tempDir2)) {
 			this->temp2Path = tempDir2;
@@ -225,6 +262,7 @@ bool JobCreatePlotRefParam::drawEditor()
 			this->stripes = stripesInput;
 			if (this->stripes < 1) {
 				this->stripes = 1;
+				stripesInput = this->stripes;
 			}
 			result |= true;
 		}
@@ -500,11 +538,16 @@ std::shared_ptr<Job> JobCreatePlotRef::relaunch()
 {
 	JobCratePlotStartRule* startRule = dynamic_cast<JobCratePlotStartRule*>(this->getStartRule());
 	JobCreatePlotFinishRule* finishRule = dynamic_cast<JobCreatePlotFinishRule*>(this->getFinishRule());
+	JobCratePlotStartRuleParam& startParam = startRule->getRelaunchParam();
+	JobCreatePlotFinishRuleParam& finishParam = finishRule->getRelaunchParam();
+	if (!finishParam.repeatIndefinite && finishParam.repeatCount <= 0) {
+		startParam.startPaused = true;
+	}
 	auto newJob = std::make_shared<JobCreatePlotRef>(
-		this->getTitle(),
+		this->getTitle()+"#"+systemClockToStr(std::chrono::system_clock::now()),
 		this->param, 
-		startRule->getRelaunchParam(),
-		finishRule->getRelaunchParam()
+		startParam,
+		finishParam
 	);
 	return newJob;
 }

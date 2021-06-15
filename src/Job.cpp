@@ -6,6 +6,8 @@
 #include "util.hpp"
 #include "Implot/implot.h"
 
+std::vector<std::function<void()>> JobManager::registrations = std::vector<std::function<void()>>();
+
 JobManager::JobManager()
 {
 	this->myProcess = NULL;
@@ -41,6 +43,11 @@ void JobManager::listEvents(std::vector<std::shared_ptr<JobEvent>> out)
 
 void JobManager::addJob(std::shared_ptr<Job> newJob) {
 	this->activeJobs.push_back(newJob);
+}
+
+void JobManager::deleteJob(std::shared_ptr<Job> newJob)
+{
+	this->deleteReqsJobs.push_back(newJob);
 }
 
 void JobManager::setSelectedJob(std::shared_ptr<Job> job) {
@@ -111,30 +118,6 @@ void JobManager::samplerThreadProc()
 		if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {
 			JobManager::getInstance().lastSampleTime = start;
 			JobManager::getInstance().collectPerfSample();
-			std::vector<std::shared_ptr<Job>> finishedJobs;
-			for (auto job : JobManager::getInstance().activeJobs) {
-				bool keepAlive = job->update();
-				if (!keepAlive) {
-					finishedJobs.push_back(job);
-				}
-			}
-			for (auto finishedJob : finishedJobs) {
-				this->activeJobs.erase(
-					std::remove_if(
-						this->activeJobs.begin(), 
-						this->activeJobs.end(),
-						[=](auto job) {
-							return job == finishedJob;
-						}
-					)
-				);
-				if (finishedJob->relaunchAfterFinish()) {
-					std::shared_ptr<Job> relaunchedJob = finishedJob->relaunch();
-					if (relaunchedJob) {
-						JobManager::getInstance().addJob(relaunchedJob);
-					}
-				}
-			}
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
@@ -173,6 +156,46 @@ void JobManager::start()
 			this->samplerThread = std::thread(&JobManager::samplerThreadProc, &JobManager::getInstance());
 		}
 	}
+	for (auto reg : JobManager::registrations) {
+		reg();
+	}
+	JobManager::registrations.clear();
+}
+
+void JobManager::update()
+{
+	while(!deleteReqsJobs.empty()) {
+		std::shared_ptr<Job> jobToDelete = deleteReqsJobs.at(0);
+		this->activeJobs.erase(
+			std::remove_if(
+				this->activeJobs.begin(), 
+				this->activeJobs.end(),
+				[=](auto job) {
+					if (this->selectedJob == job) {
+						this->selectedJob = nullptr;
+					}
+					return job == jobToDelete;
+				}
+			)
+		);
+		deleteReqsJobs.erase(deleteReqsJobs.begin());
+	}
+
+	std::vector<std::shared_ptr<Job>> finishedJobs;
+	for (auto job : JobManager::getInstance().activeJobs) {
+		bool keepAlive = job->update();
+		if (!keepAlive) {
+			finishedJobs.push_back(job);
+		}
+	}
+	for (auto finishedJob : finishedJobs) {
+		if (finishedJob->relaunchAfterFinish()) {
+			std::shared_ptr<Job> relaunchedJob = finishedJob->relaunch();
+			if (relaunchedJob) {
+				JobManager::getInstance().addJob(relaunchedJob);
+			}
+		}
+	}
 }
 
 void JobManager::log(std::string text, std::shared_ptr<Job> job)
@@ -203,14 +226,14 @@ void JobManager::logErr(std::string text, std::shared_ptr<Job> job /*= nullptr*/
 	}
 }
 
-const std::unique_lock<std::mutex> JobManager::lock()
-{
-	return std::unique_lock<std::mutex>(this->mutex);
-}
-
 Job::Job(std::string title) :title(title)
 {
 
+}
+
+Job::~Job()
+{
+	this->activity = nullptr;
 }
 
 bool Job::isRunning() const
@@ -280,12 +303,19 @@ bool Job::pause()
 
 bool Job::cancel(bool forced)
 {
-	if (this->activity) {
-		return this->activity->stop(false, forced);
+	if (!this->isRunning()) {
+		JobManager::getInstance().deleteJob(this->shared_from_this());
+		return true;
 	}
 	else {
-		return false;
-	}
+		if (this->activity) {
+			return this->activity->stop(false, forced);
+		}
+		else {
+			JobManager::getInstance().deleteJob(this->shared_from_this());
+			return true;
+		}
+	}		
 }
 
 float Job::getProgress()
@@ -391,13 +421,20 @@ void Job::handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> s
 bool Job::update()
 {
 	if (!this->isRunning()) {
-		JobRule* startRule = this->getStartRule();
-		if (startRule) {
-			startRule->update();
-		}
-
 		if (!this->isFinished()) {
+			JobRule* startRule = this->getStartRule();
+			if (startRule) {
+				startRule->update();
+			}
 			this->start(false);
+		}
+		else {
+			//this->activity = nullptr;
+			JobRule* finishRule = this->getFinishRule();
+			if (finishRule) {
+				finishRule->update();
+			}
+			return false;
 		}
 		return true;
 	}
@@ -405,16 +442,7 @@ bool Job::update()
 		if (this->activity) {
 			this->activity->samplerUpdate();
 		}
-		if (this->isFinished()) {
-			JobRule* finishRule = this->getFinishRule();
-			if (finishRule) {
-				finishRule->update();
-			}
-			return false;
-		}
-		else {
-			return true;
-		}
+		return true;
 	}
 }
 
@@ -437,6 +465,11 @@ void Job::initActivity()
 JobTaskItem::JobTaskItem(std::string name) :name(name)
 {
 
+}
+
+JobTaskItem::~JobTaskItem()
+{
+	std::cout << "task item destroy" << std::endl;
 }
 
 void JobTaskItem::addChild(std::shared_ptr<JobTaskItem> task)
@@ -598,6 +631,14 @@ JobActvity::JobActvity(std::string name, Job* owner) : JobTaskItem(name), job(ow
 	}
 }
 
+JobActvity::~JobActvity()
+{
+	if (this->jobThread.joinable()) {
+		this->jobThread.join();
+	}
+	std::cout << "activity quit " << std::endl;
+}
+
 bool JobActvity::start(uint32_t sampleCount)
 {
 	this->statSampleCount = sampleCount;
@@ -686,14 +727,7 @@ void JobActvity::drawPlot()
 bool JobActvity::stopActivity(bool finished)
 {
 	this->samplerUpdate();
-	bool result = JobTaskItem::stop(finished);
-	if (result && finished && this->job) {
-		JobRule* finishRule = this->job->getFinishRule();
-		if (finishRule) {
-			finishRule->evaluate();
-		}
-	}
-	return result;
+	return JobTaskItem::stop(finished);
 }
 
 bool JobActvity::stop(bool finished /*= true*/)

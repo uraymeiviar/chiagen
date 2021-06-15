@@ -36,6 +36,7 @@ protected:
 class JobRule {
 public:
 	JobRule(){};
+	virtual ~JobRule(){};
 	virtual bool evaluate(){ return true; };
 	virtual void handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source){}
 	virtual bool drawItemWidget() { return false; };
@@ -66,6 +67,7 @@ public:
 class JobTaskItem : public std::enable_shared_from_this<JobTaskItem> {
 public:
 	JobTaskItem(std::string name);
+	virtual ~JobTaskItem();;
 	virtual void addChild(std::shared_ptr<JobTaskItem> task);
 	virtual void removeChild(std::shared_ptr<JobTaskItem> task);
 	virtual float getProgress();
@@ -91,6 +93,7 @@ protected:
 class JobActvity : public JobTaskItem{
 public:
 	JobActvity(std::string name, Job* owner);
+	virtual ~JobActvity();
 	bool start() override;
 	bool start(uint32_t sampleCount);
 	bool stop(bool finished, bool force);
@@ -125,6 +128,7 @@ protected:
 class Job : public std::enable_shared_from_this<Job>{
 public:
 	Job(std::string title);
+	virtual ~Job();
 	virtual bool isRunning() const;
 	virtual bool isPaused() const;
 	virtual bool isFinished() const;	
@@ -134,7 +138,6 @@ public:
 	virtual float getProgress();
 	virtual JobRule* getStartRule();
 	virtual JobRule* getFinishRule();
-	virtual ~Job(){};
 	std::string getTitle() const;
 	virtual bool drawEditor();
 	virtual bool drawItemWidget();
@@ -172,6 +175,7 @@ public:
 	void triggerEvent(std::shared_ptr<JobEvent> jobEvent,std::shared_ptr<Job> source);
 	void listEvents(std::vector<std::shared_ptr<JobEvent>> out);
 	void addJob(std::shared_ptr<Job> newJob);
+	void deleteJob(std::shared_ptr<Job> newJob);
 	void setSelectedJob(std::shared_ptr<Job> job);
 	std::shared_ptr<Job> getSelectedJob() const;
 	size_t countJob() const;
@@ -183,10 +187,12 @@ public:
 	bool isRunning {true};
 	void stop();
 	void start();
+	void update();
 	std::mutex mutex;
 	std::vector<std::shared_ptr<JobFactory>> jobFactories;
 	void log(std::string text, std::shared_ptr<Job> job = nullptr);
 	void logErr(std::string text, std::shared_ptr<Job> job = nullptr);
+	static std::vector<std::function<void()>> registrations;
 protected:
 	uint32_t statUpdateInterval {1};
 	uint32_t statSampleCount {100};
@@ -204,6 +210,7 @@ protected:
 	void samplerThreadProc();
 
 	std::vector<std::shared_ptr<Job>> activeJobs;
+	std::vector<std::shared_ptr<Job>> deleteReqsJobs;
 	std::shared_ptr<Job> selectedJob {nullptr};
 	std::thread samplerThread {};
 };
@@ -211,8 +218,10 @@ protected:
 template <typename F>
 FactoryRegistration<F>::FactoryRegistration()
 {
-	std::shared_ptr<JobFactory> factoryPtr = std::static_pointer_cast<JobFactory>(std::make_shared<F>());
-	JobManager::getInstance().registerJobFactory(factoryPtr);
+	JobManager::registrations.push_back([]() {
+		std::shared_ptr<JobFactory> factoryPtr = std::static_pointer_cast<JobFactory>(std::make_shared<F>());
+		JobManager::getInstance().registerJobFactory(factoryPtr);
+	});
 }
 
 #endif

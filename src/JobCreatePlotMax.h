@@ -17,6 +17,7 @@ public:
 	uint32_t buckets {256};
 	size_t readChunkSize {65536};
 	void loadDefault();
+	void loadPreset();
 	bool isValid(std::vector<std::string>& errs) const;
 	bool updateDerivedParams(std::vector<std::string>& err);
 	virtual bool drawEditor();
@@ -61,5 +62,5 @@ protected:
 };
 
 extern FactoryRegistration<JobCreatePlotMaxFactory> JobCreatePlotMaxFactoryRegistration;
-
+ 
 #endif

@@ -28,6 +28,7 @@ class JobCratePlotStartRule : public JobStartRule {
 public:
 	JobCratePlotStartRule();
 	JobCratePlotStartRule(const JobCratePlotStartRuleParam& param);
+	virtual ~JobCratePlotStartRule(){};
 	virtual bool drawEditor();
 	virtual bool drawItemWidget();
 	bool evaluate() override;
@@ -59,6 +60,7 @@ class JobCreatePlotFinishRule : public JobFinishRule {
 public:
 	JobCreatePlotFinishRule();
 	JobCreatePlotFinishRule(const JobCreatePlotFinishRuleParam& param);
+	virtual ~JobCreatePlotFinishRule(){};
 	virtual bool drawEditor();
 	virtual bool drawItemWidget();
 	bool relaunchAfterFinish() override;
@@ -87,6 +89,7 @@ public:
 		const JobCratePlotStartRuleParam& startParam,
 		const JobCreatePlotFinishRuleParam& finishParam
 	);
+	virtual ~JobCreatePlot(){};
 	static int jobIdCounter;
 
 	JobRule* getStartRule() override;

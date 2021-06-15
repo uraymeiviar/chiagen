@@ -4,12 +4,18 @@
 #include <clocale>
 #include <locale>
 #include <codecvt>
-
+#include <stdexcept>
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <io.h>
 #include "uint128_t/uint128_t.h"
+
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/prettywriter.h>
 
 #include "Imgui/imgui.h"
 #include "Imgui/misc/cpp/imgui_stdlib.h"
@@ -33,6 +39,7 @@ extern "C" {
 #include <shellapi.h>
 #endif
 
+AppSettings MainApp::settings = AppSettings();
 static const WORD MAX_CONSOLE_LINES = 500;
 bool RedirectIOToConsole()
 {
@@ -133,20 +140,39 @@ bool CreateNewConsole(int16_t minLength)
 	return result;
 }
 
+void my_terminate() {
+    std::cout << "terminate called " << std::endl;
+}
+
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nShowCmd) {
 #ifdef _WIN32	
 	// the following line increases the number of open simultaneous files
 	int newmaxstdio = _setmaxstdio(8192);
 #endif
+	std::set_terminate(my_terminate);
+
 	LPWSTR *args;
 	int nArgs;
 	JobManager::getInstance().start();
 	args = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+
+	std::filesystem::path settingsPath = std::filesystem::current_path() / "settings.json";
+	if (std::filesystem::exists(settingsPath)) {
+		try {
+			MainApp::settings.load(settingsPath);
+		}
+		catch(...){}
+	}
 	if (nArgs < 2) {
-		ImFrame::Run("uraymeiviar", "Chia Plotter", [] (const auto & params) { 
-			return std::make_unique<MainApp>(params); 
-		});
+		try {
+			ImFrame::Run("uraymeiviar", "Chia Plotter", [] (const auto & params) { 
+				return std::make_unique<MainApp>(params); 
+			});
+		}
+		catch (...) {
+			std::cout << "main thread exception" << std::endl;
+		}
 	}
 	else {
 		AttachConsole(ATTACH_PARENT_PROCESS );
@@ -579,6 +605,7 @@ MainApp::MainApp(GLFWwindow* window) : ImFrame::ImApp(window) {
 }
 
 void MainApp::OnUpdate() {
+	JobManager::getInstance().update();
 	Style();
 	glfwGetWindowPos(this->GetWindow(),&wx,&wy);
 	glfwGetWindowSize(this->GetWindow(),&ww,&wh);
@@ -604,6 +631,10 @@ void MainApp::OnUpdate() {
 					this->activeTab = 3;
 					ImGui::EndTabItem();
 				}
+				if (ImGui::BeginTabItem("Settings")) {
+					this->activeTab = 4;
+					ImGui::EndTabItem();
+				}
 				ImGui::EndTabBar();
 			}
 			if (this->activeTab == 0) {
@@ -617,6 +648,9 @@ void MainApp::OnUpdate() {
 			}
 			else if (this->activeTab == 3) {
 				this->helpPage();
+			}
+			else if (this->activeTab == 4) {
+				this->settingsPage();
 			}
 			ImGui::End();
 		}	
@@ -658,7 +692,7 @@ void MainApp::toolPage() {
 			else {
 				if (ImGui::BeginChild("##col2", ImVec2(0.0f, 0.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 					//TODO:lock job manager mutex
-					auto lock = JobManager::getInstance().lock();
+					//auto lock = JobManager::getInstance().lock();
 					for(auto it = JobManager::getInstance().jobIteratorBegin() ; it != JobManager::getInstance().jobIteratorEnd() ; it++){
 						ImGui::PushID((const void*)it->get());
 						ImVec2 cursorBegin = ImGui::GetCursorPos();
@@ -680,7 +714,7 @@ void MainApp::toolPage() {
 						ImGui::GetStyle().Colors[ImGuiCol_Border] = borderColor;
 						ImGui::PopID();
 					}
-					lock.unlock();
+					//lock.unlock();
 				}
 				ImGui::EndChild();
 			}
@@ -705,3 +739,427 @@ void MainApp::systemPage() {}
 
 void MainApp::helpPage() {}
 
+void MainApp::settingsPage()
+{
+	if(ImGui::BeginTable("##setingsTable",3,tableFlag)){
+		ImGui::TableSetupScrollFreeze(1, 1);
+		ImGui::TableSetupColumn("Default Values",ImGuiTableColumnFlags_WidthFixed,340.0f);
+		ImGui::TableSetupColumn("App",ImGuiTableColumnFlags_WidthStretch,230.0f);
+		ImGui::TableHeadersRow();			
+
+		ImGui::TableNextRow();
+		if (ImGui::TableSetColumnIndex(0)) {
+			if (ImGui::BeginChild("##settings-col1", ImVec2(0.0f, 0.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+				float fieldWidth = ImGui::GetWindowContentRegionWidth();
+				bool changed = false;
+
+				ImGui::PushItemWidth(80.0f);
+				ImGui::Text("Pool Key");
+				ImGui::PopItemWidth();
+				ImGui::SameLine(80.0f);
+				ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+				changed |= ImGui::InputText("##settings-poolkey", &MainApp::settings.poolKey,ImGuiInputTextFlags_CharsHexadecimal);
+				if (ImGui::IsItemHovered() && !MainApp::settings.poolKey.empty()) {
+					ImGui::BeginTooltip();
+					tooltiipText(MainApp::settings.poolKey.c_str());
+					ImGui::EndTooltip();
+				}
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::PushItemWidth(55.0f);
+				if (ImGui::Button("Paste##pool")) {
+					MainApp::settings.poolKey = strFilterHexStr(ImGui::GetClipboardText());
+					changed = true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::PushItemWidth(80.0f);
+				ImGui::Text("Farm Key");
+				ImGui::PopItemWidth();
+				ImGui::SameLine(80.0f);
+				ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+				ImGui::InputText("##settings-farmkey", &MainApp::settings.farmKey,ImGuiInputTextFlags_CharsHexadecimal);
+				if (ImGui::IsItemHovered() && !this->MainApp::settings.farmKey.empty()) {
+					ImGui::BeginTooltip();
+					tooltiipText(this->MainApp::settings.farmKey.c_str());
+					ImGui::EndTooltip();
+				}
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::PushItemWidth(55.0f);
+				if (ImGui::Button("Paste##settings-farm")) {
+					this->MainApp::settings.farmKey = strFilterHexStr(ImGui::GetClipboardText());
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::PushItemWidth(80.0f);
+				ImGui::Text("Dest Dir");
+				ImGui::PopItemWidth();
+				ImGui::SameLine(80.0f);
+				static std::string destDir = MainApp::settings.finalDir;
+				ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+				if (ImGui::InputText("##settings-destDir", &destDir)) {
+					MainApp::settings.finalDir = destDir;
+					changed |= true;
+				}
+				if (ImGui::IsItemHovered() && !destDir.empty()) {
+					ImGui::BeginTooltip();
+					tooltiipText(destDir.c_str());
+					ImGui::EndTooltip();
+				}
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(55.0f);
+				ImGui::SameLine();
+				if (ImGui::Button("Paste##settings-destDir")) {
+					destDir = ImGui::GetClipboardText();
+					MainApp::settings.finalDir = destDir;
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(55.0f);
+				ImGui::SameLine();
+				if (ImGui::Button("Select##settings-destDir")) {
+					std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
+					if (dirPath) {
+						destDir = dirPath.value().string();
+						MainApp::settings.finalDir = destDir;
+						changed |= true;
+					}		
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::PushItemWidth(80.0f);
+				ImGui::Text("Temp Dir");
+				ImGui::PopItemWidth();
+				ImGui::SameLine(80.0f);
+				static std::string tempDir = MainApp::settings.tempDir;
+				ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+				if (ImGui::InputText("##settings-tempDir", &tempDir)) {
+					MainApp::settings.tempDir = tempDir;
+					changed |= true;
+				}
+				if (ImGui::IsItemHovered() && !tempDir.empty()) {
+					ImGui::BeginTooltip();
+					tooltiipText(tempDir.c_str());
+					ImGui::EndTooltip();
+				}
+				ImGui::PopItemWidth();
+		
+				ImGui::PushItemWidth(55.0f);
+				ImGui::SameLine();		
+				if (ImGui::Button("Paste##settings-tempDir")) {
+					tempDir = ImGui::GetClipboardText();
+					MainApp::settings.tempDir = tempDir;
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(55.0f);
+				ImGui::SameLine();
+				if (ImGui::Button("Select##settings-tempDir")) {
+					std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
+					if (dirPath) {
+						tempDir = dirPath->string();
+						MainApp::settings.tempDir = tempDir;
+						changed |= true;
+					}		
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::Text("Temp Dir2");
+				ImGui::SameLine(120.0f);
+				static std::string tempDir2 = MainApp::settings.tempDir2;
+				ImGui::PushItemWidth(fieldWidth-225.0f);
+				if (ImGui::InputText("##settings-tempDir2", &tempDir2)) {
+					MainApp::settings.tempDir2 = tempDir2;
+					changed |= true;
+				}
+				if (ImGui::IsItemHovered() && !tempDir2.empty()) {
+					ImGui::BeginTooltip();
+					tooltiipText(tempDir2.c_str());
+					ImGui::EndTooltip();
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::PushItemWidth(50.0f);
+				if (ImGui::Button("Paste##settings-tempDir2")) {
+					tempDir2 = ImGui::GetClipboardText();
+					MainApp::settings.tempDir2 = tempDir2;
+					changed |= true;
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Select##settings-tempDir2")) {
+					std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
+					if (dirPath) {
+						tempDir2 = dirPath.value().string();
+						MainApp::settings.tempDir2 = tempDir2;
+						changed |= true;
+					}		
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::Text("Plot Size (k)");
+				ImGui::SameLine(120.0f);
+				ImGui::PushItemWidth(fieldWidth-130.0f);
+				static int kinput = (int)MainApp::settings.ksize;
+				if (ImGui::InputInt("##settings-k", &kinput, 1, 10)) {
+					MainApp::settings.ksize = (uint8_t)kinput;
+					if (MainApp::settings.ksize < 18) {
+						MainApp::settings.ksize = 18;
+					}
+					if (MainApp::settings.ksize > 50) {
+						MainApp::settings.ksize = 50;
+					}
+					kinput = (int)MainApp::settings.ksize;
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::Text("Buckets");
+				ImGui::SameLine(120.0f);
+				ImGui::PushItemWidth(fieldWidth-130.0f);
+				static int bucketInput = (int)MainApp::settings.buckets;
+				if (ImGui::InputInt("##settings-buckets", &bucketInput, 1, 8)) {
+					MainApp::settings.buckets = (uint32_t)bucketInput;
+					if (MainApp::settings.buckets < 16) {
+						MainApp::settings.buckets = 16;
+					}
+					if (MainApp::settings.buckets > 128) {
+						MainApp::settings.buckets = 128;
+					}
+					bucketInput= (uint32_t)this->MainApp::settings.buckets;
+					changed |= true;
+				}
+
+				ImGui::Text("Stripes");
+				ImGui::SameLine(120.0f);
+				ImGui::PushItemWidth(fieldWidth-130.0f);
+				static int stripesInput = (int)MainApp::settings.stripes;
+				if (ImGui::InputInt("##settings-stripes", &stripesInput, 1024, 4096)) {
+					MainApp::settings.stripes = stripesInput;
+					if (MainApp::settings.stripes < 256) {
+						MainApp::settings.stripes = 256;
+					}
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::Text("Threads");
+				ImGui::SameLine(120.0f);
+				ImGui::PushItemWidth(fieldWidth-130.0f);
+				static int threadsInput = (int)MainApp::settings.threads;
+				if (ImGui::InputInt("##settings-threads", &threadsInput, 1, 2)) {
+					MainApp::settings.threads = (uint8_t)threadsInput;
+					if (MainApp::settings.threads < 1) {
+						MainApp::settings.threads = 1;
+						threadsInput = 1;
+					}
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::Text("Buffer (MB)");
+				ImGui::SameLine(120.0f);
+				ImGui::PushItemWidth(fieldWidth-130.0f);
+				static int bufferInput = (int)MainApp::settings.buffer;
+				if (ImGui::InputInt("##settings-buffer", &bufferInput, 1024, 2048)) {
+					MainApp::settings.buffer = bufferInput;
+					if (MainApp::settings.buffer < 16) {
+						MainApp::settings.buffer = 16;
+						bufferInput = 16;
+					}
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::Text("Bitfield");
+				ImGui::SameLine(120.0f);
+				ImGui::PushItemWidth(fieldWidth-130.0f);
+				changed |= ImGui::Checkbox("##settings-bitfeld", &MainApp::settings.bitfield);
+				ImGui::PopItemWidth();
+
+				if (changed) {
+					MainApp::settings.save(std::filesystem::current_path() / "settings.json");
+				}
+			}
+			ImGui::EndChild();
+		}
+		ImGui::EndTable();
+	}
+}
+
+AppSettings::AppSettings()
+{
+	this->threads = std::thread::hardware_concurrency()/2;
+	if (this->threads < 2) {
+		this->threads = 2;
+	}
+}
+
+uint8_t AppSettings::defaultKSize = 32;
+uint32_t AppSettings::defaultBuckets = 256;
+uint32_t AppSettings::defaultStripes = 65536;
+uint32_t AppSettings::defaultBuffer = 4096;
+
+void AppSettings::load(std::filesystem::path f)
+{
+	if (std::filesystem::exists(f) && std::filesystem::is_regular_file(f)) {
+		std::ifstream ifs(f.string());
+		if ( ifs.is_open() )
+		{
+			std::stringstream buffer;
+			buffer << ifs.rdbuf();
+			std::string inputJson = buffer.str();
+			
+			json::Document doc;
+			doc.Parse(inputJson.c_str());
+			if(doc["settings"].IsObject()){
+				json::Value& settings = doc["settings"];
+				if (settings.IsObject()) {
+					json::Value& farmkey = settings["farmkey"];
+					if (farmkey.IsString()) {
+						this->farmKey = farmkey.GetString();
+					}
+
+					json::Value& poolkey = settings["poolkey"];
+					if (poolkey.IsString()) {
+						this->poolKey = poolkey.GetString();
+					}
+
+					json::Value& finaldir = settings["finaldir"];
+					if (finaldir.IsString()) {
+						this->finalDir = finaldir.GetString();
+					}
+
+					json::Value& tempdir = settings["tempdir"];
+					if (tempdir.IsString()) {
+						this->tempDir = tempdir.GetString();
+					}
+
+					json::Value& tempdir2 = settings["tempdir2"];
+					if (tempdir2.IsString()) {
+						this->tempDir2 = tempdir2.GetString();
+					}
+
+					json::Value& ksize = settings["ksize"];
+					if (ksize.IsInt()) {
+						this->ksize = ksize.GetInt();
+					}
+					else if (ksize.IsString()) {
+						try {
+							this->ksize = std::atoi(ksize.GetString());
+						}
+						catch (...) {
+							this->ksize = AppSettings::defaultKSize;
+						}
+					}
+
+					json::Value& buckets = settings["buckets"];
+					if (buckets.IsInt()) {
+						this->buckets = buckets.GetInt();
+					}
+					else if (buckets.IsString()) {
+						try {
+							this->buckets = std::atoi(buckets.GetString());
+						}
+						catch (...) {
+							this->buckets = AppSettings::defaultBuckets;
+						}
+					}
+
+					json::Value& threads = settings["threads"];
+					if (threads.IsInt()) {
+						this->threads = threads.GetInt();
+					}
+					else if (threads.IsString()) {
+						try {
+							this->threads = std::atoi(threads.GetString());
+						}
+						catch (...) {
+							this->threads = std::thread::hardware_concurrency()/2;
+							if (this->threads < 2) {
+								this->threads = 2;
+							}
+						}
+					}
+
+					json::Value& stripes = settings["stripes"];
+					if (stripes.IsInt()) {
+						this->stripes = stripes.GetInt();
+					}
+					else if (stripes.IsString()) {
+						try {
+							this->stripes = std::atoi(stripes.GetString());
+						}
+						catch (...) {
+							this->stripes = AppSettings::defaultStripes;
+						}
+					}
+
+					json::Value& buffer = settings["buffer"];
+					if (buffer.IsInt()) {
+						this->buffer = buffer.GetInt();
+					}
+					else if (buffer.IsString()) {
+						try {
+							this->buffer = std::atoi(buffer.GetString());
+						}
+						catch (...) {
+							this->buffer = AppSettings::defaultBuffer;
+						}
+					}
+
+					json::Value& bitfield = settings["bitfield"];
+					if (bitfield.IsInt()) {
+						this->bitfield = bitfield.GetInt() == 0 ? false:true;
+					}
+					else if (buffer.IsString()) {
+						if (buffer.GetString() == "yes" || buffer.GetString() == "true") {
+							this->bitfield = true;
+						}
+						else {
+							this->bitfield = false;
+						}
+					}
+					else if (buffer.IsBool()) {
+						this->bitfield = buffer.GetBool();
+					}
+				}
+			}
+			ifs.close();
+		}
+	}
+}
+
+void AppSettings::load()
+{
+	this->load(std::filesystem::current_path()/"settings.json");
+}
+
+void AppSettings::save(std::filesystem::path f)
+{
+	json::Document doc;
+	doc.SetObject();
+	json::Value settings(json::kObjectType);
+
+	settings.AddMember("farmkey" ,json::StringRef(this->farmKey.c_str()), doc.GetAllocator());
+	settings.AddMember("poolkey" ,json::StringRef(this->poolKey.c_str()), doc.GetAllocator());
+	settings.AddMember("finaldir",json::StringRef(this->finalDir.c_str()), doc.GetAllocator());
+	settings.AddMember("tempdir" ,json::StringRef(this->tempDir.c_str()), doc.GetAllocator());
+	settings.AddMember("tempdir2",json::StringRef(this->tempDir2.c_str()), doc.GetAllocator());
+	settings.AddMember("ksize"   ,this->ksize, doc.GetAllocator());
+	settings.AddMember("buckets" ,this->buckets, doc.GetAllocator());
+	settings.AddMember("stripes" ,this->stripes, doc.GetAllocator());
+	settings.AddMember("threads" ,this->threads, doc.GetAllocator());
+	settings.AddMember("buffer"  ,this->buffer, doc.GetAllocator());
+	settings.AddMember("bitfield",this->bitfield, doc.GetAllocator());
+	
+	doc.AddMember("settings",settings, doc.GetAllocator());	
+	std::ofstream ofs( f.string());
+	if (ofs.is_open()) {
+		json::OStreamWrapper osw { ofs };
+		json::PrettyWriter<json::OStreamWrapper,json::Document::EncodingType,json::UTF8<>> writer { osw };
+		doc.Accept( writer );
+	}
+}

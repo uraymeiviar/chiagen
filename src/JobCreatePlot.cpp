@@ -529,8 +529,8 @@ JobCreatePlotFinishRuleParam& JobCreatePlotFinishRule::getRelaunchParam()
 {
 	if (!this->param.repeatIndefinite) {
 		this->param.repeatCount--;
-		if (this->param.repeatCount < 1) {
-			this->param.repeatCount = 1;
+		if (this->param.repeatCount < 0) {
+			this->param.repeatCount = 0;
 		}
 	}
 	return this->param;

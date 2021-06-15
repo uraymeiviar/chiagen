@@ -7,6 +7,7 @@
 #include <thread>
 #include "Keygen.hpp"
 #include "util.hpp"
+#include "main.hpp"
 
 #include "madmax/phase1.hpp"
 #include "madmax/phase2.hpp"
@@ -22,6 +23,7 @@ JobCreatePlotMaxParam::JobCreatePlotMaxParam()
 	if (this->threads < 2) {
 		this->threads = 2;
 	}
+	this->loadPreset();
 }
 
 void JobCreatePlotMaxParam::loadDefault()
@@ -32,6 +34,18 @@ void JobCreatePlotMaxParam::loadDefault()
 		this->threads = 2;
 	}
 	this->temp2Path = "";
+}
+
+void JobCreatePlotMaxParam::loadPreset()
+{
+	MainApp::settings.load();
+	this->buckets = MainApp::settings.buckets;
+	this->threads = MainApp::settings.threads;
+	this->temp2Path = MainApp::settings.tempDir2;
+	this->tempPath = MainApp::settings.tempDir;
+	this->destPath = MainApp::settings.finalDir;
+	this->poolKey = MainApp::settings.poolKey;
+	this->farmKey = MainApp::settings.farmKey;
 }
 
 bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
@@ -243,7 +257,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 	ImGui::Text("Temp Dir");
 	ImGui::PopItemWidth();
 	ImGui::SameLine(80.0f);
-	static std::string tempDir;
+	static std::string tempDir = this->tempPath.string();
 	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
 	if (ImGui::InputText("##tempDir", &tempDir)) {
 		this->tempPath = tempDir;
@@ -280,7 +294,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 	ImGui::Text("Dest Dir");
 	ImGui::PopItemWidth();
 	ImGui::SameLine(80.0f);
-	static std::string destDir;
+	static std::string destDir = this->destPath.string();
 	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
 	if (ImGui::InputText("##destDir", &destDir)) {
 		this->destPath = destDir;
@@ -318,7 +332,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 			
 		ImGui::Text("Temp Dir2");
 		ImGui::SameLine(120.0f);
-		static std::string tempDir2;
+		static std::string tempDir2 = this->temp2Path.string();
 		ImGui::PushItemWidth(fieldWidth-225.0f);
 		if (ImGui::InputText("##tempDir2", &tempDir2)) {
 			this->temp2Path = tempDir2;
@@ -436,11 +450,16 @@ std::shared_ptr<Job> JobCreatePlotMax::relaunch()
 {
 	JobCratePlotStartRule* startRule = dynamic_cast<JobCratePlotStartRule*>(this->getStartRule());
 	JobCreatePlotFinishRule* finishRule = dynamic_cast<JobCreatePlotFinishRule*>(this->getFinishRule());
+	JobCratePlotStartRuleParam& startParam = startRule->getRelaunchParam();
+	JobCreatePlotFinishRuleParam& finishParam = finishRule->getRelaunchParam();
+	if (!finishParam.repeatIndefinite && finishParam.repeatCount <= 0) {
+		startParam.startPaused = true;
+	}
 	auto newJob = std::make_shared<JobCreatePlotMax>(
-		this->getTitle(),
+		this->getTitle()+"#"+systemClockToStr(std::chrono::system_clock::now()),
 		this->param, 
-		startRule->getRelaunchParam(),
-		finishRule->getRelaunchParam()
+		startParam,
+		finishParam
 	);
 	return newJob;
 }
@@ -534,7 +553,8 @@ void JobCreatePlotMax::initActivity()
 					catch (...) {
 
 					}
-					this->activity->waitUntilFinish();
+					
+					//this->activity->waitUntilFinish();
 				}
 			}
 		};

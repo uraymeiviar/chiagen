@@ -30,7 +30,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <EnableASAN>false</EnableASAN>
   </PropertyGroup>
@@ -52,13 +52,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src\madmax;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\rapidjson;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src\madmax;$(ProjectDir)\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src\madmax;$(ProjectDir)\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\libs\ImFrame\mINI;$(ProjectDir)\src\libs\ImFrame\tbl;$(ProjectDir)\src\libs\ImFrame\linmath;$(ProjectDir)\src\libs\ImFrame\stb;$(ProjectDir)\src\libs\ImFrame\nfd\src\include;$(ProjectDir)\src\libs\ImFrame\nfd\src;$(ProjectDir)\src\libs\ImFrame\include;$(ProjectDir)\src\libs\glfw\include;$(ProjectDir)\src\libs\glad\include;$(ProjectDir)\src\libs\pthreads;$(ProjectDir)\src\libs\uint128_t;$(ProjectDir)\src\libs\gmp;$(ProjectDir)\src\libs\relic\include\low;$(ProjectDir)\src\libs\relic\include;$(ProjectDir)\src\libs\relic\low;$(ProjectDir)\src\libs\relic;$(ProjectDir)\src\libs\rapidjson;$(ProjectDir)\src\libs\ImGui;$(ProjectDir)\src\libs;$(ProjectDir)\src\common;$(ProjectDir)\src\madmax;$(ProjectDir)\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -91,13 +91,15 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <StringPooling>true</StringPooling>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <OmitFramePointers>false</OmitFramePointers>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,7 +136,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
-      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <CallingConvention>Cdecl</CallingConvention>
       <OpenMPSupport>false</OpenMPSupport>
@@ -488,6 +490,43 @@
     <ClInclude Include="src\libs\pthreads\sched.h" />
     <ClInclude Include="src\libs\pthreads\semaphore.h" />
     <ClInclude Include="src\libs\pthreads\_ptw32.h" />
+    <ClInclude Include="src\libs\rapidjson\allocators.h" />
+    <ClInclude Include="src\libs\rapidjson\cursorstreamwrapper.h" />
+    <ClInclude Include="src\libs\rapidjson\document.h" />
+    <ClInclude Include="src\libs\rapidjson\encodedstream.h" />
+    <ClInclude Include="src\libs\rapidjson\encodings.h" />
+    <ClInclude Include="src\libs\rapidjson\error\en.h" />
+    <ClInclude Include="src\libs\rapidjson\error\error.h" />
+    <ClInclude Include="src\libs\rapidjson\filereadstream.h" />
+    <ClInclude Include="src\libs\rapidjson\filewritestream.h" />
+    <ClInclude Include="src\libs\rapidjson\fwd.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\clzll.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\itoa.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\meta.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\pow10.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\regex.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\stack.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\strtod.h" />
+    <ClInclude Include="src\libs\rapidjson\internal\swap.h" />
+    <ClInclude Include="src\libs\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="src\libs\rapidjson\memorybuffer.h" />
+    <ClInclude Include="src\libs\rapidjson\memorystream.h" />
+    <ClInclude Include="src\libs\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="src\libs\rapidjson\msinttypes\stdint.h" />
+    <ClInclude Include="src\libs\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="src\libs\rapidjson\pointer.h" />
+    <ClInclude Include="src\libs\rapidjson\prettywriter.h" />
+    <ClInclude Include="src\libs\rapidjson\rapidjson.h" />
+    <ClInclude Include="src\libs\rapidjson\reader.h" />
+    <ClInclude Include="src\libs\rapidjson\schema.h" />
+    <ClInclude Include="src\libs\rapidjson\stream.h" />
+    <ClInclude Include="src\libs\rapidjson\stringbuffer.h" />
+    <ClInclude Include="src\libs\rapidjson\writer.h" />
     <ClInclude Include="src\libs\relic\include\low\relic_bn_low.h" />
     <ClInclude Include="src\libs\relic\include\low\relic_dv_low.h" />
     <ClInclude Include="src\libs\relic\include\low\relic_fp_low.h" />

@@ -7,6 +7,8 @@
 
 class JobCreatePlotRefParam {
 public:
+	JobCreatePlotRefParam();
+	JobCreatePlotRefParam(const JobCreatePlotRefParam& rhs);
 	std::filesystem::path destPath;
 	std::filesystem::path tempPath;
 	std::filesystem::path temp2Path;
@@ -20,6 +22,7 @@ public:
 	uint32_t buffer {4608};
 	bool bitfield {true};
 	void loadDefault();
+	void loadPreset();
 	bool isValid(std::vector<std::string>& errs) const;
 	virtual bool drawEditor();
 	bool updateDerivedParams(std::vector<std::string>& errs);
