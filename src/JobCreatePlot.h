@@ -34,6 +34,8 @@ public:
 	void handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source) override;
 	std::chrono::time_point<std::chrono::system_clock> creationTime;
 	std::function<void()> onStartTrigger;
+	JobCratePlotStartRuleParam& getParam();
+	JobCratePlotStartRuleParam& getRelaunchParam();
 protected:
 	bool isRuleFullfilled();
 	JobCratePlotStartRuleParam param;
@@ -59,6 +61,9 @@ public:
 	JobCreatePlotFinishRule(const JobCreatePlotFinishRuleParam& param);
 	virtual bool drawEditor();
 	virtual bool drawItemWidget();
+	bool relaunchAfterFinish() override;
+	JobCreatePlotFinishRuleParam& getParam();
+	JobCreatePlotFinishRuleParam& getRelaunchParam();
 protected:
 	JobCreatePlotFinishRuleParam param;
 };
@@ -89,6 +94,7 @@ public:
 
 	virtual bool drawItemWidget() override;
 	virtual bool drawStatusWidget() override;	
+	virtual bool relaunchAfterFinish() override;
 
 	std::shared_ptr<JobEvent> startEvent;
 	std::shared_ptr<JobEvent> finishEvent;

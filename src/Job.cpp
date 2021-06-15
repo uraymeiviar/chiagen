@@ -1,7 +1,7 @@
 #include "Job.hpp"
 #include "imgui.h"
 #include <thread>
-#include <future>>
+#include <future>
 #include <psapi.h>
 #include "util.hpp"
 #include "Implot/implot.h"
@@ -108,11 +108,32 @@ void JobManager::samplerThreadProc()
 	while (JobManager::getInstance().isRunning) {
 		auto start = std::chrono::steady_clock::now();
 		auto elapsed = start - this->lastSampleTime;
-		if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {			
+		if (elapsed > std::chrono::seconds(this->statUpdateInterval)) {
 			JobManager::getInstance().lastSampleTime = start;
 			JobManager::getInstance().collectPerfSample();
+			std::vector<std::shared_ptr<Job>> finishedJobs;
 			for (auto job : JobManager::getInstance().activeJobs) {
-				job->update();
+				bool keepAlive = job->update();
+				if (!keepAlive) {
+					finishedJobs.push_back(job);
+				}
+			}
+			for (auto finishedJob : finishedJobs) {
+				this->activeJobs.erase(
+					std::remove_if(
+						this->activeJobs.begin(), 
+						this->activeJobs.end(),
+						[=](auto job) {
+							return job == finishedJob;
+						}
+					)
+				);
+				if (finishedJob->relaunchAfterFinish()) {
+					std::shared_ptr<Job> relaunchedJob = finishedJob->relaunch();
+					if (relaunchedJob) {
+						JobManager::getInstance().addJob(relaunchedJob);
+					}
+				}
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -180,6 +201,11 @@ void JobManager::logErr(std::string text, std::shared_ptr<Job> job /*= nullptr*/
 	if (job) {
 		job->log(clockStr + text);
 	}
+}
+
+const std::unique_lock<std::mutex> JobManager::lock()
+{
+	return std::unique_lock<std::mutex>(this->mutex);
 }
 
 Job::Job(std::string title) :title(title)
@@ -362,26 +388,39 @@ void Job::handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> s
 	}
 }
 
-void Job::update()
+bool Job::update()
 {
-	JobRule* startRule = this->getStartRule();
-	JobRule* finishRule = this->getFinishRule();
+	if (!this->isRunning()) {
+		JobRule* startRule = this->getStartRule();
+		if (startRule) {
+			startRule->update();
+		}
 
-	if (startRule) {
-		startRule->update();
+		if (!this->isFinished()) {
+			this->start(false);
+		}
+		return true;
 	}
-	
-	if (!this->isRunning() && !this->isFinished()) {
-		this->start(false);
+	else {
+		if (this->activity) {
+			this->activity->samplerUpdate();
+		}
+		if (this->isFinished()) {
+			JobRule* finishRule = this->getFinishRule();
+			if (finishRule) {
+				finishRule->update();
+			}
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
-	
-	if (finishRule) {
-		finishRule->update();
-	}
+}
 
-	if (this->activity) {
-		this->activity->samplerUpdate();
-	}
+bool Job::relaunchAfterFinish()
+{
+	return false;
 }
 
 void Job::log(std::string text)

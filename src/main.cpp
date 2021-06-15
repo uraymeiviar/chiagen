@@ -657,6 +657,8 @@ void MainApp::toolPage() {
 			}
 			else {
 				if (ImGui::BeginChild("##col2", ImVec2(0.0f, 0.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+					//TODO:lock job manager mutex
+					auto lock = JobManager::getInstance().lock();
 					for(auto it = JobManager::getInstance().jobIteratorBegin() ; it != JobManager::getInstance().jobIteratorEnd() ; it++){
 						ImGui::PushID((const void*)it->get());
 						ImVec2 cursorBegin = ImGui::GetCursorPos();
@@ -677,7 +679,8 @@ void MainApp::toolPage() {
 						ImGui::EndGroupPanel();
 						ImGui::GetStyle().Colors[ImGuiCol_Border] = borderColor;
 						ImGui::PopID();
-					}						
+					}
+					lock.unlock();
 				}
 				ImGui::EndChild();
 			}

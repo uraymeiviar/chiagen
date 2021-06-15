@@ -43,6 +43,7 @@ public:
 		JobCreatePlotFinishRuleParam& finishRuleParam
 	);
 	virtual bool drawEditor() override;
+	virtual std::shared_ptr<Job> relaunch() override;
 protected:
 	virtual void initActivity() override;
 	JobCreatePlotMaxParam param;

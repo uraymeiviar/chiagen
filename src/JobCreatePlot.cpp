@@ -56,6 +56,11 @@ bool JobCreatePlot::drawStatusWidget() {
 	return result;
 }
 
+bool JobCreatePlot::relaunchAfterFinish()
+{
+	return this->finishRule.relaunchAfterFinish();
+}
+
 void JobCreatePlot::init()
 {
 	this->startEvent = std::make_shared<JobEvent>("job-start");
@@ -350,6 +355,16 @@ void JobCratePlotStartRule::handleEvent(std::shared_ptr<JobEvent> jobEvent, std:
 	}
 }
 
+JobCratePlotStartRuleParam& JobCratePlotStartRule::getParam()
+{
+	return this->param;
+}
+
+JobCratePlotStartRuleParam& JobCratePlotStartRule::getRelaunchParam()
+{
+	return this->param;
+}
+
 bool JobCratePlotStartRule::isRuleFullfilled()
 {
 	bool result = true;
@@ -493,6 +508,32 @@ bool JobCreatePlotFinishRule::drawItemWidget() {
 		}
 	}
 	return false;
+}
+
+bool JobCreatePlotFinishRule::relaunchAfterFinish()
+{
+	if (this->param.repeatIndefinite || this->param.repeatCount > 1) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+JobCreatePlotFinishRuleParam& JobCreatePlotFinishRule::getParam()
+{
+	return this->param;
+}
+
+JobCreatePlotFinishRuleParam& JobCreatePlotFinishRule::getRelaunchParam()
+{
+	if (!this->param.repeatIndefinite) {
+		this->param.repeatCount--;
+		if (this->param.repeatCount < 1) {
+			this->param.repeatCount = 1;
+		}
+	}
+	return this->param;
 }
 
 void CreatePlotContext::log(std::string text)

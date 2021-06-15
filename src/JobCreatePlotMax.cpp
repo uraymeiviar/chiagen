@@ -432,6 +432,19 @@ bool JobCreatePlotMax::drawEditor()
 	return result;
 }
 
+std::shared_ptr<Job> JobCreatePlotMax::relaunch()
+{
+	JobCratePlotStartRule* startRule = dynamic_cast<JobCratePlotStartRule*>(this->getStartRule());
+	JobCreatePlotFinishRule* finishRule = dynamic_cast<JobCreatePlotFinishRule*>(this->getFinishRule());
+	auto newJob = std::make_shared<JobCreatePlotMax>(
+		this->getTitle(),
+		this->param, 
+		startRule->getRelaunchParam(),
+		finishRule->getRelaunchParam()
+	);
+	return newJob;
+}
+
 void JobCreatePlotMax::initActivity()
 {
 	JobCreatePlot::initActivity();

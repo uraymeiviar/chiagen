@@ -49,7 +49,9 @@ public:
 
 class JobFinishRule : public JobRule {
 public:
-
+	virtual bool relaunchAfterFinish(){
+		return false;
+	}
 };
 
 class JobActivityState {
@@ -138,7 +140,9 @@ public:
 	virtual bool drawItemWidget();
 	virtual bool drawStatusWidget();
 	virtual void handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source);
-	virtual void update();
+	virtual bool update();
+	virtual bool relaunchAfterFinish();
+	virtual std::shared_ptr<Job> relaunch() = 0;
 	void log(std::string text);
 	std::vector<std::shared_ptr<JobEvent>> events;
 	std::shared_ptr<JobActvity> activity;
