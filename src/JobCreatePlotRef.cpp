@@ -41,7 +41,7 @@ JobCreatePlotRefParam::JobCreatePlotRefParam(const JobCreatePlotRefParam& rhs)
 
 void JobCreatePlotRefParam::loadDefault()
 {
-	this->buckets = 128;
+	this->buckets = 256;
 	this->stripes = 65536;
 	this->threads = 2;
 	this->buffer = 4608;
@@ -247,8 +247,8 @@ bool JobCreatePlotRefParam::drawEditor()
 			if (this->buckets < 16) {
 				this->buckets = 16;
 			}
-			if (this->buckets > 128) {
-				this->buckets = 128;
+			if (this->buckets > 256) {
+				this->buckets = 256;
 			}
 			bucketInput= this->buckets;
 			result |= true;

@@ -925,8 +925,8 @@ void MainApp::settingsPage()
 					if (MainApp::settings.buckets < 16) {
 						MainApp::settings.buckets = 16;
 					}
-					if (MainApp::settings.buckets > 128) {
-						MainApp::settings.buckets = 128;
+					if (MainApp::settings.buckets > 256) {
+						MainApp::settings.buckets = 256;
 					}
 					bucketInput= (uint32_t)this->MainApp::settings.buckets;
 					changed |= true;
