@@ -638,12 +638,6 @@ namespace ImFrame
 		// Allocate all persistent internal window/app data
 		s_data = std::make_unique<PersistentData>();
 
-#ifdef IMFRAME_WINDOWS
-		// Enable memory leak checking
-		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-		_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
-#endif
-
 		// Read existing config data
 		GetImFrameConfig(s_data->imframeIni, orgName, appName);
 		GetConfig(s_data->appIni, "app.ini", orgName, appName);
