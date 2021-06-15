@@ -42,7 +42,7 @@ void compute_table(	int R_index, int num_threads,
 					L_used->set(uint64_t(entry.pos) + entry.off);
 					context.getCurrentTask()->completedWorkItem++;
 				}
-			}, nullptr, num_threads*2, "phase2/mark");
+			}, nullptr, num_threads, "phase2/mark");
 		
 		L_used->clear();
 		R_input.read(&pool, num_threads_read);
