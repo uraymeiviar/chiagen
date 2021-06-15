@@ -1094,6 +1094,9 @@
     <ClInclude Include="src\JobCreatePlotMax.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\Task.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\libs\relic\arch\lzcnt.inc">

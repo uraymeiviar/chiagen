@@ -383,6 +383,7 @@
     <ClInclude Include="src\common\encoding.hpp" />
     <ClInclude Include="src\common\exceptions.hpp" />
     <ClInclude Include="src\common\stdiox.hpp" />
+    <ClInclude Include="src\common\Task.h" />
     <ClInclude Include="src\common\util.hpp" />
     <ClInclude Include="src\data.hpp" />
     <ClInclude Include="src\gui.hpp" />
