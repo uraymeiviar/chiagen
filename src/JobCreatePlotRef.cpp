@@ -488,21 +488,23 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 }
 
 JobCreatePlotRef::JobCreatePlotRef(std::string title, 
+	std::string originalTitle,
 	JobCreatePlotRefParam& param, 
 	JobCratePlotStartRuleParam& startRuleParam, 
 	JobCreatePlotFinishRuleParam& finishRuleParam) : 
-	JobCreatePlot(title, startRuleParam, finishRuleParam),
+	JobCreatePlot(title, originalTitle, startRuleParam, finishRuleParam),
 	param(param)
 {
 }
 
-JobCreatePlotRef::JobCreatePlotRef(std::string title) : JobCreatePlot(title)
+JobCreatePlotRef::JobCreatePlotRef(std::string title, std::string originalTitle) 
+	: JobCreatePlot(title, originalTitle)
 {
 
 }
 
-JobCreatePlotRef::JobCreatePlotRef(std::string title, JobCreatePlotRefParam& param)
-	:JobCreatePlot(title, JobCratePlotStartRuleParam(), JobCreatePlotFinishRuleParam()),
+JobCreatePlotRef::JobCreatePlotRef(std::string title, std::string originalTitle, JobCreatePlotRefParam& param)
+	:JobCreatePlot(title, originalTitle, JobCratePlotStartRuleParam(), JobCreatePlotFinishRuleParam()),
 	 param(param)
 {
 
@@ -546,7 +548,8 @@ std::shared_ptr<Job> JobCreatePlotRef::relaunch()
 	std::string oldTitle = this->getTitle();
 	std::string newTitle = oldTitle.substr(0,oldTitle.find_first_of('#'));
 	auto newJob = std::make_shared<JobCreatePlotRef>(
-		newTitle+"#"+systemClockToStr(std::chrono::system_clock::now()),
+		this->getOriginalTitle()+"#"+systemClockToStr(std::chrono::system_clock::now()),
+		this->getOriginalTitle(),
 		this->param, 
 		startParam,
 		finishParam
@@ -719,7 +722,7 @@ std::string JobCreatePlotRefFactory::getName()
 std::shared_ptr<Job> JobCreatePlotRefFactory::create(std::string jobName)
 {
 	return std::make_shared<JobCreatePlotRef>(
-		jobName, this->param, this->startRuleParam, this->finishRuleParam
+		jobName, jobName, this->param, this->startRuleParam, this->finishRuleParam
 	);
 }
 

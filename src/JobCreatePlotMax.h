@@ -36,9 +36,10 @@ public:
 
 class JobCreatePlotMax : public JobCreatePlot {
 public:
-	JobCreatePlotMax(std::string title);
-	JobCreatePlotMax(std::string title, JobCreatePlotMaxParam& param);
+	JobCreatePlotMax(std::string title, std::string originalTitle = "");
+	JobCreatePlotMax(std::string title, std::string originalTitle, JobCreatePlotMaxParam& param);
 	JobCreatePlotMax(std::string title,
+		std::string originalTitle,
 		JobCreatePlotMaxParam& param,
 		JobCratePlotStartRuleParam& startRuleParam,
 		JobCreatePlotFinishRuleParam& finishRuleParam

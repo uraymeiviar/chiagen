@@ -42,9 +42,10 @@ protected:
 
 class JobCreatePlotRef : public JobCreatePlot {
 public:
-	JobCreatePlotRef(std::string title);
-	JobCreatePlotRef(std::string title, JobCreatePlotRefParam& param);
+	JobCreatePlotRef(std::string title, std::string originalTitle = "");
+	JobCreatePlotRef(std::string title, std::string originalTitle, JobCreatePlotRefParam& param);
 	JobCreatePlotRef(std::string title,
+		std::string originalTitle,
 		JobCreatePlotRefParam& param,
 		JobCratePlotStartRuleParam& startRuleParam,
 		JobCreatePlotFinishRuleParam& finishRuleParam

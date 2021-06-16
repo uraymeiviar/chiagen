@@ -69,7 +69,7 @@ int cli_create(
 	param.filename = filename;
 	param.memo = memo;
 
-	std::shared_ptr<JobCreatePlotRef> job = std::make_shared<JobCreatePlotRef>("cli",param);
+	std::shared_ptr<JobCreatePlotRef> job = std::make_shared<JobCreatePlotRef>("cli","cli",param);
 	job->start(true);
 	if(job->activity) {
 		job->activity->waitUntilFinish();
@@ -221,7 +221,7 @@ int cli_create_mad(
 	param.threads = num_threads;
 	param.buckets = num_buckets;
 
-	std::shared_ptr<JobCreatePlotMax> job = std::make_shared<JobCreatePlotMax>("cli",param);
+	std::shared_ptr<JobCreatePlotMax> job = std::make_shared<JobCreatePlotMax>("cli","cli",param);
 	job->start(true);
 	if(job->activity) {
 		job->activity->waitUntilFinish();

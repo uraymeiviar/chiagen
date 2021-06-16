@@ -40,12 +40,11 @@ public:
 protected:
 	bool isRuleFullfilled();
 	JobCratePlotStartRuleParam param;
-	JobEventId waitForEvent;	
 };
 
 class JobCreatePlotFinishRuleParam {
 public:
-	bool repeatJob {true};
+	bool repeatJob {false};
 	bool repeatIndefinite {false};
 	bool execProg {false};
 	std::filesystem::path progToExec;
@@ -84,8 +83,8 @@ protected:
 
 class JobCreatePlot : public Job {
 public:
-	JobCreatePlot(std::string title);
-	JobCreatePlot(std::string title, 
+	JobCreatePlot(std::string title, std::string originalTitle = "");
+	JobCreatePlot(std::string title, std::string originalTitle,
 		const JobCratePlotStartRuleParam& startParam,
 		const JobCreatePlotFinishRuleParam& finishParam
 	);

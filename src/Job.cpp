@@ -20,6 +20,7 @@ JobManager& JobManager::getInstance() {
 
 void JobManager::triggerEvent(std::shared_ptr<JobEvent> jobEvent,std::shared_ptr<Job> source)
 {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	for (auto job : this->activeJobs) {
 		try {
 			if (source && job != source) {
@@ -34,6 +35,7 @@ void JobManager::triggerEvent(std::shared_ptr<JobEvent> jobEvent,std::shared_ptr
 
 void JobManager::listEvents(std::vector<std::shared_ptr<JobEvent>> out)
 {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	for (auto job : this->activeJobs) {
 		for (auto jobEvent : job->events) {
 			out.push_back(jobEvent);
@@ -60,6 +62,22 @@ void JobManager::setSelectedJob(std::shared_ptr<Job> job) {
 std::shared_ptr<Job> JobManager::getSelectedJob() {
 	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	return this->selectedJob;
+}
+
+std::shared_ptr<Job> JobManager::getActiveJobByName(std::string name, bool originalName)
+{
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
+	for (auto job : this->activeJobs) {
+		if (originalName) {
+			if (job->getOriginalTitle() == name) {
+				return job;
+			}
+		}
+		else if (job->getTitle() == name) {
+			return job;
+		}
+	}
+	return nullptr;
 }
 
 size_t JobManager::countJob() {
@@ -185,18 +203,20 @@ void JobManager::update()
 				}
 			)
 		);
-		this->finishedJobs.erase(
-			std::remove_if(
-				this->finishedJobs.begin(), 
-				this->finishedJobs.end(),
-				[=](auto job) {
-					if (this->selectedJob == job) {
-						this->selectedJob = nullptr;
+		if (!this->finishedJobs.empty()) {
+			this->finishedJobs.erase(
+				std::remove_if(
+					this->finishedJobs.begin(), 
+					this->finishedJobs.end(),
+					[=](auto job) {
+						if (this->selectedJob == job) {
+							this->selectedJob = nullptr;
+						}
+						return job == jobToDelete;
 					}
-					return job == jobToDelete;
-				}
-			)
-		);
+				)
+			);
+		}
 		deleteReqsJobs.erase(deleteReqsJobs.begin());
 	}
 
@@ -205,6 +225,9 @@ void JobManager::update()
 		std::shared_ptr<Job> relaunchedJob = jobToRelaunch->relaunch();
 		if (relaunchedJob) {
 			JobManager::getInstance().addJob(relaunchedJob);
+		}
+		if (this->selectedJob == jobToRelaunch) {
+			this->selectedJob = nullptr;
 		}
 		relaunchReqsJobs.erase(relaunchReqsJobs.begin());
 	}
@@ -280,9 +303,37 @@ void JobManager::logErr(std::string text, std::shared_ptr<Job> job /*= nullptr*/
 	}
 }
 
-Job::Job(std::string title) :title(title)
+std::vector<std::string> JobManager::getAvailableEventTypes()
 {
+	const std::lock_guard<std::recursive_mutex> lock(this->logMutex);
+	std::vector<std::string> eventNames;
+	for (auto activeJob : this->activeJobs) {
+		for (auto jobEvent : activeJob->events) {
+			if (std::find(eventNames.begin(), eventNames.end(), jobEvent->getType()) == eventNames.end()) {
+				eventNames.push_back(jobEvent->getType());
+			}
+		}
+	}
+	return eventNames;
+}
 
+std::vector<std::string> JobManager::getAvailableEventEmitters()
+{
+	const std::lock_guard<std::recursive_mutex> lock(this->logMutex);
+	std::vector<std::string> jobNames;
+	for (auto activeJob : this->activeJobs) {
+		if (!activeJob->events.empty()) {
+			jobNames.push_back(activeJob->getOriginalTitle());
+		}
+	}
+	return jobNames;
+}
+
+Job::Job(std::string title, std::string originalTitle) :title(title), originalTitle(originalTitle)
+{
+	if (originalTitle.empty()) {
+		originalTitle = title;
+	}
 }
 
 Job::~Job()
@@ -394,6 +445,11 @@ JobRule* Job::getFinishRule()
 
 std::string Job::getTitle() const { return this->title; }
 
+std::string Job::getOriginalTitle() const
+{
+	return this->originalTitle;
+}
+
 bool Job::drawEditor()
 {
 	return false;
@@ -479,8 +535,10 @@ bool Job::update()
 			JobRule* startRule = this->getStartRule();
 			if (startRule) {
 				startRule->update();
-			}
-			this->start(false);
+				if (startRule->evaluate()) {
+					this->start(false);
+				}
+			}			
 			return true;
 		}
 		else {
@@ -668,7 +726,7 @@ bool JobTaskItem::drawStatusWidget()
 		if (this->isRunning()) {
 			ImGui::ProgressBar(this->getProgress());
 		}
-		for (auto task : this->tasks) {			
+		for (auto task : this->tasks) {
 			task->drawStatusWidget();
 		}
 		ImGui::Unindent(8);
@@ -900,7 +958,7 @@ void JobActvity::collectCPUUsage()
 	this->lastSampleTime = std::chrono::steady_clock::now();
 }
 
-JobEvent::JobEvent(std::string type) : type(type)
+JobEvent::JobEvent(std::string type, std::string name) : type(type), name(name)
 {
 
 }
@@ -926,6 +984,9 @@ bool JobEventId::match(JobEvent* event)
 		if (this->type == event->getType()) {
 			if (!this->name.empty()) {
 				return this->name == event->name;
+			}
+			else {
+				return true;
 			}
 		}
 	}

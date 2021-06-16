@@ -398,23 +398,27 @@ bool JobCreatePlotMaxParam::drawEditor()
 	return result;
 }
 
-JobCreatePlotMax::JobCreatePlotMax(std::string title): JobCreatePlot(title)
+JobCreatePlotMax::JobCreatePlotMax(std::string title, std::string originalTitle)
+	: JobCreatePlot(title, originalTitle)
 {
 
 }
 
-JobCreatePlotMax::JobCreatePlotMax(std::string title, JobCreatePlotMaxParam& param)
-	:JobCreatePlot(title, JobCratePlotStartRuleParam(), JobCreatePlotFinishRuleParam()),
+JobCreatePlotMax::JobCreatePlotMax(std::string title, 
+	std::string originalTitle, 
+	JobCreatePlotMaxParam& param)
+	:JobCreatePlot(title, originalTitle, JobCratePlotStartRuleParam(), JobCreatePlotFinishRuleParam()),
 	 param(param)
 {
 
 }
 
 JobCreatePlotMax::JobCreatePlotMax(std::string title,
+	std::string originalTitle, 
 	JobCreatePlotMaxParam& param, 
 	JobCratePlotStartRuleParam& startRuleParam, 
 	JobCreatePlotFinishRuleParam& finishRuleParam)	:
-	JobCreatePlot(title, startRuleParam, finishRuleParam),
+	JobCreatePlot(title, originalTitle, startRuleParam, finishRuleParam),
 	param(param)
 {
 
@@ -427,7 +431,7 @@ bool JobCreatePlotMax::drawEditor()
 		ImGui::Indent(20.0f);
 		result |= this->startRule.drawEditor();
 		ImGui::Unindent(20.0f);
-	}
+	}	
 
 	if (ImGui::CollapsingHeader("Finish Rule")) {
 		ImGui::Indent(20.0f);
@@ -455,10 +459,9 @@ std::shared_ptr<Job> JobCreatePlotMax::relaunch()
 	if (!finishParam.repeatIndefinite && finishParam.repeatCount <= 0) {
 		startParam.startPaused = true;
 	}
-	std::string oldTitle = this->getTitle();
-	std::string newTitle = oldTitle.substr(0,oldTitle.find_first_of('#'));
 	auto newJob = std::make_shared<JobCreatePlotMax>(
-		newTitle+"#"+systemClockToStr(std::chrono::system_clock::now()),
+		this->getOriginalTitle()+"#"+systemClockToStr(std::chrono::system_clock::now()),
+		this->getOriginalTitle(),
 		this->param, 
 		startParam,
 		finishParam
@@ -500,66 +503,70 @@ void JobCreatePlotMax::initActivity()
 				context.log("threads    "+std::to_string(param.threads));
 
 				if (context.job->activity) {
-					context.job->activity->totalWorkItem = 100;
-					while (context.job->activity->completedWorkItem < context.job->activity->totalWorkItem) {
-						context.job->activity->completedWorkItem++;
-						std::this_thread::sleep_for(std::chrono::milliseconds(100));
-					}
-					//std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
-					//context.pushTask("PlotCopy", currentTask);
-					//context.pushTask("Phase4", currentTask);
-					//context.pushTask("Phase3", currentTask);
-					//context.pushTask("Phase2", currentTask);
-					//context.pushTask("Phase1", currentTask);
+					//std::shared_ptr<JobCreatePlot> plottingJob = std::dynamic_pointer_cast<JobCreatePlot>(context.job);
+					//plottingJob->startEvent->trigger(context.job);
+					//context.job->activity->totalWorkItem = 100;
+					//while (context.job->activity->completedWorkItem < context.job->activity->totalWorkItem) {
+					//	context.job->activity->completedWorkItem++;
+					//	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+					//}
+					//plottingJob->finishEvent->trigger(context.job);
+
+					std::shared_ptr<JobTaskItem> currentTask = context.getCurrentTask();
+					context.pushTask("PlotCopy", currentTask);
+					context.pushTask("Phase4", currentTask);
+					context.pushTask("Phase3", currentTask);
+					context.pushTask("Phase2", currentTask);
+					context.pushTask("Phase1", currentTask);
 	
-					//try {
-					//	std::shared_ptr<JobCreatePlot> plottingJob = std::dynamic_pointer_cast<JobCreatePlot>(context.job);
-					//	plottingJob->startEvent->trigger(context.job);
+					try {
+						std::shared_ptr<JobCreatePlot> plottingJob = std::dynamic_pointer_cast<JobCreatePlot>(context.job);
+						plottingJob->startEvent->trigger(context.job);
 
-					//	context.getCurrentTask()->start();
-					//	mad::phase1::output_t out_1;
-					//	mad::phase1::Phase1 p1(&context);
-					//	p1.compute(params, out_1);
-					//	context.popTask();
-					//	plottingJob->phase1FinishEvent->trigger(context.job);
+						context.getCurrentTask()->start();
+						mad::phase1::output_t out_1;
+						mad::phase1::Phase1 p1(&context);
+						p1.compute(params, out_1);
+						context.popTask();
+						plottingJob->phase1FinishEvent->trigger(context.job);
 
-					//	context.getCurrentTask()->start();
-					//	mad::phase2::output_t out_2;
-					//	mad::phase2::compute(context, out_1, out_2);	
-					//	context.popTask();
-					//	plottingJob->phase2FinishEvent->trigger(context.job);
+						context.getCurrentTask()->start();
+						mad::phase2::output_t out_2;
+						mad::phase2::compute(context, out_1, out_2);	
+						context.popTask();
+						plottingJob->phase2FinishEvent->trigger(context.job);
 
-					//	context.getCurrentTask()->start();
-					//	mad::phase3::output_t out_3;
-					//	mad::phase3::compute(context, out_2, out_3);
-					//	context.popTask();
-					//	plottingJob->phase3FinishEvent->trigger(context.job);
+						context.getCurrentTask()->start();
+						mad::phase3::output_t out_3;
+						mad::phase3::compute(context, out_2, out_3);
+						context.popTask();
+						plottingJob->phase3FinishEvent->trigger(context.job);
 
-					//	context.getCurrentTask()->start();
-					//	mad::phase4::output_t out_4;
-					//	mad::phase4::compute(context, out_3, out_4);
-					//	context.popTask();
-					//	plottingJob->phase4FinishEvent->trigger(context.job);
+						context.getCurrentTask()->start();
+						mad::phase4::output_t out_4;
+						mad::phase4::compute(context, out_3, out_4);
+						context.popTask();
+						plottingJob->phase4FinishEvent->trigger(context.job);
 
-					//	context.log("Total plot creation time was "
-					//		+ std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec");
+						context.log("Total plot creation time was "
+							+ std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec");
 
-					//	context.getCurrentTask()->start();
-					//	if(param.tempPathStr != param.destPathStr)
-					//	{
-					//		context.log("Started copy to " + param.destFile.string());
-					//		const auto total_begin = get_wall_time_micros();
-					//		std::filesystem::copy(out_4.plot_file_name, param.destFile);
-					//		_wremove(out_4.plot_file_name.c_str());
-					//		const auto time = (get_wall_time_micros() - total_begin) / 1e6;	
-					//		context.log("Move to " + param.destFile.string() +" finished, took " + std::to_string(time) +" sec ");
-					//	}
-					//	context.popTask();
-					//	plottingJob->finishEvent->trigger(context.job);
-					//}
-					//catch (...) {
+						context.getCurrentTask()->start();
+						if(param.tempPathStr != param.destPathStr)
+						{
+							context.log("Started copy to " + param.destFile.string());
+							const auto total_begin = get_wall_time_micros();
+							std::filesystem::copy(out_4.plot_file_name, param.destFile);
+							_wremove(out_4.plot_file_name.c_str());
+							const auto time = (get_wall_time_micros() - total_begin) / 1e6;	
+							context.log("Move to " + param.destFile.string() +" finished, took " + std::to_string(time) +" sec ");
+						}
+						context.popTask();
+						plottingJob->finishEvent->trigger(context.job);
+					}
+					catch (...) {
 
-					//}
+					}
 					
 					//this->activity->waitUntilFinish();
 				}
@@ -576,7 +583,7 @@ std::string JobCreatePlotMaxFactory::getName()
 std::shared_ptr<Job> JobCreatePlotMaxFactory::create(std::string jobName)
 {
 	return std::make_shared<JobCreatePlotMax>(
-		jobName, this->param, this->startRuleParam, this->finishRuleParam
+		jobName, jobName, this->param, this->startRuleParam, this->finishRuleParam
 	);
 }
 

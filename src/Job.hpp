@@ -25,7 +25,7 @@ public:
 
 class JobEvent : public std::enable_shared_from_this<JobEvent> {
 public:
-	JobEvent(std::string type);
+	JobEvent(std::string type, std::string name);
 	virtual void trigger(std::shared_ptr<Job> source);
 	std::string getType() const;
 	std::string name;
@@ -127,7 +127,7 @@ protected:
 
 class Job : public std::enable_shared_from_this<Job>{
 public:
-	Job(std::string title);
+	Job(std::string title, std::string originalTitle = "");
 	virtual ~Job();
 	virtual bool isRunning() const;
 	virtual bool isPaused() const;
@@ -139,6 +139,7 @@ public:
 	virtual JobRule* getStartRule();
 	virtual JobRule* getFinishRule();
 	std::string getTitle() const;
+	std::string getOriginalTitle() const;
 	virtual bool drawEditor();
 	virtual bool drawItemWidget();
 	virtual bool drawStatusWidget();
@@ -153,6 +154,7 @@ public:
 protected:
 	virtual void initActivity();
 	std::string title;
+	std::string originalTitle;
 	bool logScroll {false};
 };
 
@@ -178,6 +180,7 @@ public:
 	void deleteJob(std::shared_ptr<Job> newJob);
 	void setSelectedJob(std::shared_ptr<Job> job);
 	std::shared_ptr<Job> getSelectedJob();
+	std::shared_ptr<Job> getActiveJobByName(std::string name, bool originalName = false);
 	size_t countJob();
 	size_t countRunningJob();
 	std::vector<std::shared_ptr<Job>>::const_iterator jobIteratorBegin() const ;
@@ -192,6 +195,8 @@ public:
 	std::vector<std::shared_ptr<JobFactory>> jobFactories;
 	void log(std::string text, std::shared_ptr<Job> job = nullptr);
 	void logErr(std::string text, std::shared_ptr<Job> job = nullptr);
+	std::vector<std::string> getAvailableEventTypes();
+	std::vector<std::string> getAvailableEventEmitters();
 	static std::vector<std::function<void()>> registrations;
 protected:
 	std::recursive_mutex logMutex;

@@ -5,9 +5,10 @@
 #include "Imgui/misc/cpp/imgui_stdlib.h"
 
 JobCreatePlot::JobCreatePlot(std::string title, 
+	std::string originalTitle,
 	const JobCratePlotStartRuleParam& startParam, 
 	const JobCreatePlotFinishRuleParam& finishParam)
-	: Job(title),
+	: Job(title, originalTitle),
 	  startRule(startParam),
 	  finishRule(finishParam)
 {
@@ -17,7 +18,7 @@ JobCreatePlot::JobCreatePlot(std::string title,
 	this->init();
 }
 
-JobCreatePlot::JobCreatePlot(std::string title) : Job(title)
+JobCreatePlot::JobCreatePlot(std::string title, std::string originalTitle) : Job(title, originalTitle)
 {
 
 }
@@ -52,6 +53,12 @@ bool JobCreatePlot::drawStatusWidget() {
 	}
 	else if (this->activity) {
 		this->activity->drawStatusWidget();
+		if (ImGui::CollapsingHeader("Plot Parameters")) {
+			ImGui::TextWrapped("changing these values, won\'t affect running process, if the job is relaunched, it will use these new parameters");
+			ImGui::Indent(20.0f);
+			result &= this->drawEditor();
+			ImGui::Unindent(20.0f);
+		}		
 	}
 	return result;
 }
@@ -63,12 +70,12 @@ bool JobCreatePlot::relaunchAfterFinish()
 
 void JobCreatePlot::init()
 {
-	this->startEvent = std::make_shared<JobEvent>("job-start");
-	this->finishEvent = std::make_shared<JobEvent>("job-finish");
-	this->phase1FinishEvent = std::make_shared<JobEvent>("phase1-finish");
-	this->phase2FinishEvent = std::make_shared<JobEvent>("phase2-finish");
-	this->phase3FinishEvent = std::make_shared<JobEvent>("phase3-finish");
-	this->phase4FinishEvent = std::make_shared<JobEvent>("phase4-finish");
+	this->startEvent = std::make_shared<JobEvent>("job-start", this->getOriginalTitle());
+	this->finishEvent = std::make_shared<JobEvent>("job-finish", this->getOriginalTitle());
+	this->phase1FinishEvent = std::make_shared<JobEvent>("phase1-finish", this->getOriginalTitle());
+	this->phase2FinishEvent = std::make_shared<JobEvent>("phase2-finish", this->getOriginalTitle());
+	this->phase3FinishEvent = std::make_shared<JobEvent>("phase3-finish", this->getOriginalTitle());
+	this->phase4FinishEvent = std::make_shared<JobEvent>("phase4-finish", this->getOriginalTitle());
 	this->events.push_back(this->startEvent);
 	this->events.push_back(this->finishEvent);
 	this->events.push_back(this->phase1FinishEvent);
@@ -80,9 +87,6 @@ void JobCreatePlot::init()
 bool JobCratePlotStartRuleParam::drawEditor()
 {
 	bool result = false;
-	ImGui::Text("these start rule are under development");
-	ImGui::Text("just use start immediately only for now");
-	ImGui::Separator();
 	if (ImGui::Checkbox("Paused", &this->startPaused)) {
 		if (this->startPaused) {
 			this->startDelayed = false;
@@ -137,7 +141,8 @@ bool JobCratePlotStartRuleParam::drawEditor()
 	}
 	if (this->startOnEvent) {
 		ImGui::Indent(20.0f);
-		if (JobManager::getInstance().countJob() < 1) {
+		std::vector<std::string> sources = JobManager::getInstance().getAvailableEventEmitters();
+		if (sources.empty()) {
 			ImGui::Text("No event to attach to, create one or more active jobs first");
 			this->eventToRespond.name = "";
 			this->eventToRespond.type = "";
@@ -145,49 +150,34 @@ bool JobCratePlotStartRuleParam::drawEditor()
 		else {
 			static bool anyJob = false;
 			ImGui::Checkbox("From Any Jobs", &anyJob);
-			if (!anyJob) {
-				static std::shared_ptr<Job> selectedJob = nullptr;
-				static std::string preview = this->eventToRespond.name;
-				if (preview.empty()) {
-					if (selectedJob == nullptr) {
-						preview = (*JobManager::getInstance().jobIteratorBegin())->getTitle();
-					}
-					else {
-						preview = selectedJob->getTitle();
-					}
+			if (!anyJob) {				
+				if (this->eventToRespond.name.empty()) {
+					this->eventToRespond.name = sources.at(0);
 				}
 				ImGui::Text("Select Job:");
-				if (ImGui::BeginCombo("##SelectJob",preview.c_str())) {
-					for (auto it  = JobManager::getInstance().jobIteratorBegin(); 
-							  it != JobManager::getInstance().jobIteratorEnd(); 
-							  it++) {
-						bool isSelected = selectedJob == *it;
-						if (ImGui::Selectable((*it)->getTitle().c_str(), &isSelected)) {
-							selectedJob = *it;
-							this->eventToRespond.name = selectedJob->getTitle();
+				if (ImGui::BeginCombo("##SelectJob",this->eventToRespond.name.c_str())) {
+					for (auto name : sources) {
+						bool selected = name == this->eventToRespond.name;
+						if (ImGui::Selectable(name.c_str(), &selected)) {
+							this->eventToRespond.name = name;
 						}
-						if (isSelected) {
+						if (selected) {
 							ImGui::SetItemDefaultFocus();
 						}
 					}
 					ImGui::EndCombo();
 				}
+				std::shared_ptr<Job> selectedJob = JobManager::getInstance().getActiveJobByName(this->eventToRespond.name, true);
 				if (selectedJob != nullptr) {
-					static std::shared_ptr<JobEvent> selectedJobEvent = nullptr;
-					static std::string jobEventPreview = "";
-					if (selectedJobEvent == nullptr) {
-						jobEventPreview = (*selectedJob->events.begin())->getType();
-					}
-					else {
-						jobEventPreview = selectedJobEvent->getType();
+					if (this->eventToRespond.type.empty()) {
+						this->eventToRespond.type = selectedJob->events.at(0)->getType();
 					}
 					ImGui::Text("Event Type:");
-					if (ImGui::BeginCombo("##EventType",jobEventPreview.c_str())) {
+					if (ImGui::BeginCombo("##EventType",this->eventToRespond.type.c_str())) {
 						for (auto jobEvent : selectedJob->events) {
-							bool selected = selectedJobEvent == jobEvent;
+							bool selected = this->eventToRespond.type == jobEvent->getType();
 							if (ImGui::Selectable(jobEvent->getType().c_str(), &selected)) {
-								selectedJobEvent = jobEvent;
-								this->eventToRespond.type = selectedJobEvent->getType();
+								this->eventToRespond.type = jobEvent->getType();
 							}
 							if (selected) {
 								ImGui::SetItemDefaultFocus();
@@ -198,39 +188,47 @@ bool JobCratePlotStartRuleParam::drawEditor()
 				}
 			}
 			else {
-				static std::string eventPreview = "";
-				if (eventPreview.empty()) {
-					eventPreview = (*(*JobManager::getInstance().jobIteratorBegin())->events.begin())->getType();
-				}
-				std::vector<std::string> eventNames;
-				for (auto it  = JobManager::getInstance().jobIteratorBegin(); 
-							it != JobManager::getInstance().jobIteratorEnd(); 
-							it++) {
-					for (auto jobEvent : (*it)->events) {
-						if (std::find(eventNames.begin(), eventNames.end(), jobEvent->getType()) == eventNames.end()) {
-							eventNames.push_back(jobEvent->getType());
-						}
-					}
-				}
 				ImGui::Text("Event Type:");
-				static std::string selectedName = this->eventToRespond.name;				
-				if (ImGui::BeginCombo("##EventType",eventPreview.c_str())) {
-					for (auto name : eventNames) {
-						bool selected = selectedName == name;
-						if (ImGui::Selectable(name.c_str(), &selected)) {
-							selectedName = name;
-						}
-						if (selected) {
-							ImGui::SetItemDefaultFocus();
+				static std::string selectedName = this->eventToRespond.type;
+
+				std::vector<std::string> eventNames = JobManager::getInstance().getAvailableEventTypes();
+				if (!eventNames.empty()) {
+					if (selectedName.empty()) {
+						selectedName = eventNames.at(0);
+					}
+					else {
+						if (std::find(eventNames.begin(), eventNames.end(), selectedName) == eventNames.end()) {
+							selectedName = eventNames.at(0);
 						}
 					}
-					ImGui::EndCombo();
-					this->eventToRespond.type = selectedName;
+
+					if (ImGui::BeginCombo("##EventType",selectedName.c_str())) {
+						for (auto name : eventNames) {
+							bool selected = selectedName == name;
+							if (ImGui::Selectable(name.c_str(), &selected)) {
+								selectedName = name;
+							}
+							if (selected) {
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+						this->eventToRespond.type = selectedName;
+						this->eventToRespond.name = "";
+					}
+				}
+				else {
+					ImGui::Text("No event to attach to, create one or more active jobs first");
 					this->eventToRespond.name = "";
+					this->eventToRespond.type = "";
 				}
 			}
 		}
 		ImGui::Unindent(20.0f);
+	}
+	else {
+		this->eventToRespond.name = "";
+		this->eventToRespond.type = "";
 	}
 
 	if (ImGui::Checkbox("Conditional",&this->startConditional)) {
@@ -325,29 +323,31 @@ bool JobCratePlotStartRule::drawItemWidget()
 		std::chrono::time_point<std::chrono::system_clock> currentTime = std::chrono::system_clock::now();
 		std::chrono::duration<float> delta = startTime - currentTime;
 		ImGui::Text("will start in %.1f hour ", delta.count()/3600.0f);
-		return true;
 	}
-	else if (this->param.startPaused) {
-		ImGui::Text("job paused");
-		return true;
+	if (this->param.startPaused) {
+		ImGui::Text("Job will be started manually (paused)");
 	}
-	else if (this->param.startConditional) {
-		bool result = false;
+	if (this->param.startConditional) {
 		if (this->param.startCondActiveJob) {
 			ImGui::Text("start if active job < %d", this->param.startCondActiveJobCount);
-			result |= true;
 		}
 		if (this->param.startCondTime) {
 			ImGui::Text("start within %02d:00 - %2d:00", this->param.startCondTimeStart, this->param.startCondTimeEnd);
-			result |= true;
 		}
-		return result;
 	}
-	return false;
+	if (this->param.startOnEvent) {
+		if (!this->param.eventToRespond.name.empty()) {
+			ImGui::Text("Waiting for event %s from %s", this->param.eventToRespond.type.c_str(), this->param.eventToRespond.name.c_str());
+		}
+		else {
+			ImGui::Text("Waiting for event %s", this->param.eventToRespond.type.c_str());
+		}
+	}
+	return true;
 }
 
 bool JobCratePlotStartRule::evaluate() {
-	if (!this->waitForEvent.isEmpty()) {
+	if (!this->param.eventToRespond.isEmpty()) {
 		return false;
 	}
 	else {
@@ -357,8 +357,8 @@ bool JobCratePlotStartRule::evaluate() {
 
 void JobCratePlotStartRule::handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source)
 {
-	if (!this->waitForEvent.isEmpty()) {
-		if (this->waitForEvent.match(jobEvent.get())) {
+	if (!this->param.eventToRespond.isEmpty()) {
+		if (this->param.eventToRespond.match(jobEvent.get())) {
 			if (this->isRuleFullfilled()) {
 				if (this->onStartTrigger) {
 					this->onStartTrigger();
@@ -419,11 +419,8 @@ bool JobCratePlotStartRule::isRuleFullfilled()
 bool JobCreatePlotFinishRuleParam::drawEditor()
 {
 	bool result = false;
-	ImGui::Text("these start rule are under development");
-	ImGui::Text("just use start immediately only for now");
-	ImGui::Separator();
 
-	result |= ImGui::Checkbox("Relaunch",&this->repeatJob);
+	result |= ImGui::Checkbox("Relaunch Job",&this->repeatJob);
 	if (this->repeatJob) {
 		ImGui::Indent(20.0f);
 		ImGui::BeginGroupPanel(ImVec2(-1.0f,0.0f));
