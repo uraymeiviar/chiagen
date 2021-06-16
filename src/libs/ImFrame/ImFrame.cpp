@@ -639,8 +639,8 @@ namespace ImFrame
 		s_data = std::make_unique<PersistentData>();
 
 		// Read existing config data
-		GetImFrameConfig(s_data->imframeIni, orgName, appName);
-		GetConfig(s_data->appIni, "app.ini", orgName, appName);
+		//GetImFrameConfig(s_data->imframeIni, orgName, appName);
+		//GetConfig(s_data->appIni, "app.ini", orgName, appName);
 
 		// Init GLFW and create window
 		glfwSetErrorCallback(ErrorCallback);
@@ -685,10 +685,11 @@ namespace ImFrame
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-		fs::path iniPath = GetConfigFolder(orgName, appName);
-		iniPath.append("imgui.ini");
-		auto iniStr = iniPath.string();
-		io.IniFilename = iniStr.c_str();
+		//fs::path iniPath = GetConfigFolder(orgName, appName);
+		//iniPath.append("imgui.ini");
+		//auto iniStr = iniPath.string();
+		//io.IniFilename = iniStr.c_str();
+		io.IniFilename = nullptr;
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init();
 		ImGui_ImplOpenGL3_CreateFontsTexture();
@@ -712,8 +713,8 @@ namespace ImFrame
 		s_data->appPtr = nullptr;
 
 		// Save config data to disk
-		SaveConfig(s_data->appIni, "app.ini", orgName, appName);
-		SaveImFrameConfig(s_data->imframeIni, orgName, appName);
+		//SaveConfig(s_data->appIni, "app.ini", orgName, appName);
+		//SaveImFrameConfig(s_data->imframeIni, orgName, appName);
 
 		// Shut down ImGui and ImPlot
 		ImGui_ImplOpenGL3_DestroyFontsTexture();
