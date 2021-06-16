@@ -42,27 +42,33 @@ void JobManager::listEvents(std::vector<std::shared_ptr<JobEvent>> out)
 }
 
 void JobManager::addJob(std::shared_ptr<Job> newJob) {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	this->activeJobs.push_back(newJob);
 }
 
 void JobManager::deleteJob(std::shared_ptr<Job> newJob)
 {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	this->deleteReqsJobs.push_back(newJob);
 }
 
 void JobManager::setSelectedJob(std::shared_ptr<Job> job) {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	this->selectedJob = job;
 }
 
-std::shared_ptr<Job> JobManager::getSelectedJob() const {
+std::shared_ptr<Job> JobManager::getSelectedJob() {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	return this->selectedJob;
 }
 
-size_t JobManager::countJob() const {
+size_t JobManager::countJob() {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	return this->activeJobs.size();
 }
 
-size_t JobManager::countRunningJob() const {
+size_t JobManager::countRunningJob() {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	size_t result = 0;
 	for (auto job : this->activeJobs) {
 		if (job->isRunning()) {
@@ -105,7 +111,7 @@ void JobManager::collectDiskUsage()
 
 void JobManager::collectPerfSample()
 {
-	const std::lock_guard<std::mutex> lock(this->mutex);
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	this->collectMemUsage();
 	this->collectDiskUsage();	
 }
@@ -164,6 +170,7 @@ void JobManager::start()
 
 void JobManager::update()
 {
+	const std::lock_guard<std::recursive_mutex> lock(this->mutex);
 	while(!deleteReqsJobs.empty()) {
 		std::shared_ptr<Job> jobToDelete = deleteReqsJobs.at(0);
 		this->activeJobs.erase(
@@ -178,29 +185,76 @@ void JobManager::update()
 				}
 			)
 		);
+		this->finishedJobs.erase(
+			std::remove_if(
+				this->finishedJobs.begin(), 
+				this->finishedJobs.end(),
+				[=](auto job) {
+					if (this->selectedJob == job) {
+						this->selectedJob = nullptr;
+					}
+					return job == jobToDelete;
+				}
+			)
+		);
 		deleteReqsJobs.erase(deleteReqsJobs.begin());
 	}
 
-	std::vector<std::shared_ptr<Job>> finishedJobs;
+	while(!relaunchReqsJobs.empty()) {
+		std::shared_ptr<Job> jobToRelaunch = relaunchReqsJobs.at(0);
+		std::shared_ptr<Job> relaunchedJob = jobToRelaunch->relaunch();
+		if (relaunchedJob) {
+			JobManager::getInstance().addJob(relaunchedJob);
+		}
+		relaunchReqsJobs.erase(relaunchReqsJobs.begin());
+	}
+
+	this->finishedJobs.erase(
+		std::remove_if(
+			this->finishedJobs.begin(), 
+			this->finishedJobs.end(),
+			[=](auto job) {
+				if (job->relaunchAfterFinish()) {
+					this->relaunchReqsJobs.push_back(job);
+					return true;
+				}
+				else {
+					if (job->update() && !job->isFinished()) {
+						this->activeJobs.push_back(job); 
+						return true;
+					}
+					return false;
+				}
+			}
+		),
+		this->finishedJobs.end()
+	);
+
+	std::vector<std::shared_ptr<Job>> tempFinishedJobs;
 	for (auto job : JobManager::getInstance().activeJobs) {
 		bool keepAlive = job->update();
 		if (!keepAlive) {
-			finishedJobs.push_back(job);
+			tempFinishedJobs.push_back(job);
 		}
 	}
-	for (auto finishedJob : finishedJobs) {
-		if (finishedJob->relaunchAfterFinish()) {
-			std::shared_ptr<Job> relaunchedJob = finishedJob->relaunch();
-			if (relaunchedJob) {
-				JobManager::getInstance().addJob(relaunchedJob);
-			}
-		}
+	for (auto job : tempFinishedJobs) {
+		finishedJobs.push_back(job);
+		this->activeJobs.erase(
+			std::remove_if(
+				this->activeJobs.begin(), 
+				this->activeJobs.end(),
+				[=](auto activeJob) {
+					return activeJob == job;
+				}
+			),
+			this->activeJobs.end()
+		);
 	}
 }
 
 void JobManager::log(std::string text, std::shared_ptr<Job> job)
 {
-	const std::lock_guard<std::mutex> lock(this->mutex);
+	const std::lock_guard<std::recursive_mutex> lock(this->logMutex);
 	std::string prefix = "[] ";
 	if (job) {
 		prefix = "[" + job->getTitle() + "] ";
@@ -214,7 +268,7 @@ void JobManager::log(std::string text, std::shared_ptr<Job> job)
 
 void JobManager::logErr(std::string text, std::shared_ptr<Job> job /*= nullptr*/)
 {
-	const std::lock_guard<std::mutex> lock(this->mutex);
+	const std::lock_guard<std::recursive_mutex> lock(this->logMutex);
 	std::string prefix = "[] ";
 	if (job) {
 		prefix = "[" + job->getTitle() + "] ";
@@ -427,6 +481,7 @@ bool Job::update()
 				startRule->update();
 			}
 			this->start(false);
+			return true;
 		}
 		else {
 			//this->activity = nullptr;

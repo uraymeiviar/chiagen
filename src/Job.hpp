@@ -177,9 +177,9 @@ public:
 	void addJob(std::shared_ptr<Job> newJob);
 	void deleteJob(std::shared_ptr<Job> newJob);
 	void setSelectedJob(std::shared_ptr<Job> job);
-	std::shared_ptr<Job> getSelectedJob() const;
-	size_t countJob() const;
-	size_t countRunningJob() const;
+	std::shared_ptr<Job> getSelectedJob();
+	size_t countJob();
+	size_t countRunningJob();
 	std::vector<std::shared_ptr<Job>>::const_iterator jobIteratorBegin() const ;
 	std::vector<std::shared_ptr<Job>>::const_iterator jobIteratorEnd() const ;
 	void registerJobFactory(std::shared_ptr<JobFactory> factory);
@@ -188,12 +188,13 @@ public:
 	void stop();
 	void start();
 	void update();
-	std::mutex mutex;
+	std::recursive_mutex mutex;
 	std::vector<std::shared_ptr<JobFactory>> jobFactories;
 	void log(std::string text, std::shared_ptr<Job> job = nullptr);
 	void logErr(std::string text, std::shared_ptr<Job> job = nullptr);
 	static std::vector<std::function<void()>> registrations;
 protected:
+	std::recursive_mutex logMutex;
 	uint32_t statUpdateInterval {1};
 	uint32_t statSampleCount {100};
 	HANDLE myProcess {nullptr};
@@ -211,6 +212,8 @@ protected:
 
 	std::vector<std::shared_ptr<Job>> activeJobs;
 	std::vector<std::shared_ptr<Job>> deleteReqsJobs;
+	std::vector<std::shared_ptr<Job>> relaunchReqsJobs;
+	std::vector<std::shared_ptr<Job>> finishedJobs;
 	std::shared_ptr<Job> selectedJob {nullptr};
 	std::thread samplerThread {};
 };

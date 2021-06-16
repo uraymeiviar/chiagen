@@ -543,8 +543,10 @@ std::shared_ptr<Job> JobCreatePlotRef::relaunch()
 	if (!finishParam.repeatIndefinite && finishParam.repeatCount <= 0) {
 		startParam.startPaused = true;
 	}
+	std::string oldTitle = this->getTitle();
+	std::string newTitle = oldTitle.substr(0,oldTitle.find_first_of('#'));
 	auto newJob = std::make_shared<JobCreatePlotRef>(
-		this->getTitle()+"#"+systemClockToStr(std::chrono::system_clock::now()),
+		newTitle+"#"+systemClockToStr(std::chrono::system_clock::now()),
 		this->param, 
 		startParam,
 		finishParam

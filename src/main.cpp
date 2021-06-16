@@ -165,14 +165,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 		catch(...){}
 	}
 	if (nArgs < 2) {
-		try {
-			ImFrame::Run("uraymeiviar", "Chia Plotter", [] (const auto & params) { 
-				return std::make_unique<MainApp>(params); 
-			});
-		}
-		catch (...) {
-			std::cout << "main thread exception" << std::endl;
-		}
+		ImFrame::Run("uraymeiviar", "Chia Plotter", [] (const auto & params) { 
+			return std::make_unique<MainApp>(params); 
+		});
 	}
 	else {
 		AttachConsole(ATTACH_PARENT_PROCESS );

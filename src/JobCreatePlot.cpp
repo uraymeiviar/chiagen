@@ -84,23 +84,30 @@ bool JobCratePlotStartRuleParam::drawEditor()
 	ImGui::Text("just use start immediately only for now");
 	ImGui::Separator();
 	if (ImGui::Checkbox("Paused", &this->startPaused)) {
-		this->startDelayed = false;
-		this->startConditional = false;
-		this->startImmediate = false;
-		this->startOnEvent = false;
+		if (this->startPaused) {
+			this->startDelayed = false;
+			this->startConditional = false;
+			this->startImmediate = false;
+			this->startOnEvent = false;
+		}
 		result |= true;
 	}
 	if (ImGui::Checkbox("Immediately", &this->startImmediate)) {
-		this->startDelayed = false;
-		this->startConditional = false;
-		this->startPaused = false;
-		this->startOnEvent = false;
+		if (this->startImmediate) {
+			this->startDelayed = false;
+			this->startConditional = false;
+			this->startPaused = false;
+			this->startOnEvent = false;
+		}
 		result |= true;
 	}
 
 	if (ImGui::Checkbox("Delayed",&this->startDelayed)) {
-		this->startImmediate = false;
-		this->startPaused = false;
+		if (this->startDelayed) {
+			this->startImmediate = false;
+			this->startPaused = false;
+			this->startOnEvent = false;
+		}
 		result |= true;
 	}
 	if (this->startDelayed) {
@@ -122,8 +129,10 @@ bool JobCratePlotStartRuleParam::drawEditor()
 	}
 
 	if (ImGui::Checkbox("Wait for Event",&this->startOnEvent)) {
-		this->startImmediate = false;
-		this->startPaused = false;
+		if (this->startOnEvent) {
+			this->startImmediate = false;
+			this->startPaused = false;
+		}
 		result |= true;
 	}
 	if (this->startOnEvent) {
@@ -225,9 +234,10 @@ bool JobCratePlotStartRuleParam::drawEditor()
 	}
 
 	if (ImGui::Checkbox("Conditional",&this->startConditional)) {
-		this->startImmediate = false;
-		this->startDelayed = false;
-		this->startPaused = false;
+		if (this->startConditional) {
+			this->startImmediate = false;
+			this->startPaused = false;
+		}
 		result |= true;
 	}
 	if (this->startConditional) {
@@ -282,8 +292,11 @@ bool JobCratePlotStartRuleParam::drawEditor()
 		ImGui::EndGroupPanel();
 		ImGui::Unindent(20);
 	}
-	if (!this->startImmediate && !this->startDelayed && !this->startConditional && !this->startPaused) {
-		this->startPaused = true;
+	if (!this->startOnEvent && 
+		!this->startDelayed && 
+		!this->startConditional && 
+		!this->startPaused) {
+		this->startImmediate = true;
 	}
 	return result;
 }
@@ -379,7 +392,7 @@ bool JobCratePlotStartRule::isRuleFullfilled()
 			std::chrono::time_point<std::chrono::system_clock> currentTime = std::chrono::system_clock::now();
 			std::time_t ct = std::chrono::system_clock::to_time_t(currentTime);
 			std::tm* t = std::localtime(&ct);
-			if ((this->param.startCondTimeStart > t->tm_hour) && 
+			if ((this->param.startCondTimeStart < t->tm_hour) && 
 				(t->tm_hour < this->param.startCondTimeEnd)) {
 				result &= true;
 			}
