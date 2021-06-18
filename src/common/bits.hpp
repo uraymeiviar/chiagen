@@ -50,7 +50,6 @@ public:
     size_type size() const noexcept { return count_; }
 
     void resize(const size_type n) { count_ = n; }
-
 private:
     uint64_t v_[10];
     size_type count_;
@@ -58,16 +57,22 @@ private:
 
 // A stack vector of length 1024, having the functions of std::vector needed for Bits.
 // The max number of Bits that can be stored is 1024 * 64
-struct ParkVector {
+class ParkVector {
+public:
     typedef uint32_t size_type;
 
     ParkVector() noexcept { 
 		count_ = 0; 
-		v_ = new uint64_t[2048];
+		//v_ = new uint64_t[2048];
+		v_ = std::make_shared<uint64_t[]>(2048);
 	}
 
 	~ParkVector() {
-		delete[] v_;
+/*		if (v_) {
+			delete[] v_;
+			v_ = nullptr;
+		}	*/	
+		v_ = nullptr;
 	}
 
     uint64_t& operator[](const uint32_t index) { return v_[index]; }
@@ -87,7 +92,7 @@ struct ParkVector {
 
 private:
     //uint64_t v_[2048];
-	uint64_t* v_;
+	std::shared_ptr<uint64_t[]> v_ {nullptr};
     size_type count_;
 };
 

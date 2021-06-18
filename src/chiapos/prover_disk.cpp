@@ -462,7 +462,7 @@ std::vector<uint64_t> DiskProver::GetP7Entries(std::ifstream& disk_file, const u
     uint64_t park_index = (p7_positions[0] == 0 ? 0 : p7_positions[0]) / kEntriesPerPark;
     SafeSeek(disk_file, table_begin_pointers[7] + park_index * p7_park_size_bytes);
     SafeRead(disk_file, p7_park_buf, p7_park_size_bytes);
-    ParkBits p7_park = ParkBits(p7_park_buf, p7_park_size_bytes, p7_park_size_bytes * 8);
+    ParkBits p7_park(p7_park_buf, p7_park_size_bytes, p7_park_size_bytes * 8);
     for (uint64_t i = 0; i < p7_positions[p7_positions.size() - 1] - p7_positions[0] + 1; i++) {
         uint64_t new_park_index = (p7_positions[i]) / kEntriesPerPark;
         if (new_park_index > park_index) {
