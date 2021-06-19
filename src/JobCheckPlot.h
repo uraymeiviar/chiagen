@@ -4,16 +4,42 @@
 #include "JobRule.h"
 #include <filesystem>
 #include "ImFrame.h"
+#include "chiapos/prover_disk.hpp"
 
 class JobCheckPlotParam {
 public:
-	JobCheckPlotParam();;
+	JobCheckPlotParam();
 	JobCheckPlotParam(const JobCheckPlotParam& rhs);
-	std::vector<std::string> paths;
-	std::vector<std::pair<std::string, bool>> watchDirs;
-	size_t iteration {100};
+	std::vector<std::wstring> paths;
+	std::vector<std::pair<std::wstring, bool>> watchDirs;
+	int iteration {50};
 	bool drawEditor();
 	std::vector<ImFrame::Filter> pickPlotFileFilter;
+};
+
+class JobCheckPlotIterationResult {
+public:
+	std::string challenge;
+	std::string proof;
+};
+
+class JobCheckPlotResult {
+public:
+	JobCheckPlotResult(std::wstring file, size_t iter):
+		filePath(file), iter(iter), prover(file){
+		this->prover.GetId(this->id_bytes);
+		this->kSize = prover.GetSize();
+		this->id = HexStr(id_bytes,32);
+	}
+	std::vector<std::shared_ptr<JobCheckPlotIterationResult>> success;
+	std::vector<std::shared_ptr<JobCheckPlotIterationResult>> fails;
+	std::wstring filePath;
+	int kSize{32};
+	size_t iter{50};
+	std::string id;
+	uint8_t id_bytes[32];
+	DiskProver prover;
+	size_t iterProgress {0};
 };
 
 class JobCheckPlot : public Job {
@@ -35,11 +61,14 @@ public:
 	bool drawStatusWidget() override;
 	bool relaunchAfterFinish() override;
 	std::shared_ptr<Job> relaunch() override;
+	std::vector<std::shared_ptr<JobCheckPlotResult>> results;
 protected:
 	void initActivity() override;
 	JobStartRule startRule;
 	JobFinishRule finishRule;
 	JobCheckPlotParam param;
+	std::shared_ptr<JobEvent> startEvent;
+	std::shared_ptr<JobEvent> finishEvent;
 };
 
 class JobCheckPlotFactory : public JobFactory {

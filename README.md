@@ -3,6 +3,8 @@ standalone chia generator
 
 ![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/screenshot.JPG)
 
+![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/screenshot2.JPG)
+
 this is front-end of [madMAx43v3r](https://github.com/madMAx43v3r/chia-plotter) and also [chiapos reference plotter](https://github.com/Chia-Network/chiapos), but not limited to it, more plotter or tools will be added with gui frontend for each tools
 
 this program does not wrap those plotter program, it compile those plotter code inside it, so each ploting will be run on separate thread instead of separate process, I did that so i will have more control over it like triggering an event when a specific phase is done, and also to make it possible in the future to stop or pause the ploting process

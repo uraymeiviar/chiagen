@@ -3,6 +3,8 @@
 #include "imgui.h"
 #include "gui.hpp"
 #include "Imgui/misc/cpp/imgui_stdlib.h"
+#include "chiapos/verifier.hpp"
+#include "bits.hpp"
 
 FactoryRegistration<JobCheckPlotFactory> JobCheckPlotFactoryRegistration;
 int JobCheckPlot::jobIdCounter = 1;
@@ -28,8 +30,8 @@ bool JobCheckPlotParam::drawEditor()
 
 	static bool selectedIsDir = true;
 	static std::filesystem::path selectedPath;
-	static std::string delPath;
-	static std::string delDirPath;
+	static std::wstring delPath;
+	static std::wstring delDirPath;
 
 	if (!delPath.empty()) {
 		this->paths.erase(
@@ -39,7 +41,7 @@ bool JobCheckPlotParam::drawEditor()
 				[](auto f){
 					bool del = f == delPath;
 					if (del) {
-						delPath = "";
+						delPath = L"";
 					}
 					return del;
 				}
@@ -56,7 +58,7 @@ bool JobCheckPlotParam::drawEditor()
 				[](auto d){
 					bool del = d.first == delDirPath;
 					if (del) {
-						delDirPath = "";
+						delDirPath = L"";
 					}
 					return del;
 				}
@@ -65,8 +67,19 @@ bool JobCheckPlotParam::drawEditor()
 		);
 	}
 
+	ImGui::Text("Iteration");
+	if (ImGui::InputInt("##iteration", &this->iteration, 1, 10)) {
+		if (this->iteration < 10) {
+			this->iteration = 10;
+		}
+	}
+
 	if (!this->paths.empty() || !this->watchDirs.empty()) {
-		if (ImGui::BeginChild("CheckList", ImVec2(0, 180))) {
+		float height = 200;
+		if (this->watchDirs.size() + this->paths.size() < 8) {
+			height = (this->watchDirs.size() + this->paths.size())*25;
+		}
+		if (ImGui::BeginChild("CheckList", ImVec2(0, height))) {
 			for (auto dir : this->watchDirs) {
 				ImGui::PushID(dir.first.c_str());
 				if (ImGui::Button("Del.")) {
@@ -74,7 +87,7 @@ bool JobCheckPlotParam::drawEditor()
 				}
 				ImGui::SameLine();
 				bool selected = selectedIsDir && (selectedPath == dir.first);
-				std::string label = dir.first;
+				std::string label = ws2s(dir.first);
 				if (dir.second) {
 					label += " (recursive)";
 				}
@@ -93,7 +106,7 @@ bool JobCheckPlotParam::drawEditor()
 				}
 				ImGui::SameLine();
 				bool selected = selectedIsDir && (selectedPath == f);
-				if (ImGui::Selectable(f.c_str(), &selected)) {
+				if (ImGui::Selectable(ws2s(f).c_str(), &selected)) {
 					if (selected) {
 						selectedIsDir = false;
 						selectedPath = f;
@@ -106,8 +119,8 @@ bool JobCheckPlotParam::drawEditor()
 		if (ImGui::Button("Clear")) {
 			this->paths.clear();
 			this->watchDirs.clear();
-			delPath = "";
-			delDirPath = "";
+			delPath = L"";
+			delDirPath = L"";
 		}
 		ImGui::Separator();
 	}
@@ -174,12 +187,18 @@ bool JobCheckPlotParam::drawEditor()
 			auto found = std::find_if(
 				this->watchDirs.begin(), 
 				this->watchDirs.end(), 
-				[=](std::pair<std::string, bool>& item) {
-					return item.first == watchDir;
+				[=](std::pair<std::wstring, bool>& item) {
+					return ws2s(item.first) == watchDir;
 				}
 			);
 			if (found == this->watchDirs.end()) {
-				this->watchDirs.push_back(std::make_pair(watchDir, recursive));
+				std::filesystem::path watchDirPath(watchDir);
+				if (std::filesystem::exists(watchDirPath)) {
+					if (!std::filesystem::is_directory(watchDirPath)) {
+						watchDirPath = watchDirPath.parent_path();
+					}
+					this->watchDirs.push_back(std::make_pair(watchDirPath.wstring(), recursive));
+				}
 			}
 			watchDir = "";
 			result |= true;
@@ -187,8 +206,8 @@ bool JobCheckPlotParam::drawEditor()
 	}
 	else {
 		static std::string watchFile;
-		static std::vector<std::string> selectedFiles;
-		static std::string delSelectedFile;
+		static std::vector<std::wstring> selectedFiles;
+		static std::wstring delSelectedFile;
 
 		if (!delSelectedFile.empty()) {
 			selectedFiles.erase(
@@ -198,7 +217,7 @@ bool JobCheckPlotParam::drawEditor()
 					[](auto f){
 						bool del = f == delSelectedFile;
 						if (del) {
-							delSelectedFile = "";
+							delSelectedFile = L"";
 						}
 						return del;
 					}
@@ -221,9 +240,7 @@ bool JobCheckPlotParam::drawEditor()
 
 					ImGui::SameLine(40.0f);
 					ImGui::PushItemWidth(fieldWidth-60.0f);
-						if (ImGui::InputText("##editWatchFile", &sf)) {
-							result |= true;
-						}
+						ImGui::Text(ws2s(sf).c_str());
 					ImGui::PopItemWidth();
 				ImGui::PopID();
 			}
@@ -259,7 +276,7 @@ bool JobCheckPlotParam::drawEditor()
 					if (fPaths) {
 						selectedFiles.clear();
 						for (auto p : fPaths.value()) {
-							selectedFiles.push_back(p.string());
+							selectedFiles.push_back(p.wstring());
 						}
 					}
 					result |= true;
@@ -270,14 +287,18 @@ bool JobCheckPlotParam::drawEditor()
 
 		if (ImGui::Button("Add To CheckList##watchFile")) {
 			for (auto f : selectedFiles) {
-				if (std::find(this->paths.begin(), this->paths.end(), f) == this->paths.end()) {
-					this->paths.push_back(f);
-				}		
+				if (std::filesystem::exists(f) && std::filesystem::is_regular_file(f)) {
+					if (std::find(this->paths.begin(), this->paths.end(), f) == this->paths.end()) {
+						this->paths.push_back(f);
+					}
+				}	
 			}
 			selectedFiles.clear();
 			if (!watchFile.empty()) {
-				if (std::find(this->paths.begin(), this->paths.end(), watchFile) == this->paths.end()) {
-					this->paths.push_back(watchFile);
+				if (std::filesystem::exists(watchFile) && std::filesystem::is_regular_file(watchFile)) {
+					if (std::find(this->paths.begin(), this->paths.end(), s2ws(watchFile)) == this->paths.end()) {
+						this->paths.push_back(s2ws(watchFile));
+					}
 				}
 			}
 			watchFile = "";
@@ -301,11 +322,12 @@ JobCheckPlot::JobCheckPlot(std::string title, std::string originalTitle, JobChec
 
 }
 
-JobCheckPlot::JobCheckPlot(std::string title, std::string originalTitle, JobCheckPlotParam& param, 
+JobCheckPlot::JobCheckPlot(std::string title, std::string originalTitle, JobCheckPlotParam& param,
 	JobStartRuleParam& startRuleParam, JobFinishRuleParam& finishRuleParam)
-	: Job(title, originalTitle), startRule(startRuleParam), finishRule(finishRuleParam)
+	: Job(title, originalTitle), startRule(startRuleParam), finishRule(finishRuleParam), param(param)
 {
-
+	this->startEvent = std::make_shared<JobEvent>("check-start", this->getOriginalTitle());
+	this->finishEvent = std::make_shared<JobEvent>("check-finish", this->getOriginalTitle());
 }
 
 JobRule* JobCheckPlot::getStartRule()
@@ -325,7 +347,7 @@ bool JobCheckPlot::drawEditor()
 		ImGui::Indent(20.0f);
 		result |= this->startRule.drawEditor();
 		ImGui::Unindent(20.0f);
-	}	
+	}
 
 	if (ImGui::CollapsingHeader("Finish Rule")) {
 		ImGui::Indent(20.0f);
@@ -337,9 +359,9 @@ bool JobCheckPlot::drawEditor()
 
 bool JobCheckPlot::drawItemWidget()
 {
-	bool result = Job::drawItemWidget();		
+	bool result = Job::drawItemWidget();
 
-	if (!this->isRunning()) {			
+	if (!this->isRunning()) {
 		if (this->startRule.drawItemWidget()) {
 			ImGui::ScopedSeparator();
 		}
@@ -351,11 +373,93 @@ bool JobCheckPlot::drawItemWidget()
 bool JobCheckPlot::drawStatusWidget()
 {
 	bool result = Job::drawStatusWidget();
+	if (!this->results.empty()) {
+		ImGui::ScopedSeparator();
+		size_t successCount = 0;
+		size_t failedCount = 0;
+		size_t totalCount = 0;
+		size_t totalPlots = 0;
+		float sumQuality = 0.0f;
+		float avgQuality = 0.0f;
+		float maxQuality = 0.0f;
+		float minQuality = 2.5f;
+		for (const auto& r : this->results) {
+			if (r->iterProgress > 0) {
+				successCount += r->success.size();
+				failedCount += r->fails.size();
+				totalCount += r->success.size() + r->fails.size();				
+				float plotQuality = (float)r->success.size() / (float)(r->iter);
+				sumQuality += plotQuality;
+				if (plotQuality > maxQuality) {
+					maxQuality = plotQuality;
+				}
+				if (plotQuality < minQuality) {
+					minQuality = plotQuality;
+				}
+			}
+			totalPlots++;
+		}
+		avgQuality = sumQuality / (float)totalPlots;
+		ImGui::Text("Total Plots %d", totalPlots);
+		ImGui::ProgressBar(avgQuality);
+		ImGui::Text("min %.1f %%", minQuality * 100.0f);
+		ImGui::SameLine();
+		ImGui::Text("avg %.1f %%", avgQuality * 100.0f);
+		ImGui::SameLine();
+		ImGui::Text("max %.1f %%", maxQuality * 100.0f);
+		if (ImGui::CollapsingHeader("Detailed Results")) {
+			for (const auto& r : this->results) {
+				ImGui::PushID(r.get());
+				float plotQuality = (float)r->success.size() / (float)(r->iter);
+				ImGui::Text(r->id.c_str());
+				ImGui::Indent(20.0f);
+				ImGui::Text("path %s", ws2s(r->filePath).c_str());
+				ImGui::Text("kSize %d", r->kSize);
+				ImGui::Text("iteration done %d / %d", r->iterProgress, r->iter);
+				ImGui::ProgressBar(plotQuality);
+				if (!r->fails.empty() && ImGui::CollapsingHeader((std::string("Failed ") + std::to_string(r->fails.size())).c_str())) {
+					ImGui::Indent(20.0f);
+					if (ImGui::BeginChild((std::string("##failed") + r->id).c_str(), ImVec2(0, 180))){
+						for (const auto& iter : r->fails) {
+							ImGui::PushID(iter.get());
+							ImGui::BeginGroupPanel();
+							ImGui::TextWrapped("challenge %s", iter->challenge.c_str());
+							ImGui::EndGroupPanel();
+							ImGui::PopID();
+						}
+					}
+					ImGui::EndChild();
+					ImGui::Unindent();
+				}
+				if (!r->success.empty() && ImGui::CollapsingHeader((std::string("Success ") + std::to_string(r->success.size())).c_str())) {
+					ImGui::Indent(20.0f);
+					if (ImGui::BeginChild((std::string("##sucess") + r->id).c_str(), ImVec2(0, 180))){
+						for (const auto& iter : r->success) {
+							ImGui::PushID(iter.get());
+							ImGui::BeginGroupPanel();
+							ImGui::TextWrapped("challenge %s", iter->challenge.c_str());
+							ImGui::TextWrapped("proof %s", iter->proof.c_str());
+							ImGui::EndGroupPanel();
+							ImGui::PopID();
+						}
+					}
+					ImGui::EndChild();
+					ImGui::Unindent();
+				}
+				ImGui::Unindent();
+				ImGui::PopID();
+			}
+		}
+	}
+
 	ImGui::ScopedSeparator();
 	if (!this->isRunning()) {
-		result &= this->drawEditor();
+		if (ImGui::CollapsingHeader("Plot Parameters")) {
+			result &= this->drawEditor();
+		}
 	}
-	else if (this->activity) {
+
+	if (this->activity && this->isRunning()) {
 		this->activity->drawStatusWidget();
 		if (ImGui::CollapsingHeader("Plot Parameters")) {
 			ImGui::TextWrapped("changing these values, won\'t affect running process, if the job is relaunched, it will use these new parameters");
@@ -394,6 +498,86 @@ std::shared_ptr<Job> JobCheckPlot::relaunch()
 void JobCheckPlot::initActivity()
 {
 	Job::initActivity();
+	if (this->activity) {
+		this->results.clear();
+		this->startEvent->trigger(this->shared_from_this());
+		std::vector<std::wstring> files;
+		for (auto f : this->param.paths) {
+			files.push_back(f);
+		}
+		for (auto d : this->param.watchDirs) {
+			if (d.second) {
+				for (const auto& f : std::filesystem::recursive_directory_iterator(std::filesystem::path(d.first))) {
+					if (lowercase(f.path().extension().string()) == ".plot") {
+						files.push_back(f.path().wstring());
+					}
+				}
+			}
+			else {
+				for (const auto& f : std::filesystem::directory_iterator(std::filesystem::path(d.first))) {
+					if (lowercase(f.path().extension().string()) == ".plot") {
+						files.push_back(f.path().wstring());
+					}
+				}
+			}
+		}
+		this->activity->mainRoutine = [=](JobActivityState*) {
+			Verifier verifier;
+			this->activity->totalWorkItem = files.size()*this->param.iteration;
+			size_t startIterNum = 0;
+			for (auto f : files) {
+				this->results.push_back(std::make_shared<JobCheckPlotResult>(f,this->param.iteration));
+			}
+			for (auto f : this->results) {
+				f->iterProgress = 0;
+				for (size_t i = 0; i < f->iter; i++) {
+					size_t num = startIterNum + i;
+					f->iterProgress++;
+					std::shared_ptr<JobCheckPlotIterationResult> iterResult = std::make_shared<JobCheckPlotIterationResult>();
+
+					std::vector<unsigned char> hash_input = intToBytes(num, 4);
+					hash_input.insert(hash_input.end(), &f->id_bytes[0], &f->id_bytes[32]);
+
+					std::vector<unsigned char> hash(picosha2::k_digest_size);
+					picosha2::hash256(hash_input.begin(), hash_input.end(), hash.begin(), hash.end());
+
+					iterResult->challenge = HexStr(hash.data(), 256 / 8);
+
+					try {
+						std::vector<LargeBits> qualities = f->prover.GetQualitiesForChallenge(hash.data());
+
+						for (size_t i = 0; i < qualities.size(); i++) {
+							LargeBits proof = f->prover.GetFullProof(hash.data(), i);
+							uint8_t *proof_data = new uint8_t[proof.GetSize() / 8];
+							proof.ToBytes(proof_data);
+							JobManager::getInstance().log("i: " + std::to_string(num),this->shared_from_this());
+							JobManager::getInstance().log("challenge: 0x" + HexStr(hash.data(), 256 / 8),this->shared_from_this());	
+
+							LargeBits quality =
+								verifier.ValidateProof(f->id_bytes, f->kSize, hash.data(), proof_data,f->kSize * 8);
+							if (quality.GetSize() == 256 && quality == qualities[i]) {
+								JobManager::getInstance().log("proof: 0x" + HexStr(proof_data, f->kSize * 8),this->shared_from_this());
+								JobManager::getInstance().log("quality: " + quality.ToString(),this->shared_from_this());
+								JobManager::getInstance().log("Proof verification suceeded. k = " + std::to_string(static_cast<int>(f->kSize)),this->shared_from_this());
+								iterResult->proof = HexStr(proof_data, f->kSize * 8);
+								f->success.push_back(iterResult);
+							} else {
+								JobManager::getInstance().logErr("Proof verification failed.",this->shared_from_this());
+								f->fails.push_back(iterResult);
+							}
+							delete[] proof_data;
+						}
+					} catch (const std::exception& error) {
+						JobManager::getInstance().logErr("Proof verification failed." + std::string(error.what()),this->shared_from_this());
+						f->fails.push_back(iterResult);
+					}
+					this->activity->completedWorkItem++;
+				}
+				startIterNum += f->iter;
+			}
+		};
+		this->finishEvent->trigger(this->shared_from_this());
+	}
 }
 
 std::string JobCheckPlotFactory::getName()

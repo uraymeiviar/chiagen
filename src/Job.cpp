@@ -483,6 +483,7 @@ bool Job::drawStatusWidget() {
 			if (startRule->evaluate() && ImGui::Button("Start")) {
 				this->start(false);
 			}
+			ImGui::SameLine();
 			if (ImGui::Button("Overide Start")) {
 				this->start(true);
 			}
