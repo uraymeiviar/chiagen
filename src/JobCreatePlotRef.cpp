@@ -490,8 +490,8 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 JobCreatePlotRef::JobCreatePlotRef(std::string title, 
 	std::string originalTitle,
 	JobCreatePlotRefParam& param, 
-	JobCratePlotStartRuleParam& startRuleParam, 
-	JobCreatePlotFinishRuleParam& finishRuleParam) : 
+	JobStartRuleParam& startRuleParam, 
+	JobFinishRuleParam& finishRuleParam) : 
 	JobCreatePlot(title, originalTitle, startRuleParam, finishRuleParam),
 	param(param)
 {
@@ -504,7 +504,7 @@ JobCreatePlotRef::JobCreatePlotRef(std::string title, std::string originalTitle)
 }
 
 JobCreatePlotRef::JobCreatePlotRef(std::string title, std::string originalTitle, JobCreatePlotRefParam& param)
-	:JobCreatePlot(title, originalTitle, JobCratePlotStartRuleParam(), JobCreatePlotFinishRuleParam()),
+	:JobCreatePlot(title, originalTitle, JobStartRuleParam(), JobFinishRuleParam()),
 	 param(param)
 {
 
@@ -538,10 +538,10 @@ bool JobCreatePlotRef::drawEditor()
 
 std::shared_ptr<Job> JobCreatePlotRef::relaunch()
 {
-	JobCratePlotStartRule* startRule = dynamic_cast<JobCratePlotStartRule*>(this->getStartRule());
-	JobCreatePlotFinishRule* finishRule = dynamic_cast<JobCreatePlotFinishRule*>(this->getFinishRule());
-	JobCratePlotStartRuleParam& startParam = startRule->getRelaunchParam();
-	JobCreatePlotFinishRuleParam& finishParam = finishRule->getRelaunchParam();
+	JobStartRule* startRule = dynamic_cast<JobStartRule*>(this->getStartRule());
+	JobFinishRule* finishRule = dynamic_cast<JobFinishRule*>(this->getFinishRule());
+	JobStartRuleParam& startParam = startRule->getRelaunchParam();
+	JobFinishRuleParam& finishParam = finishRule->getRelaunchParam();
 	if (!finishParam.repeatIndefinite && finishParam.repeatCount <= 0) {
 		startParam.startPaused = true;
 	}
@@ -749,24 +749,35 @@ bool JobCreatePlotRefFactory::drawEditor()
 			ImGui::Text(err.c_str());
 		}		
 	}
+
+	ImGui::Separator();
 	
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
 	ImGui::Text("Job Name");
 	ImGui::SameLine(90.0f);
-	ImGui::PushItemWidth(fieldWidth-(result?160.0f:90.0f));
+	ImGui::PushItemWidth(fieldWidth-160.0f);
 	std::string jobName = "createplot-"+std::to_string(JobCreatePlot::jobIdCounter);
 	ImGui::InputText("##jobName",&jobName);
 	ImGui::PopItemWidth();
-	if (result) {
-		ImGui::SameLine();
-		ImGui::PushItemWidth(50.0f);
-		if (ImGui::Button("Add Job")) {
+
+	ImGui::SameLine();
+	ImGui::PushItemWidth(50.0f);
+	if(!result){
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	if (ImGui::Button("Add Job")) {
+		if (result) {
 			JobManager::getInstance().addJob(this->create(jobName));
 			JobCreatePlot::jobIdCounter++;
-		}
-		ImGui::PopItemWidth();
-	}		
+		}		
+	}
+
+	if (!result) {
+		ImGui::PopStyleVar();
+	}
+	ImGui::PopItemWidth();
 
 	return result;
 }

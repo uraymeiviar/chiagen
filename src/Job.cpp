@@ -5,6 +5,7 @@
 #include <psapi.h>
 #include "util.hpp"
 #include "Implot/implot.h"
+#include "JobRule.h"
 
 std::vector<std::function<void()>> JobManager::registrations = std::vector<std::function<void()>>();
 

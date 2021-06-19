@@ -14,46 +14,7 @@
 
 class Job;
 class JobEvent;
-
-class JobEventId {
-public:
-	std::string name;
-	std::string type;
-	bool isEmpty();
-	bool match(JobEvent* event);
-};
-
-class JobEvent : public std::enable_shared_from_this<JobEvent> {
-public:
-	JobEvent(std::string type, std::string name);
-	virtual void trigger(std::shared_ptr<Job> source);
-	std::string getType() const;
-	std::string name;
-protected:	
-	std::string type;
-};
-
-class JobRule {
-public:
-	JobRule(){};
-	virtual ~JobRule(){};
-	virtual bool evaluate(){ return true; };
-	virtual void handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source){}
-	virtual bool drawItemWidget() { return false; };
-	virtual void update(){}
-};
-
-class JobStartRule : public JobRule {
-public:
-	
-};
-
-class JobFinishRule : public JobRule {
-public:
-	virtual bool relaunchAfterFinish(){
-		return false;
-	}
-};
+class JobRule;
 
 class JobActivityState {
 public:

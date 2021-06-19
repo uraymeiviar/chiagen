@@ -8395,7 +8395,7 @@ void ImGui::EndGroupPanel() {
     s_GroupPanelLabelStack.pop_back();
 
     ImVec2 halfFrame = ImVec2(frameHeight * 0.25f, 0.5f*frameHeight) * 0.5f;
-    ImRect frameRect = ImRect(itemMin + halfFrame, itemMax - ImVec2(halfFrame.x, 0.0f));
+    ImRect frameRect = ImRect(itemMin + halfFrame, itemMax - ImVec2(halfFrame.x, -itemSpacing.y));
     labelRect.Min.x -= itemSpacing.x;
     labelRect.Max.x += itemSpacing.x;
     for (int i = 0; i < 4; ++i)
@@ -8431,7 +8431,7 @@ void ImGui::EndGroupPanel() {
 #endif
     ImGui::GetCurrentWindow()->Size.x                   += frameHeight;
 
-    ImGui::Dummy(ImVec2(0.0f, 0.0f));
+    ImGui::Dummy(ImVec2(itemSpacing.x, itemSpacing.y));
 
     ImGui::EndGroup();
 }

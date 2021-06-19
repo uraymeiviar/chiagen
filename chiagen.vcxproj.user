@@ -17,5 +17,7 @@
     <LocalDebuggerCommandArguments>
     </LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerAmpDefaultAccelerator>
+    </LocalDebuggerAmpDefaultAccelerator>
   </PropertyGroup>
 </Project>

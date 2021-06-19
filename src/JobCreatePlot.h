@@ -6,68 +6,8 @@
 #include <filesystem>
 #include <stack>
 #include <thread>
+#include "JobRule.h"
 
-class JobCratePlotStartRuleParam{
-public:
-	bool startImmediate {true};
-	bool startDelayed {false};
-	bool startPaused {false};
-	bool startConditional {false};
-	bool startCondActiveJob {true};
-	bool startCondTime {false};
-	bool startOnEvent {false};
-	int startDelayedMinute {15};
-	int startCondTimeStart {1};
-	int startCondTimeEnd {6};
-	int startCondActiveJobCount {1};
-	JobEventId eventToRespond;
-	virtual bool drawEditor();
-};
-
-class JobCratePlotStartRule : public JobStartRule {
-public:
-	JobCratePlotStartRule();
-	JobCratePlotStartRule(const JobCratePlotStartRuleParam& param);
-	virtual ~JobCratePlotStartRule(){};
-	virtual bool drawEditor();
-	virtual bool drawItemWidget();
-	bool evaluate() override;
-	void handleEvent(std::shared_ptr<JobEvent> jobEvent, std::shared_ptr<Job> source) override;
-	std::chrono::time_point<std::chrono::system_clock> creationTime;
-	std::function<void()> onStartTrigger;
-	JobCratePlotStartRuleParam& getParam();
-	JobCratePlotStartRuleParam& getRelaunchParam();
-protected:
-	bool isRuleFullfilled();
-	JobCratePlotStartRuleParam param;
-};
-
-class JobCreatePlotFinishRuleParam {
-public:
-	bool repeatJob {false};
-	bool repeatIndefinite {false};
-	bool execProg {false};
-	std::filesystem::path progToExec;
-	std::filesystem::path progWorkingDir;
-	bool execProgOnRepeat {true};
-	int repeatCount {1};
-
-	virtual bool drawEditor();
-};
-
-class JobCreatePlotFinishRule : public JobFinishRule {
-public:
-	JobCreatePlotFinishRule();
-	JobCreatePlotFinishRule(const JobCreatePlotFinishRuleParam& param);
-	virtual ~JobCreatePlotFinishRule(){};
-	virtual bool drawEditor();
-	virtual bool drawItemWidget();
-	bool relaunchAfterFinish() override;
-	JobCreatePlotFinishRuleParam& getParam();
-	JobCreatePlotFinishRuleParam& getRelaunchParam();
-protected:
-	JobCreatePlotFinishRuleParam param;
-};
 
 class CreatePlotContext {
 public:
@@ -85,8 +25,8 @@ class JobCreatePlot : public Job {
 public:
 	JobCreatePlot(std::string title, std::string originalTitle = "");
 	JobCreatePlot(std::string title, std::string originalTitle,
-		const JobCratePlotStartRuleParam& startParam,
-		const JobCreatePlotFinishRuleParam& finishParam
+		const JobStartRuleParam& startParam,
+		const JobFinishRuleParam& finishParam
 	);
 	virtual ~JobCreatePlot(){};
 	static int jobIdCounter;
@@ -107,12 +47,8 @@ public:
 
 protected:
 	void init();
-	bool paused {false};
-	bool running {false};
-	bool finished {false};
-	float progress {0.0f};
-	JobCratePlotStartRule startRule;
-	JobCreatePlotFinishRule finishRule;
+	JobStartRule startRule;
+	JobFinishRule finishRule;
 };
 
 #endif

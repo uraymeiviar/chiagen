@@ -47,8 +47,8 @@ public:
 	JobCreatePlotRef(std::string title,
 		std::string originalTitle,
 		JobCreatePlotRefParam& param,
-		JobCratePlotStartRuleParam& startRuleParam,
-		JobCreatePlotFinishRuleParam& finishRuleParam
+		JobStartRuleParam& startRuleParam,
+		JobFinishRuleParam& finishRuleParam
 	);
 	virtual bool drawEditor() override;
 	virtual std::shared_ptr<Job> relaunch() override;
@@ -64,8 +64,8 @@ public:
 	bool drawEditor() override;
 protected:
 	JobCreatePlotRefParam param;
-	JobCratePlotStartRuleParam startRuleParam;
-	JobCreatePlotFinishRuleParam finishRuleParam;
+	JobStartRuleParam startRuleParam;
+	JobFinishRuleParam finishRuleParam;
 };
 
 extern FactoryRegistration<JobCreatePlotRefFactory> JobCreatePlotRefFactoryRegistration;

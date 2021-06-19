@@ -672,10 +672,7 @@ void MainApp::toolPage() {
 						ImGui::PopID();
 						ImGui::Unindent(20.0f);
 					}
-				}
-				if (ImGui::CollapsingHeader("Check Plot")) {
-					ImGui::Text("Under development");
-				}					
+				}			
 			}
 			ImGui::EndChild();
 		}

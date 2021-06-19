@@ -41,8 +41,8 @@ public:
 	JobCreatePlotMax(std::string title,
 		std::string originalTitle,
 		JobCreatePlotMaxParam& param,
-		JobCratePlotStartRuleParam& startRuleParam,
-		JobCreatePlotFinishRuleParam& finishRuleParam
+		JobStartRuleParam& startRuleParam,
+		JobFinishRuleParam& finishRuleParam
 	);
 	virtual bool drawEditor() override;
 	virtual std::shared_ptr<Job> relaunch() override;
@@ -58,8 +58,8 @@ public:
 	bool drawEditor() override;
 protected:
 	JobCreatePlotMaxParam param;
-	JobCratePlotStartRuleParam startRuleParam;
-	JobCreatePlotFinishRuleParam finishRuleParam;
+	JobStartRuleParam startRuleParam;
+	JobFinishRuleParam finishRuleParam;
 };
 
 extern FactoryRegistration<JobCreatePlotMaxFactory> JobCreatePlotMaxFactoryRegistration;
