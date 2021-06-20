@@ -37,6 +37,7 @@ JobCreatePlotRefParam::JobCreatePlotRefParam(const JobCreatePlotRefParam& rhs)
 	this->tempPath  = rhs.tempPath;
 	this->destPath  = rhs.destPath;
 	this->bitfield  = rhs.bitfield;
+	this->puzzleHash= rhs.puzzleHash;
 }
 
 void JobCreatePlotRefParam::loadDefault()
@@ -64,6 +65,7 @@ void JobCreatePlotRefParam::loadPreset()
 	this->bitfield = MainApp::settings.bitfield;
 	this->poolKey = MainApp::settings.poolKey;
 	this->farmKey = MainApp::settings.farmKey;
+	this->puzzleHash = MainApp::settings.puzzleHash;
 }
 
 bool JobCreatePlotRefParam::drawEditor()
@@ -71,11 +73,11 @@ bool JobCreatePlotRefParam::drawEditor()
 	bool result = false;
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Pool Key");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+	ImGui::SameLine(90.0f);
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
 	result |= ImGui::InputText("##poolkey", &this->poolKey,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->poolKey.empty()) {
 		ImGui::BeginTooltip();
@@ -91,11 +93,31 @@ bool JobCreatePlotRefParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
+	ImGui::Text("PuzzleHash");
+	ImGui::PopItemWidth();
+	ImGui::SameLine(90.0f);
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
+	result |= ImGui::InputText("##puzzleHash", &this->puzzleHash,ImGuiInputTextFlags_CharsHexadecimal);
+	if (ImGui::IsItemHovered() && !this->puzzleHash.empty()) {
+		ImGui::BeginTooltip();
+		tooltiipText(this->puzzleHash.c_str());
+		ImGui::EndTooltip();
+	}
+	ImGui::PopItemWidth();
+	ImGui::SameLine();
+	ImGui::PushItemWidth(55.0f);
+	if (ImGui::Button("Paste##puzzleHash")) {
+		this->puzzleHash = strFilterHexStr(ImGui::GetClipboardText());
+		result |= true;
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Farm Key");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+	ImGui::SameLine(90.0f);
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
 	ImGui::InputText("##farmkey", &this->farmKey,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->farmKey.empty()) {
 		ImGui::BeginTooltip();
@@ -111,12 +133,12 @@ bool JobCreatePlotRefParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Temp Dir");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
+	ImGui::SameLine(90.0f);
 	static std::string tempDir = this->tempPath.string();
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
 	if (ImGui::InputText("##tempDir", &tempDir)) {
 		this->tempPath = tempDir;
 		result |= true;
@@ -148,12 +170,12 @@ bool JobCreatePlotRefParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Dest Dir");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
+	ImGui::SameLine(90.0f);
 	static std::string destDir = this->destPath.string();
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
 	if (ImGui::InputText("##destDir", &destDir)) {
 		this->destPath = destDir;
 		result |= true;
@@ -322,23 +344,29 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 	});
 
 	PrivateKey sk = KeyGen(Bytes(sk_data));
-	err.push_back("sk        = " + hexStr(sk.Serialize()));
+	err.push_back("sk          = " + hexStr(sk.Serialize()));
 
 	G1Element local_pk = master_sk_to_local_sk(sk).GetG1Element();
-	err.push_back("local pk  = " + hexStr(local_pk.Serialize()));
+	err.push_back("local pk    = " + hexStr(local_pk.Serialize()));
 
 	std::vector<uint8_t> farmer_key_data(48);
 	HexToBytes(this->farmKey,farmer_key_data.data());
 	G1Element farmer_pk = G1Element::FromByteVector(farmer_key_data);
-	err.push_back("farmer pk = " + hexStr(farmer_pk.Serialize()));
+	err.push_back("farmer pk   = " + hexStr(farmer_pk.Serialize()));
 
 	G1Element plot_pk = local_pk + farmer_pk;
-	err.push_back("plot pk   = " + hexStr(plot_pk.Serialize()));
+	err.push_back("plot pk     = " + hexStr(plot_pk.Serialize()));
 
 	std::vector<uint8_t> pool_key_data(48);
 	HexToBytes(this->poolKey,pool_key_data.data());
 	G1Element pool_pk = G1Element::FromByteVector(pool_key_data);
-	err.push_back("pool pk   = " + hexStr(pool_pk.Serialize()));
+	err.push_back("pool pk     = " + hexStr(pool_pk.Serialize()));
+
+	std::vector<uint8_t> pzhs_key_bytes(32);
+	if (!this->puzzleHash.empty()) {		
+		HexToBytes(this->puzzleHash,pzhs_key_bytes.data());
+		err.push_back("puzzle hash = " + hexStr(pool_pk.Serialize()));
+	}
 
 	std::vector<uint8_t> pool_key_bytes = pool_pk.Serialize();
 	std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
@@ -346,8 +374,14 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 	std::vector<uint8_t> mstr_key_bytes = sk.Serialize();
 			
 	std::vector<uint8_t> plid_key_bytes;
-	plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
-	plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+	if (!this->puzzleHash.empty()) {
+		plid_key_bytes.insert(plid_key_bytes.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
+		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+	}
+	else {
+		plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
+		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+	}
 
 	if (id.empty()) {
 		Hash256(this->plot_id.data(),plid_key_bytes.data(),plid_key_bytes.size());
@@ -364,9 +398,16 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 	err.push_back("plot id   = " + id);
 
 	if (this->memo.empty()) {
-		this->memo_data.insert(this->memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
-		this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
-		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());		
+		if (!this->puzzleHash.empty()) {
+			this->memo_data.insert(this->memo_data.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
+			this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
+			this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
+		}
+		else {
+			this->memo_data.insert(this->memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
+			this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
+			this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
+		}
 	}
 	else {
 		this->memo = Strip0x(this->memo);
@@ -690,12 +731,17 @@ bool JobCreatePlotRefParam::isValid(std::vector<std::string>& errs) const
 #endif /* defined(_WIN32) || defined(__x86_64__) */			
 
 
-	if (this->poolKey.empty()) {
-		errs.push_back("pool public key must be specified");
+	if (this->poolKey.empty() && this->puzzleHash.empty()) {
+		errs.push_back("pool public key or puzzle hash must be specified");
 		result = false;
 	}
 	else {
-		if (this->poolKey.length() < 2*48) {
+		if(!this->puzzleHash.empty()){
+			if (this->poolKey.length() < 2*32) {
+				errs.push_back("puzzle hash must be atleast 32 bytes (64 hex characters)");
+				result = false;
+			}
+		} else if (this->poolKey.length() < 2*48) {
 			errs.push_back("pool public key must be 48 bytes (96 hex characters)");
 			result = false;
 		}

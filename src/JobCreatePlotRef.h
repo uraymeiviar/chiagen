@@ -14,6 +14,7 @@ public:
 	std::filesystem::path temp2Path;
 	std::string poolKey;
 	std::string farmKey;
+	std::string puzzleHash;
 	
 	uint8_t ksize {32};
 	uint32_t buckets {128};

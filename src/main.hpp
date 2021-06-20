@@ -13,6 +13,7 @@ public:
 	AppSettings();
 	std::string poolKey;
 	std::string farmKey;
+	std::string puzzleHash;
 	std::string finalDir; 
 	std::string tempDir; 
 	std::string tempDir2; 

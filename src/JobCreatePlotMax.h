@@ -12,6 +12,7 @@ public:
 	std::filesystem::path temp2Path;
 	std::string poolKey;
 	std::string farmKey;
+	std::string puzzleHash;
 	
 	uint8_t threads {2};
 	uint32_t buckets {256};

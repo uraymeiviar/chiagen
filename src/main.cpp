@@ -747,11 +747,11 @@ void MainApp::settingsPage()
 				float fieldWidth = ImGui::GetWindowContentRegionWidth();
 				bool changed = false;
 
-				ImGui::PushItemWidth(80.0f);
+				ImGui::PushItemWidth(90.0f);
 				ImGui::Text("Pool Key");
 				ImGui::PopItemWidth();
-				ImGui::SameLine(80.0f);
-				ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+				ImGui::SameLine(90.0f);
+				ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
 				changed |= ImGui::InputText("##settings-poolkey", &MainApp::settings.poolKey,ImGuiInputTextFlags_CharsHexadecimal);
 				if (ImGui::IsItemHovered() && !MainApp::settings.poolKey.empty()) {
 					ImGui::BeginTooltip();
@@ -767,11 +767,11 @@ void MainApp::settingsPage()
 				}
 				ImGui::PopItemWidth();
 
-				ImGui::PushItemWidth(80.0f);
+				ImGui::PushItemWidth(90.0f);
 				ImGui::Text("Farm Key");
 				ImGui::PopItemWidth();
-				ImGui::SameLine(80.0f);
-				ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+				ImGui::SameLine(90.0f);
+				ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
 				ImGui::InputText("##settings-farmkey", &MainApp::settings.farmKey,ImGuiInputTextFlags_CharsHexadecimal);
 				if (ImGui::IsItemHovered() && !this->MainApp::settings.farmKey.empty()) {
 					ImGui::BeginTooltip();
@@ -787,12 +787,32 @@ void MainApp::settingsPage()
 				}
 				ImGui::PopItemWidth();
 
-				ImGui::PushItemWidth(80.0f);
+				ImGui::PushItemWidth(90.0f);
+				ImGui::Text("PuzzleHash");
+				ImGui::PopItemWidth();
+				ImGui::SameLine(90.0f);
+				ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
+				ImGui::InputText("##settings-PuzzleHash", &MainApp::settings.puzzleHash,ImGuiInputTextFlags_CharsHexadecimal);
+				if (ImGui::IsItemHovered() && !this->MainApp::settings.puzzleHash.empty()) {
+					ImGui::BeginTooltip();
+					tooltiipText(this->MainApp::settings.puzzleHash.c_str());
+					ImGui::EndTooltip();
+				}
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::PushItemWidth(55.0f);
+				if (ImGui::Button("Paste##settings-puzzleHash")) {
+					this->MainApp::settings.puzzleHash = strFilterHexStr(ImGui::GetClipboardText());
+					changed |= true;
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::PushItemWidth(90.0f);
 				ImGui::Text("Dest Dir");
 				ImGui::PopItemWidth();
-				ImGui::SameLine(80.0f);
+				ImGui::SameLine(90.0f);
 				static std::string destDir = MainApp::settings.finalDir;
-				ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+				ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
 				if (ImGui::InputText("##settings-destDir", &destDir)) {
 					MainApp::settings.finalDir = destDir;
 					changed |= true;
@@ -823,12 +843,12 @@ void MainApp::settingsPage()
 				}
 				ImGui::PopItemWidth();
 
-				ImGui::PushItemWidth(80.0f);
+				ImGui::PushItemWidth(90.0f);
 				ImGui::Text("Temp Dir");
 				ImGui::PopItemWidth();
-				ImGui::SameLine(80.0f);
+				ImGui::SameLine(90.0f);
 				static std::string tempDir = MainApp::settings.tempDir;
-				ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+				ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
 				if (ImGui::InputText("##settings-tempDir", &tempDir)) {
 					MainApp::settings.tempDir = tempDir;
 					changed |= true;
@@ -1011,113 +1031,142 @@ void AppSettings::load(std::filesystem::path f)
 			if(doc["settings"].IsObject()){
 				json::Value& settings = doc["settings"];
 				if (settings.IsObject()) {
-					json::Value& farmkey = settings["farmkey"];
-					if (farmkey.IsString()) {
-						this->farmKey = farmkey.GetString();
-					}
-
-					json::Value& poolkey = settings["poolkey"];
-					if (poolkey.IsString()) {
-						this->poolKey = poolkey.GetString();
-					}
-
-					json::Value& finaldir = settings["finaldir"];
-					if (finaldir.IsString()) {
-						this->finalDir = finaldir.GetString();
-					}
-
-					json::Value& tempdir = settings["tempdir"];
-					if (tempdir.IsString()) {
-						this->tempDir = tempdir.GetString();
-					}
-
-					json::Value& tempdir2 = settings["tempdir2"];
-					if (tempdir2.IsString()) {
-						this->tempDir2 = tempdir2.GetString();
-					}
-
-					json::Value& ksize = settings["ksize"];
-					if (ksize.IsInt()) {
-						this->ksize = ksize.GetInt();
-					}
-					else if (ksize.IsString()) {
-						try {
-							this->ksize = std::atoi(ksize.GetString());
-						}
-						catch (...) {
-							this->ksize = AppSettings::defaultKSize;
+					if (settings.HasMember("farmkey")) {
+						json::Value& farmkey = settings["farmkey"];
+						if (farmkey.IsString()) {
+							this->farmKey = farmkey.GetString();
 						}
 					}
 
-					json::Value& buckets = settings["buckets"];
-					if (buckets.IsInt()) {
-						this->buckets = buckets.GetInt();
-					}
-					else if (buckets.IsString()) {
-						try {
-							this->buckets = std::atoi(buckets.GetString());
-						}
-						catch (...) {
-							this->buckets = AppSettings::defaultBuckets;
+					if (settings.HasMember("poolkey")) {
+						json::Value& poolkey = settings["poolkey"];
+						if (poolkey.IsString()) {
+							this->poolKey = poolkey.GetString();
 						}
 					}
 
-					json::Value& threads = settings["threads"];
-					if (threads.IsInt()) {
-						this->threads = threads.GetInt();
-					}
-					else if (threads.IsString()) {
-						try {
-							this->threads = std::atoi(threads.GetString());
+					if (settings.HasMember("puzzlehash")) {
+						json::Value& puzzlehash = settings["puzzlehash"];
+						if (puzzlehash.IsString()) {
+							this->puzzleHash = puzzlehash.GetString();
 						}
-						catch (...) {
-							this->threads = std::thread::hardware_concurrency()/2;
-							if (this->threads < 2) {
-								this->threads = 2;
+					}
+
+					if (settings.HasMember("finaldir")) {
+						json::Value& finaldir = settings["finaldir"];
+						if (finaldir.IsString()) {
+							this->finalDir = finaldir.GetString();
+						}
+					}
+
+					if (settings.HasMember("tempdir")) {
+						json::Value& tempdir = settings["tempdir"];
+						if (tempdir.IsString()) {
+							this->tempDir = tempdir.GetString();
+						}
+					}
+
+					if (settings.HasMember("tempdir2")) {
+						json::Value& tempdir2 = settings["tempdir2"];
+						if (tempdir2.IsString()) {
+							this->tempDir2 = tempdir2.GetString();
+						}
+					}
+
+					if (settings.HasMember("ksize")) {
+						json::Value& ksize = settings["ksize"];
+						if (ksize.IsInt()) {
+							this->ksize = ksize.GetInt();
+						}
+						else if (ksize.IsString()) {
+							try {
+								this->ksize = std::atoi(ksize.GetString());
+							}
+							catch (...) {
+								this->ksize = AppSettings::defaultKSize;
 							}
 						}
 					}
 
-					json::Value& stripes = settings["stripes"];
-					if (stripes.IsInt()) {
-						this->stripes = stripes.GetInt();
-					}
-					else if (stripes.IsString()) {
-						try {
-							this->stripes = std::atoi(stripes.GetString());
+					if (settings.HasMember("buckets")) {
+						json::Value& buckets = settings["buckets"];
+						if (buckets.IsInt()) {
+							this->buckets = buckets.GetInt();
 						}
-						catch (...) {
-							this->stripes = AppSettings::defaultStripes;
-						}
-					}
-
-					json::Value& buffer = settings["buffer"];
-					if (buffer.IsInt()) {
-						this->buffer = buffer.GetInt();
-					}
-					else if (buffer.IsString()) {
-						try {
-							this->buffer = std::atoi(buffer.GetString());
-						}
-						catch (...) {
-							this->buffer = AppSettings::defaultBuffer;
+						else if (buckets.IsString()) {
+							try {
+								this->buckets = std::atoi(buckets.GetString());
+							}
+							catch (...) {
+								this->buckets = AppSettings::defaultBuckets;
+							}
 						}
 					}
 
-					json::Value& bitfield = settings["bitfield"];
-					if (bitfield.IsInt()) {
-						this->bitfield = bitfield.GetInt() == 0 ? false:true;
-					}
-					else if (buffer.IsString()) {
-						if (buffer.GetString() == "yes" || buffer.GetString() == "true") {
-							this->bitfield = true;
+					if (settings.HasMember("threads")) {
+						json::Value& threads = settings["threads"];
+						if (threads.IsInt()) {
+							this->threads = threads.GetInt();
 						}
-						else {
-							this->bitfield = false;
+						else if (threads.IsString()) {
+							try {
+								this->threads = std::atoi(threads.GetString());
+							}
+							catch (...) {
+								this->threads = std::thread::hardware_concurrency()/2;
+								if (this->threads < 2) {
+									this->threads = 2;
+								}
+							}
 						}
 					}
-					else if (buffer.IsBool()) {
-						this->bitfield = buffer.GetBool();
+
+					if (settings.HasMember("stripes")) {
+						json::Value& stripes = settings["stripes"];
+						if (stripes.IsInt()) {
+							this->stripes = stripes.GetInt();
+						}
+						else if (stripes.IsString()) {
+							try {
+								this->stripes = std::atoi(stripes.GetString());
+							}
+							catch (...) {
+								this->stripes = AppSettings::defaultStripes;
+							}
+						}
+					}
+
+					if (settings.HasMember("buffer")) {
+						json::Value& buffer = settings["buffer"];
+						if (buffer.IsInt()) {
+							this->buffer = buffer.GetInt();
+						}
+						else if (buffer.IsString()) {
+							try {
+								this->buffer = std::atoi(buffer.GetString());
+							}
+							catch (...) {
+								this->buffer = AppSettings::defaultBuffer;
+							}
+						}
+					}
+
+					if (settings.HasMember("bitfield")) {
+						json::Value& bitfield = settings["bitfield"];
+						if (bitfield.IsInt()) {
+							this->bitfield = bitfield.GetInt() == 0 ? false:true;
+						}
+						else if (bitfield.IsString()) {
+							if (bitfield.GetString() == "yes" || bitfield.GetString() == "true") {
+								this->bitfield = true;
+							}
+							else {
+								this->bitfield = false;
+							}
+						}
+						else if (bitfield.IsBool()) {
+							this->bitfield = bitfield.GetBool();
+						}
 					}
 				}
 			}
@@ -1139,6 +1188,7 @@ void AppSettings::save(std::filesystem::path f)
 
 	settings.AddMember("farmkey" ,json::StringRef(this->farmKey.c_str()), doc.GetAllocator());
 	settings.AddMember("poolkey" ,json::StringRef(this->poolKey.c_str()), doc.GetAllocator());
+	settings.AddMember("puzzlehash" ,json::StringRef(this->puzzleHash.c_str()), doc.GetAllocator());
 	settings.AddMember("finaldir",json::StringRef(this->finalDir.c_str()), doc.GetAllocator());
 	settings.AddMember("tempdir" ,json::StringRef(this->tempDir.c_str()), doc.GetAllocator());
 	settings.AddMember("tempdir2",json::StringRef(this->tempDir2.c_str()), doc.GetAllocator());

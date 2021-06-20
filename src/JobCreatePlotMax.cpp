@@ -46,6 +46,7 @@ void JobCreatePlotMaxParam::loadPreset()
 	this->destPath = MainApp::settings.finalDir;
 	this->poolKey = MainApp::settings.poolKey;
 	this->farmKey = MainApp::settings.farmKey;
+	this->puzzleHash = MainApp::settings.puzzleHash;
 }
 
 bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
@@ -56,16 +57,22 @@ bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
 		result = false;
 	}
 
-	if (this->poolKey.empty()) {
-		errs.push_back("pool public key must be specified");
+	if (this->poolKey.empty() && this->puzzleHash.empty()) {
+		errs.push_back("pool public key or puzzle hash must be specified");
 		result = false;
 	}
 	else {
-		if (this->poolKey.length() < 2*48) {
+		if(!this->puzzleHash.empty()){
+			if (this->poolKey.length() < 2*32) {
+				errs.push_back("puzzle hash must be atleast 32 bytes (64 hex characters)");
+				result = false;
+			}
+		} else if (this->poolKey.length() < 2*48) {
 			errs.push_back("pool public key must be 48 bytes (96 hex characters)");
 			result = false;
 		}
 	}
+
 	if (this->farmKey.empty()) {
 		errs.push_back("farm public key must be specified");
 		result = false;
@@ -109,22 +116,41 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 	G1Element pool_pk = G1Element::FromByteVector(pool_key_data);
 	err.push_back("pool pk   = " + hexStr(pool_pk.Serialize()));
 
+	std::vector<uint8_t> pzhs_key_bytes(32);
+	if (!this->puzzleHash.empty()) {		
+		HexToBytes(this->puzzleHash,pzhs_key_bytes.data());
+		err.push_back("puzzle hash = " + hexStr(pool_pk.Serialize()));
+	}
+
 	std::vector<uint8_t> pool_key_bytes = pool_pk.Serialize();
 	std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
 	std::vector<uint8_t> farm_key_bytes = farmer_pk.Serialize();
 	std::vector<uint8_t> mstr_key_bytes = sk.Serialize();
 			
 	std::vector<uint8_t> plid_key_bytes;
-	plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
-	plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+	if (!this->puzzleHash.empty()) {
+		plid_key_bytes.insert(plid_key_bytes.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
+		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+	}
+	else {
+		plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
+		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+	}
 
 	Hash256(this->plot_id.data(),plid_key_bytes.data(),plid_key_bytes.size());
 	id = hexStr(std::vector<uint8_t>(this->plot_id.begin(), this->plot_id.end()));
 	err.push_back("plot id   = " + id);
 
-	this->memo_data.insert(this->memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
-	this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
-	this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());
+	if (!this->puzzleHash.empty()) {
+		this->memo_data.insert(this->memo_data.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
+		this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
+		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
+	}
+	else {
+		this->memo_data.insert(this->memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
+		this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
+		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
+	}
 
 	time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
@@ -213,11 +239,11 @@ bool JobCreatePlotMaxParam::drawEditor()
 	bool result = false;
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Pool Key");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+	ImGui::SameLine(90.0f);
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
 	result |= ImGui::InputText("##poolkey", &this->poolKey,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->poolKey.empty()) {
 		ImGui::BeginTooltip();
@@ -233,11 +259,31 @@ bool JobCreatePlotMaxParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
+	ImGui::Text("PuzzleHash");
+	ImGui::PopItemWidth();
+	ImGui::SameLine(90.0f);
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
+	result |= ImGui::InputText("##puzzleHash", &this->puzzleHash,ImGuiInputTextFlags_CharsHexadecimal);
+	if (ImGui::IsItemHovered() && !this->puzzleHash.empty()) {
+		ImGui::BeginTooltip();
+		tooltiipText(this->puzzleHash.c_str());
+		ImGui::EndTooltip();
+	}
+	ImGui::PopItemWidth();
+	ImGui::SameLine();
+	ImGui::PushItemWidth(55.0f);
+	if (ImGui::Button("Paste##puzzleHash")) {
+		this->puzzleHash = strFilterHexStr(ImGui::GetClipboardText());
+		result |= true;
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Farm Key");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 55.0f));
+	ImGui::SameLine(90.0f);
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
 	ImGui::InputText("##farmkey", &this->farmKey,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->farmKey.empty()) {
 		ImGui::BeginTooltip();
@@ -253,12 +299,12 @@ bool JobCreatePlotMaxParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Temp Dir");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
+	ImGui::SameLine(90.0f);
 	static std::string tempDir = this->tempPath.string();
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
 	if (ImGui::InputText("##tempDir", &tempDir)) {
 		this->tempPath = tempDir;
 		result |= true;
@@ -290,12 +336,12 @@ bool JobCreatePlotMaxParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(80.0f);
+	ImGui::PushItemWidth(90.0f);
 	ImGui::Text("Dest Dir");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(80.0f);
+	ImGui::SameLine(90.0f);
 	static std::string destDir = this->destPath.string();
-	ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
+	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
 	if (ImGui::InputText("##destDir", &destDir)) {
 		this->destPath = destDir;
 		result |= true;
