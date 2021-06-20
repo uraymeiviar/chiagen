@@ -415,7 +415,7 @@ bool JobCheckPlot::drawStatusWidget()
 				ImGui::Indent(20.0f);
 				ImGui::Text("path %s", ws2s(r->filePath).c_str());
 				ImGui::Text("kSize %d", r->kSize);
-				ImGui::Text("iteration done %d / %d", r->iterProgress, r->iter);
+				ImGui::Text("iteration done %d / %d ,quality %.1f", r->iterProgress, r->iter, plotQuality*100.0f);
 				ImGui::ProgressBar(plotQuality);
 				if (!r->fails.empty() && ImGui::CollapsingHeader((std::string("Failed ") + std::to_string(r->fails.size())).c_str())) {
 					ImGui::Indent(20.0f);

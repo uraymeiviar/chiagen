@@ -678,29 +678,31 @@ void MainApp::toolPage() {
 		}
 
 		if (ImGui::TableSetColumnIndex(1)) {
-			if (JobManager::getInstance().countJob() < 1) {
+			std::vector<std::shared_ptr<Job>> jobs = JobManager::getInstance().getActiveJobs();
+			if (jobs.empty()) {
 				ImGui::Text("No Active Job, create from left panel");
 			}
 			else {
 				if (ImGui::BeginChild("##col2", ImVec2(0.0f, 0.0f),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 					//TODO:lock job manager mutex
 					//auto lock = JobManager::getInstance().lock();
-					for(auto it = JobManager::getInstance().jobIteratorBegin() ; it != JobManager::getInstance().jobIteratorEnd() ; it++){
-						ImGui::PushID((const void*)it->get());
+					
+					for(auto job : jobs){
+						ImGui::PushID((const void*)job.get());
 						ImVec2 cursorBegin = ImGui::GetCursorPos();
-						if (*it == JobManager::getInstance().getSelectedJob()) {
+						if (job == JobManager::getInstance().getSelectedJob()) {
 							ImGui::GetStyle().Colors[ImGuiCol_Border] = textColor;
 						}
 						else {
 							ImGui::GetStyle().Colors[ImGuiCol_Border] = lightBgColor;
 						}
 						ImGui::BeginGroupPanel();
-						(*it)->drawItemWidget();
+						job->drawItemWidget();
 						ImVec2 cursorEnd = ImGui::GetCursorPos();
 						float invisWidth = ImGui::GetContentRegionAvailWidth();
 						ImGui::SetCursorPos(cursorBegin);
 						if(ImGui::InvisibleButton("select", ImVec2(ImGui::GetContentRegionAvailWidth(), cursorEnd.y - cursorBegin.y))){
-							JobManager::getInstance().setSelectedJob(*it);
+							JobManager::getInstance().setSelectedJob(job);
 						}					
 						ImGui::EndGroupPanel();
 						ImGui::GetStyle().Colors[ImGuiCol_Border] = borderColor;

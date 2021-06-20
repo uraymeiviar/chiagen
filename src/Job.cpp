@@ -97,6 +97,18 @@ size_t JobManager::countRunningJob() {
 	return result;
 }
 
+std::vector<std::shared_ptr<Job>> JobManager::getActiveJobs()
+{
+	std::vector<std::shared_ptr<Job>> result;
+	for (auto a : this->activeJobs) {
+		result.push_back(a);
+	}
+	for (auto a : this->finishedJobs) {
+		result.push_back(a);
+	}
+	return result;
+}
+
 void JobManager::collectMemUsage()
 {
 	PROCESS_MEMORY_COUNTERS_EX pmc;
@@ -146,14 +158,6 @@ void JobManager::samplerThreadProc()
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
-}
-
-std::vector<std::shared_ptr<Job>>::const_iterator JobManager::jobIteratorBegin() const  {
-	return this->activeJobs.begin();
-}
-
-std::vector<std::shared_ptr<Job>>::const_iterator JobManager::jobIteratorEnd() const  {
-	return this->activeJobs.end();
 }
 
 void JobManager::registerJobFactory(std::shared_ptr<JobFactory> factory)
@@ -388,7 +392,7 @@ bool Job::start(bool overrideRule)
 		doStart = true;
 	}
 	
-	if (doStart && !this->isFinished() && !this->isRunning()) {
+	if (doStart && !this->isRunning()) {
 		this->initActivity();
 		if (this->activity) {
 			return this->activity->start();
@@ -480,12 +484,14 @@ bool Job::drawStatusWidget() {
 	else {
 		JobRule* startRule = this->getStartRule();
 		if (startRule) {
-			if (startRule->evaluate() && ImGui::Button("Start")) {
+			bool evalResult = startRule->evaluate();
+			if (evalResult && ImGui::Button("Start")) {
 				this->start(false);
 			}
-			ImGui::SameLine();
-			if (ImGui::Button("Overide Start")) {
-				this->start(true);
+			if (!evalResult) {
+				if (ImGui::Button("Overide Start")) {
+					this->start(true);
+				}
 			}
 		}
 		else {

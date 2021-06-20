@@ -100,9 +100,6 @@
     <Filter Include="libs\relic\low\gmp">
       <UniqueIdentifier>{869865a9-bcb8-4571-99f6-27493c9fd334}</UniqueIdentifier>
     </Filter>
-    <Filter Include="chiapos\b3">
-      <UniqueIdentifier>{73064cb6-355c-4dea-8ff6-ab91e0d6e749}</UniqueIdentifier>
-    </Filter>
     <Filter Include="libs\fse">
       <UniqueIdentifier>{cb520c6c-40db-43a3-be92-693478ba0b3a}</UniqueIdentifier>
     </Filter>
@@ -142,6 +139,9 @@
     <Filter Include="libs\rapidjson\msinttypes">
       <UniqueIdentifier>{39441632-8efc-42a5-9ef7-58ae0313fb3f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="common\b3">
+      <UniqueIdentifier>{dfe6af10-8ef5-4b79-8836-b0263063f1f8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cli.cpp">
@@ -157,9 +157,6 @@
       <Filter>chiapos</Filter>
     </ClCompile>
     <ClCompile Include="src\chiapos\calculate_bucket.cpp">
-      <Filter>chiapos</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\chacha8.c">
       <Filter>chiapos</Filter>
     </ClCompile>
     <ClCompile Include="src\chiapos\disk.cpp">
@@ -510,24 +507,6 @@
     <ClCompile Include="src\libs\relic\low\gmp\relic_fp_sqr_low.c">
       <Filter>libs\relic\low\gmp</Filter>
     </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3_avx2.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3_avx512.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3_dispatch.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3_portable.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3_sse41.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
     <ClCompile Include="src\libs\fse\debug.c">
       <Filter>libs\fse</Filter>
     </ClCompile>
@@ -582,9 +561,6 @@
     <ClCompile Include="src\chiapos\data.cpp">
       <Filter>chiapos</Filter>
     </ClCompile>
-    <ClCompile Include="src\chiapos\b3\blake3_sse2.c">
-      <Filter>chiapos\b3</Filter>
-    </ClCompile>
     <ClCompile Include="src\JobCreatePlotRef.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -596,6 +572,30 @@
     </ClCompile>
     <ClCompile Include="src\JobRule.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\chacha8.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3.c">
+      <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3_avx2.c">
+      <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3_avx512.c">
+      <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3_dispatch.c">
+      <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3_portable.c">
+      <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3_sse2.c">
+      <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\b3\blake3_sse41.c">
+      <Filter>common\b3</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -612,9 +612,6 @@
       <Filter>chiapos</Filter>
     </ClInclude>
     <ClInclude Include="src\chiapos\calculate_bucket.hpp">
-      <Filter>chiapos</Filter>
-    </ClInclude>
-    <ClInclude Include="src\chiapos\chacha8.h">
       <Filter>chiapos</Filter>
     </ClInclude>
     <ClInclude Include="src\chiapos\disk.hpp">
@@ -971,12 +968,6 @@
     <ClInclude Include="src\libs\relic\tmpl\relic_tmpl_map.h">
       <Filter>libs\relic\tmpl</Filter>
     </ClInclude>
-    <ClInclude Include="src\chiapos\b3\blake3.h">
-      <Filter>chiapos\b3</Filter>
-    </ClInclude>
-    <ClInclude Include="src\chiapos\b3\blake3_impl.h">
-      <Filter>chiapos\b3</Filter>
-    </ClInclude>
     <ClInclude Include="src\libs\fse\bitstream.h">
       <Filter>libs\fse</Filter>
     </ClInclude>
@@ -1229,6 +1220,15 @@
     <ClInclude Include="src\JobRule.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\chacha8.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\b3\blake3.h">
+      <Filter>common\b3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\b3\blake3_impl.h">
+      <Filter>common\b3</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\libs\relic\arch\lzcnt.inc">
@@ -1237,17 +1237,17 @@
     <None Include="src\libs\fse\README.md">
       <Filter>libs\fse</Filter>
     </None>
-    <None Include="src\chiapos\b3\blake3_avx2_x86-64_windows_msvc.asm">
-      <Filter>chiapos\b3</Filter>
+    <None Include="src\common\b3\blake3_avx2_x86-64_windows_msvc.asm">
+      <Filter>common\b3</Filter>
     </None>
-    <None Include="src\chiapos\b3\blake3_avx512_x86-64_windows_msvc.asm">
-      <Filter>chiapos\b3</Filter>
+    <None Include="src\common\b3\blake3_avx512_x86-64_windows_msvc.asm">
+      <Filter>common\b3</Filter>
     </None>
-    <None Include="src\chiapos\b3\blake3_sse2_x86-64_windows_msvc.asm">
-      <Filter>chiapos\b3</Filter>
+    <None Include="src\common\b3\blake3_sse2_x86-64_windows_msvc.asm">
+      <Filter>common\b3</Filter>
     </None>
-    <None Include="src\chiapos\b3\blake3_sse41_x86-64_windows_msvc.asm">
-      <Filter>chiapos\b3</Filter>
+    <None Include="src\common\b3\blake3_sse41_x86-64_windows_msvc.asm">
+      <Filter>common\b3</Filter>
     </None>
   </ItemGroup>
 </Project>

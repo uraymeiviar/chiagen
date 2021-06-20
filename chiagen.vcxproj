@@ -90,7 +90,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\src\chiapos;$(ProjectDir)\src\libs;$(ProjectDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ControlFlowGuard>false</ControlFlowGuard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -130,7 +130,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\src\chiapos;$(ProjectDir)\src\libs;$(ProjectDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ControlFlowGuard>false</ControlFlowGuard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <DebugInformationFormat>None</DebugInformationFormat>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -215,15 +215,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\chiapos\b17.cpp" />
-    <ClCompile Include="src\chiapos\b3\blake3.c" />
-    <ClCompile Include="src\chiapos\b3\blake3_avx2.c" />
-    <ClCompile Include="src\chiapos\b3\blake3_avx512.c" />
-    <ClCompile Include="src\chiapos\b3\blake3_dispatch.c" />
-    <ClCompile Include="src\chiapos\b3\blake3_portable.c" />
-    <ClCompile Include="src\chiapos\b3\blake3_sse2.c" />
-    <ClCompile Include="src\chiapos\b3\blake3_sse41.c" />
     <ClCompile Include="src\chiapos\calculate_bucket.cpp" />
-    <ClCompile Include="src\chiapos\chacha8.c" />
     <ClCompile Include="src\chiapos\data.cpp" />
     <ClCompile Include="src\chiapos\disk.cpp" />
     <ClCompile Include="src\chiapos\entry_sizes.cpp" />
@@ -233,6 +225,14 @@
     <ClCompile Include="src\chiapos\sort_manager.cpp" />
     <ClCompile Include="src\chiapos\verifier.cpp" />
     <ClCompile Include="src\cli.cpp" />
+    <ClCompile Include="src\common\b3\blake3.c" />
+    <ClCompile Include="src\common\b3\blake3_avx2.c" />
+    <ClCompile Include="src\common\b3\blake3_avx512.c" />
+    <ClCompile Include="src\common\b3\blake3_dispatch.c" />
+    <ClCompile Include="src\common\b3\blake3_portable.c" />
+    <ClCompile Include="src\common\b3\blake3_sse2.c" />
+    <ClCompile Include="src\common\b3\blake3_sse41.c" />
+    <ClCompile Include="src\common\chacha8.c" />
     <ClCompile Include="src\gui.cpp" />
     <ClCompile Include="src\Job.cpp" />
     <ClCompile Include="src\JobCheckPlot.cpp" />
@@ -368,10 +368,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\chiapos\b17.hpp" />
-    <ClInclude Include="src\chiapos\b3\blake3.h" />
-    <ClInclude Include="src\chiapos\b3\blake3_impl.h" />
     <ClInclude Include="src\chiapos\calculate_bucket.hpp" />
-    <ClInclude Include="src\chiapos\chacha8.h" />
     <ClInclude Include="src\chiapos\disk.hpp" />
     <ClInclude Include="src\chiapos\entry_sizes.hpp" />
     <ClInclude Include="src\chiapos\phases.hpp" />
@@ -383,9 +380,12 @@
     <ClInclude Include="src\chiapos\thread_pool.hpp" />
     <ClInclude Include="src\chiapos\verifier.hpp" />
     <ClInclude Include="src\cli.hpp" />
+    <ClInclude Include="src\common\b3\blake3.h" />
+    <ClInclude Include="src\common\b3\blake3_impl.h" />
     <ClInclude Include="src\common\bitfield.hpp" />
     <ClInclude Include="src\common\bitfield_index.hpp" />
     <ClInclude Include="src\common\bits.hpp" />
+    <ClInclude Include="src\common\chacha8.h" />
     <ClInclude Include="src\common\encoding.hpp" />
     <ClInclude Include="src\common\exceptions.hpp" />
     <ClInclude Include="src\common\stdiox.hpp" />
@@ -579,10 +579,10 @@
     <ClInclude Include="src\main.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\chiapos\b3\blake3_avx2_x86-64_windows_msvc.asm" />
-    <None Include="src\chiapos\b3\blake3_avx512_x86-64_windows_msvc.asm" />
-    <None Include="src\chiapos\b3\blake3_sse2_x86-64_windows_msvc.asm" />
-    <None Include="src\chiapos\b3\blake3_sse41_x86-64_windows_msvc.asm" />
+    <None Include="src\common\b3\blake3_avx2_x86-64_windows_msvc.asm" />
+    <None Include="src\common\b3\blake3_avx512_x86-64_windows_msvc.asm" />
+    <None Include="src\common\b3\blake3_sse2_x86-64_windows_msvc.asm" />
+    <None Include="src\common\b3\blake3_sse41_x86-64_windows_msvc.asm" />
     <None Include="src\libs\fse\README.md" />
     <None Include="src\libs\relic\arch\lzcnt.inc" />
   </ItemGroup>

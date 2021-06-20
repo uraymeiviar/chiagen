@@ -92,6 +92,15 @@ inline uint64_t bswap_64(uint64_t x) { return __builtin_bswap64(x); }
 #include <cpuid.h>
 #endif
 
+inline std::string systemClockToStr(std::chrono::time_point<std::chrono::system_clock> st) {
+	std::time_t ct = std::chrono::system_clock::to_time_t(st);
+	std::tm* t = std::localtime(&ct);
+	char buf[256];
+	std::strftime(buf,256,"%d/%m %H:%M:%S",t);
+	buf[255] = '\0';
+	return std::string(buf);
+}
+
 class Timer {
 public:
     Timer()
@@ -104,11 +113,9 @@ public:
 #endif
     }
 
-    static char *GetNow()
+    static std::string GetNow()
     {
-        auto now = std::chrono::system_clock::now();
-        auto tt = std::chrono::system_clock::to_time_t(now);
-        return ctime(&tt);  // ctime includes newline
+		return systemClockToStr(std::chrono::system_clock::now());
     }
 
     void PrintElapsed(const std::string &name) const
@@ -416,15 +423,6 @@ std::string get_date_string_ex(const char* format, bool UTC = false, int64_t tim
 	}
 	char buf[256];
 	::strftime(buf, sizeof(buf), format, tmp);
-	return std::string(buf);
-}
-
-inline std::string systemClockToStr(std::chrono::time_point<std::chrono::system_clock> st) {
-	std::time_t ct = std::chrono::system_clock::to_time_t(st);
-	std::tm* t = std::localtime(&ct);
-	char buf[256];
-	std::strftime(buf,256,"%d/%m %H:%M:%S",t);
-	buf[255] = '\0';
 	return std::string(buf);
 }
 

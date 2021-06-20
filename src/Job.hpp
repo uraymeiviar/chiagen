@@ -144,8 +144,7 @@ public:
 	std::shared_ptr<Job> getActiveJobByName(std::string name, bool originalName = false);
 	size_t countJob();
 	size_t countRunningJob();
-	std::vector<std::shared_ptr<Job>>::const_iterator jobIteratorBegin() const ;
-	std::vector<std::shared_ptr<Job>>::const_iterator jobIteratorEnd() const ;
+	std::vector<std::shared_ptr<Job>> getActiveJobs();
 	void registerJobFactory(std::shared_ptr<JobFactory> factory);
 
 	bool isRunning {true};
