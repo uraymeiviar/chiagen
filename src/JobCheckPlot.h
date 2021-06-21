@@ -13,6 +13,7 @@ public:
 	std::vector<std::wstring> paths;
 	std::vector<std::pair<std::wstring, bool>> watchDirs;
 	int iteration {50};
+	bool randomizeChallenge {true};
 	bool drawEditor();
 	std::vector<ImFrame::Filter> pickPlotFileFilter;
 protected:

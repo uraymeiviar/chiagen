@@ -5,6 +5,7 @@
 #include "Imgui/misc/cpp/imgui_stdlib.h"
 #include "chiapos/verifier.hpp"
 #include "bits.hpp"
+#include <random>
 
 FactoryRegistration<JobCheckPlotFactory> JobCheckPlotFactoryRegistration;
 int JobCheckPlot::jobIdCounter = 1;
@@ -63,11 +64,17 @@ bool JobCheckPlotParam::drawEditor()
 	}
 
 	ImGui::Text("Iteration");
+	ImGui::SameLine();
 	if (ImGui::InputInt("##iteration", &this->iteration, 1, 10)) {
 		if (this->iteration < 10) {
 			this->iteration = 10;
 		}
 	}
+
+	ImGui::Text("Randomize Challenge");
+	ImGui::SameLine();
+	ImGui::Checkbox("##Randomize", &this->randomizeChallenge);
+	ImGui::ScopedSeparator();
 
 	if (!this->paths.empty() || !this->watchDirs.empty()) {
 		float height = 200;
@@ -117,7 +124,7 @@ bool JobCheckPlotParam::drawEditor()
 			uiDelPath = L"";
 			uiDelDirPath = L"";
 		}
-		ImGui::Separator();
+		ImGui::ScopedSeparator();
 	}
 	
 	int static activeTab = 0;
@@ -299,7 +306,7 @@ bool JobCheckPlotParam::drawEditor()
 		}
 	}
 
-	ImGui::Separator();
+	ImGui::ScopedSeparator();
 	return !this->paths.empty() || !this->watchDirs.empty();
 }
 
@@ -515,9 +522,17 @@ void JobCheckPlot::initActivity()
 			}
 		}
 		this->activity->mainRoutine = [=](JobActivityState*) {
+			std::random_device rd;
+			std::mt19937 mt(rd());
+			std::uniform_int_distribution<int> dist(0, 65535);
+
 			Verifier verifier;
 			this->activity->totalWorkItem = files.size()*this->param.iteration;
 			size_t startIterNum = 0;
+			if (this->param.randomizeChallenge) {
+				startIterNum = dist(mt);
+			}
+
 			for (auto f : files) {
 				this->results.push_back(std::make_shared<JobCheckPlotResult>(f,this->param.iteration));
 			}
@@ -600,7 +615,7 @@ bool JobCheckPlotFactory::drawEditor()
 		ImGui::Unindent(20.0f);
 	}
 
-	ImGui::Separator();
+	ImGui::ScopedSeparator();
 	
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
