@@ -415,7 +415,13 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 		this->destPath = std::filesystem::current_path().string();
 	}
 
-	this->destFile = this->destPath + "/" + this->filename;
+	this->destFile = this->destPath +"/"+ this->filename;
+	if (!this->destPath.empty()) {
+		if (this->destPath[this->destPath.length() - 1] != '/' ||
+			this->destPath[this->destPath.length() - 1] != '\\') {
+			this->destPath += "/";
+		}
+	}
 
 	if (std::filesystem::exists(this->destPath)) {
 		if (std::filesystem::is_regular_file(this->destPath)) {
@@ -440,6 +446,12 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 	if (this->tempPath.empty()) {
 		this->tempPath = this->destPath;
 	}
+	else if (!this->temp2Path.empty()) {
+		if (this->temp2Path[this->temp2Path.length() - 1] != '/' ||
+			this->temp2Path[this->temp2Path.length() - 1] != '\\') {
+			this->temp2Path += "/";
+		}
+	}
 
 	if (std::filesystem::exists(tempPath)) {
 		if (std::filesystem::is_regular_file(tempPath)) {
@@ -457,6 +469,12 @@ bool JobCreatePlotRefParam::updateDerivedParams(std::vector<std::string>& err)
 
 	if (this->temp2Path.empty()) {
 		this->temp2Path = this->tempPath;		
+	}
+	else if (!this->temp2Path.empty()) {
+		if (this->temp2Path[this->temp2Path.length() - 1] != '/' ||
+			this->temp2Path[this->temp2Path.length() - 1] != '\\') {
+			this->temp2Path += "/";
+		}
 	}
 
 	if (std::filesystem::exists(this->temp2Path)) {
