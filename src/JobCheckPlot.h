@@ -15,6 +15,17 @@ public:
 	int iteration {50};
 	bool drawEditor();
 	std::vector<ImFrame::Filter> pickPlotFileFilter;
+protected:
+	bool uiSelectedIsDir {true};
+	std::filesystem::path uiSelectedPath;
+	std::wstring uiDelPath;
+	std::wstring uiDelDirPath;
+	std::string uiWatchDir;
+	std::string uiWatchFile;
+	std::wstring uiDelSelectedFile;
+	std::vector<std::wstring> uiSelectedFiles;
+	bool uiRecursive;
+	int uiActiveTab;
 };
 
 class JobCheckPlotIterationResult {

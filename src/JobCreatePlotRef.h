@@ -9,18 +9,18 @@ class JobCreatePlotRefParam {
 public:
 	JobCreatePlotRefParam();
 	JobCreatePlotRefParam(const JobCreatePlotRefParam& rhs);
-	std::filesystem::path destPath;
-	std::filesystem::path tempPath;
-	std::filesystem::path temp2Path;
+	std::string destPath;
+	std::string tempPath;
+	std::string temp2Path;
 	std::string poolKey;
 	std::string farmKey;
 	std::string puzzleHash;
 	
-	uint8_t ksize {32};
-	uint32_t buckets {128};
-	uint32_t stripes {65536};
-	uint8_t threads {2};
-	uint32_t buffer {4608};
+	int ksize {32};
+	int buckets {128};
+	int stripes {65536};
+	int threads {2};
+	int buffer {4608};
 	bool bitfield {true};
 	void loadDefault();
 	void loadPreset();
@@ -30,13 +30,10 @@ public:
 
 	std::array<uint8_t, 32> plot_id = {};
 	std::vector<uint8_t> memo_data;
-	std::wstring plot_name;
+	std::string plot_name;
 	std::string id;
 	std::string memo;
-	std::wstring filename;
-	std::wstring destPathStr;
-	std::wstring tempPathStr;
-	std::wstring temp2PathStr;
+	std::string filename;
 	std::filesystem::path destFile;
 protected:
 };

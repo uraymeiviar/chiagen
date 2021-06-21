@@ -7,16 +7,16 @@
 class JobCreatePlotMaxParam {
 public:
 	JobCreatePlotMaxParam();
-	std::filesystem::path destPath;
-	std::filesystem::path tempPath;
-	std::filesystem::path temp2Path;
+	std::string destPath;
+	std::string tempPath;
+	std::string temp2Path;
 	std::string poolKey;
 	std::string farmKey;
 	std::string puzzleHash;
 	
-	uint8_t threads {2};
-	uint32_t buckets {256};
-	size_t readChunkSize {65536};
+	int threads {2};
+	int buckets {256};
+	int readChunkSize {65536};
 	void loadDefault();
 	void loadPreset();
 	bool isValid(std::vector<std::string>& errs) const;
@@ -25,14 +25,11 @@ public:
 
 	std::array<uint8_t, 32> plot_id = {};
 	std::vector<uint8_t> memo_data;
-	std::wstring plot_name;
-	std::wstring filename;
-	std::wstring destPathStr;
-	std::wstring tempPathStr;
-	std::wstring temp2PathStr;
+	std::string plot_name;
+	std::string filename;
 	std::filesystem::path destFileTempPath;
 	std::string id;
-	std::filesystem::path destFile;
+	std::string destFile;
 };
 
 class JobCreatePlotMax : public JobCreatePlot {

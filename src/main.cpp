@@ -718,7 +718,9 @@ void MainApp::toolPage() {
 			std::shared_ptr<Job> job = JobManager::getInstance().getSelectedJob();
 			if (job) {
 				if (ImGui::BeginChild("##col3",ImVec2(0,0),false,ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-					job->drawStatusWidget();						
+					ImGui::PushID(job.get()+1);
+						job->drawStatusWidget();
+					ImGui::PopID();
 				}
 				ImGui::EndChild();
 			}			

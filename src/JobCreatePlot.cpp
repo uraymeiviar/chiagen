@@ -47,9 +47,12 @@ bool JobCreatePlot::drawStatusWidget() {
 	bool result = Job::drawStatusWidget();
 	ImGui::ScopedSeparator();
 	if (!this->isRunning()) {
-		result &= this->drawEditor();
+		if (ImGui::CollapsingHeader("Plot Parameters")) {
+			result &= this->drawEditor();
+		}
 	}
-	else if (this->activity) {
+	
+	if (this->activity && this->isRunning()) {
 		this->activity->drawStatusWidget();
 		if (ImGui::CollapsingHeader("Plot Parameters")) {
 			ImGui::TextWrapped("changing these values, won\'t affect running process, if the job is relaunched, it will use these new parameters");

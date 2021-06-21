@@ -28,20 +28,15 @@ bool JobCheckPlotParam::drawEditor()
 	bool result = false;
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
-	static bool selectedIsDir = true;
-	static std::filesystem::path selectedPath;
-	static std::wstring delPath;
-	static std::wstring delDirPath;
-
-	if (!delPath.empty()) {
+	if (!uiDelPath.empty()) {
 		this->paths.erase(
 			std::remove_if(
 				this->paths.begin(), 
 				this->paths.end(),
-				[](auto f){
-					bool del = f == delPath;
+				[&](auto f){
+					bool del = f == uiDelPath;
 					if (del) {
-						delPath = L"";
+						uiDelPath = L"";
 					}
 					return del;
 				}
@@ -50,15 +45,15 @@ bool JobCheckPlotParam::drawEditor()
 		);
 	}
 
-	if (!delDirPath.empty()) {
+	if (!uiDelDirPath.empty()) {
 		this->watchDirs.erase(
 			std::remove_if(
 				this->watchDirs.begin(), 
 				this->watchDirs.end(),
-				[](auto d){
-					bool del = d.first == delDirPath;
+				[&](auto d){
+					bool del = d.first == uiDelDirPath;
 					if (del) {
-						delDirPath = L"";
+						uiDelDirPath = L"";
 					}
 					return del;
 				}
@@ -83,18 +78,18 @@ bool JobCheckPlotParam::drawEditor()
 			for (auto dir : this->watchDirs) {
 				ImGui::PushID(dir.first.c_str());
 				if (ImGui::Button("Del.")) {
-					delDirPath = dir.first;
+					uiDelDirPath = dir.first;
 				}
 				ImGui::SameLine();
-				bool selected = selectedIsDir && (selectedPath == dir.first);
+				bool selected = uiSelectedIsDir && (uiSelectedPath == dir.first);
 				std::string label = ws2s(dir.first);
 				if (dir.second) {
 					label += " (recursive)";
 				}
 				if (ImGui::Selectable(label.c_str(), &selected)) {
 					if (selected) {
-						selectedIsDir = true;
-						selectedPath = dir.first;
+						uiSelectedIsDir = true;
+						uiSelectedPath = dir.first;
 					}
 				}
 				ImGui::PopID();
@@ -102,14 +97,14 @@ bool JobCheckPlotParam::drawEditor()
 			for (auto f : this->paths) {
 				ImGui::PushID(f.c_str());
 				if (ImGui::Button("Del.")) {
-					delPath = f;
+					uiDelPath = f;
 				}
 				ImGui::SameLine();
-				bool selected = selectedIsDir && (selectedPath == f);
+				bool selected = uiSelectedIsDir && (uiSelectedPath == f);
 				if (ImGui::Selectable(ws2s(f).c_str(), &selected)) {
 					if (selected) {
-						selectedIsDir = false;
-						selectedPath = f;
+						uiSelectedIsDir = false;
+						uiSelectedPath = f;
 					}
 				}
 				ImGui::PopID();
@@ -119,8 +114,8 @@ bool JobCheckPlotParam::drawEditor()
 		if (ImGui::Button("Clear")) {
 			this->paths.clear();
 			this->watchDirs.clear();
-			delPath = L"";
-			delDirPath = L"";
+			uiDelPath = L"";
+			uiDelDirPath = L"";
 		}
 		ImGui::Separator();
 	}
@@ -139,8 +134,6 @@ bool JobCheckPlotParam::drawEditor()
 	}
 
 	if (activeTab == 0) {
-		static std::string watchDir;
-		static bool recursive = false;
 		ImGui::BeginGroupPanel();
 		{
 			float fieldWidth = ImGui::GetWindowContentRegionWidth();
@@ -149,12 +142,12 @@ bool JobCheckPlotParam::drawEditor()
 			ImGui::PopItemWidth();
 			ImGui::SameLine(60.0f);
 			ImGui::PushItemWidth(fieldWidth-(80.0f + 105.0f));
-			if (ImGui::InputText("##watchDir", &watchDir)) {
+			if (ImGui::InputText("##watchDir", &uiWatchDir)) {
 				result |= true;
 			}
-			if (ImGui::IsItemHovered() && !watchDir.empty()) {
+			if (ImGui::IsItemHovered() && !uiWatchDir.empty()) {
 				ImGui::BeginTooltip();
-				tooltiipText(watchDir.c_str());
+				tooltiipText(uiWatchDir.c_str());
 				ImGui::EndTooltip();
 			}
 			ImGui::PopItemWidth();
@@ -162,7 +155,7 @@ bool JobCheckPlotParam::drawEditor()
 			ImGui::PushItemWidth(55.0f);
 			ImGui::SameLine();
 			if (ImGui::Button("Paste##watchDir")) {
-				watchDir = ImGui::GetClipboardText();
+				uiWatchDir = ImGui::GetClipboardText();
 				result |= true;
 			}
 			ImGui::PopItemWidth();
@@ -173,7 +166,7 @@ bool JobCheckPlotParam::drawEditor()
 			if (ImGui::Button("Select##watchDir")) {
 				std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
 				if (dirPath) {
-					watchDir = dirPath->string();
+					uiWatchDir = dirPath->string();
 				}
 				result |= true;
 			}
@@ -181,26 +174,26 @@ bool JobCheckPlotParam::drawEditor()
 		}
 		ImGui::EndGroupPanel();
 
-		result |= ImGui::Checkbox("Recursive",&recursive);
+		result |= ImGui::Checkbox("Recursive",&uiRecursive);
 		ImGui::SameLine();
 		if (ImGui::Button("Add To CheckList##watchDir")) {
 			auto found = std::find_if(
 				this->watchDirs.begin(), 
 				this->watchDirs.end(), 
 				[=](std::pair<std::wstring, bool>& item) {
-					return ws2s(item.first) == watchDir;
+					return ws2s(item.first) == uiWatchDir;
 				}
 			);
 			if (found == this->watchDirs.end()) {
-				std::filesystem::path watchDirPath(watchDir);
+				std::filesystem::path watchDirPath(uiWatchDir);
 				if (std::filesystem::exists(watchDirPath)) {
 					if (!std::filesystem::is_directory(watchDirPath)) {
 						watchDirPath = watchDirPath.parent_path();
 					}
-					this->watchDirs.push_back(std::make_pair(watchDirPath.wstring(), recursive));
+					this->watchDirs.push_back(std::make_pair(watchDirPath.wstring(), uiRecursive));
 				}
 			}
-			watchDir = "";
+			uiWatchDir = "";
 			result |= true;
 		}	
 	}

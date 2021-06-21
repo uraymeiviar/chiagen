@@ -154,39 +154,38 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 
 	time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
-	std::wostringstream oss;
-	oss << std::put_time(&tm, L"%Y-%m-%d-%H-%M");
-	std::wstring timestr = oss.str();
+	std::ostringstream oss;
+	oss << std::put_time(&tm, "%Y-%m-%d-%H-%M");
+	std::string timestr = oss.str();
 
-	this->plot_name = L"plot-k32-"+timestr+L"-"+s2ws(this->id);
-	this->filename = this->plot_name+L".plot";
+	this->plot_name = "plot-k32-"+timestr+"-"+this->id;
+	this->filename = this->plot_name+".plot";
 
 
 	if (this->destPath.empty()) {
-		this->destPath = std::filesystem::current_path();
+		this->destPath = std::filesystem::current_path().string();
 	}
 
-	this->destFile = this->destPath / this->filename;
+	this->destFile = this->destPath +"/"+ this->filename;
 
 	if (std::filesystem::exists(this->destPath)) {
 		if (std::filesystem::is_regular_file(this->destPath)) {
-			this->destFile = this->destPath.parent_path() / this->filename;
+			this->destFile = (std::filesystem::path(this->destPath).parent_path() / this->filename).string();
 		}
 	}
 	else {
 		if (std::filesystem::create_directory(destPath)) {
-			this->destFile = this->destPath.parent_path() / this->filename;
+			this->destFile = (std::filesystem::path(this->destPath).parent_path() / this->filename).string();
 		}
 		else {
-			err.push_back("!! unable to create directory " + destPath.string());
+			err.push_back("!! unable to create directory " + destPath);
 			result = false;
 		}
 	}
-	this->destPathStr = this->destPath.wstring() + L"/";
-	this->destFileTempPath = this->destPath / (this->plot_name+L".tmp");
+	this->destFileTempPath = std::filesystem::path(this->destPath) / (this->plot_name+".tmp");
 
 	if(std::filesystem::exists(this->destFile)) {
-		err.push_back("!! plot file already exists " + this->destFile.string());
+		err.push_back("!! plot file already exists " + this->destFile);
 		result = false;
 	}
 
@@ -196,18 +195,17 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 
 	if (std::filesystem::exists(tempPath)) {
 		if (std::filesystem::is_regular_file(tempPath)) {
-			tempPath = tempPath.parent_path();
+			tempPath = std::filesystem::path(tempPath).parent_path().string();
 		}
 	}
 	else {
 		if (std::filesystem::create_directory(tempPath)) {
 		}
 		else {
-			err.push_back("!! unable to create temp directory " + tempPath.string());
+			err.push_back("!! unable to create temp directory " + tempPath);
 			result = false;
 		}
 	}
-	this->tempPathStr = this->tempPath.wstring() + L"/";
 
 	if (this->temp2Path.empty()) {
 		this->temp2Path = this->tempPath;		
@@ -215,19 +213,18 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 
 	if (std::filesystem::exists(this->temp2Path)) {
 		if (std::filesystem::is_regular_file(this->temp2Path)) {
-			this->temp2Path =this-> temp2Path.parent_path();
+			this->temp2Path = std::filesystem::path(this->temp2Path).parent_path().string();
 		}
 	}
 	else {
 		if (std::filesystem::create_directory(this->temp2Path)) {
 		}
 		else {
-			err.push_back("!! unable to create temp2 directory " + this->temp2Path.string());
+			err.push_back("!! unable to create temp2 directory " + this->temp2Path);
 			result = false;
 		}
 	}
 
-	this->temp2PathStr = this->temp2Path.wstring() + L"/";
 	if (this->threads < 2) {
 		this->threads = 2;
 	}
@@ -303,15 +300,11 @@ bool JobCreatePlotMaxParam::drawEditor()
 	ImGui::Text("Temp Dir");
 	ImGui::PopItemWidth();
 	ImGui::SameLine(90.0f);
-	static std::string tempDir = this->tempPath.string();
 	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
-	if (ImGui::InputText("##tempDir", &tempDir)) {
-		this->tempPath = tempDir;
-		result |= true;
-	}
-	if (ImGui::IsItemHovered() && !tempDir.empty()) {
+	result |= ImGui::InputText("##tempDir", &this->tempPath);
+	if (ImGui::IsItemHovered() && !this->tempPath.empty()) {
 		ImGui::BeginTooltip();
-		tooltiipText(tempDir.c_str());
+		tooltiipText(this->tempPath.c_str());
 		ImGui::EndTooltip();
 	}
 	ImGui::PopItemWidth();
@@ -319,8 +312,10 @@ bool JobCreatePlotMaxParam::drawEditor()
 	ImGui::PushItemWidth(55.0f);
 	ImGui::SameLine();		
 	if (ImGui::Button("Paste##tempDir")) {
-		tempDir = ImGui::GetClipboardText();
-		this->tempPath = tempDir;
+		std::string pastedtempDir = ImGui::GetClipboardText();
+		if (!pastedtempDir.empty()) {
+			this->tempPath = pastedtempDir;
+		}		
 		result |= true;
 	}
 	ImGui::PopItemWidth();
@@ -329,8 +324,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 	if (ImGui::Button("Select##tempDir")) {
 		std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
 		if (dirPath) {
-			tempDir = dirPath->string();
-			this->tempPath = tempDir;
+			this->tempPath = dirPath->string();
 		}
 		result |= true;
 	}
@@ -340,23 +334,21 @@ bool JobCreatePlotMaxParam::drawEditor()
 	ImGui::Text("Dest Dir");
 	ImGui::PopItemWidth();
 	ImGui::SameLine(90.0f);
-	static std::string destDir = this->destPath.string();
 	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
-	if (ImGui::InputText("##destDir", &destDir)) {
-		this->destPath = destDir;
-		result |= true;
-	}
-	if (ImGui::IsItemHovered() && !destDir.empty()) {
+	result |= ImGui::InputText("##destDir", &this->destPath);
+	if (ImGui::IsItemHovered() && !this->destPath.empty()) {
 		ImGui::BeginTooltip();
-		tooltiipText(destDir.c_str());
+		tooltiipText(this->destPath.c_str());
 		ImGui::EndTooltip();
 	}
 	ImGui::PopItemWidth();
 	ImGui::PushItemWidth(55.0f);
 	ImGui::SameLine();
 	if (ImGui::Button("Paste##destDir")) {
-		destDir = ImGui::GetClipboardText();
-		this->destPath = destDir;
+		std::string pasted = ImGui::GetClipboardText();
+		if(!pasted.empty()){
+			this->destPath = pasted;
+		}
 		result |= true;
 	}
 	ImGui::PopItemWidth();
@@ -365,8 +357,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 	if (ImGui::Button("Select##destDir")) {
 		std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
 		if (dirPath) {
-			destDir = dirPath.value().string();
-			this->destPath = dirPath.value();
+			this->destPath = dirPath.value().string();
 		}
 		result |= true;
 	}
@@ -378,15 +369,11 @@ bool JobCreatePlotMaxParam::drawEditor()
 			
 		ImGui::Text("Temp Dir2");
 		ImGui::SameLine(120.0f);
-		static std::string tempDir2 = this->temp2Path.string();
 		ImGui::PushItemWidth(fieldWidth-225.0f);
-		if (ImGui::InputText("##tempDir2", &tempDir2)) {
-			this->temp2Path = tempDir2;
-			result |= true;
-		}
-		if (ImGui::IsItemHovered() && !tempDir2.empty()) {
+		result |= ImGui::InputText("##tempDir2", &this->temp2Path);
+		if (ImGui::IsItemHovered() && !this->temp2Path.empty()) {
 			ImGui::BeginTooltip();
-			tooltiipText(tempDir2.c_str());
+			tooltiipText(this->temp2Path.c_str());
 			ImGui::EndTooltip();
 			result |= true;
 		}
@@ -394,16 +381,17 @@ bool JobCreatePlotMaxParam::drawEditor()
 		ImGui::SameLine();
 		ImGui::PushItemWidth(50.0f);
 		if (ImGui::Button("Paste##tempDir2")) {
-			tempDir2 = ImGui::GetClipboardText();
-			this->temp2Path = tempDir2;
+			std::string pastedTempDir2 = ImGui::GetClipboardText();
+			if(!pastedTempDir2.empty()){
+				this->temp2Path = pastedTempDir2;
+			}
 			result |= true;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Select##tempDir2")) {
 			std::optional<std::filesystem::path> dirPath = ImFrame::PickFolderDialog();
 			if (dirPath) {
-				tempDir2 = dirPath.value().string();
-				this->temp2Path = dirPath.value();
+				this->temp2Path = dirPath.value().string();
 			}
 			result |= true;
 		}
@@ -412,9 +400,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 		ImGui::Text("Threads");
 		ImGui::SameLine(120.0f);
 		ImGui::PushItemWidth(fieldWidth-130.0f);
-		static int threadsInput = (int)this->threads;
-		if (ImGui::InputInt("##threads", &threadsInput, 1, 2)) {
-			this->threads = (uint8_t)threadsInput;
+		if (ImGui::InputInt("##threads", &this->threads, 1, 2)) {
 			if (this->threads < 1) {
 				this->threads = 1;
 			}
@@ -425,16 +411,13 @@ bool JobCreatePlotMaxParam::drawEditor()
 		ImGui::Text("Buckets");
 		ImGui::SameLine(120.0f);
 		ImGui::PushItemWidth(fieldWidth-130.0f);
-		static int bucketInput = (int)this->buckets;
-		if (ImGui::InputInt("##buckets", &bucketInput, 1, 8)) {
-			this->buckets = (uint32_t)bucketInput;
+		if (ImGui::InputInt("##buckets", &this->buckets, 1, 8)) {
 			if (this->buckets < 16) {
 				this->buckets = 16;
 			}
 			if (this->buckets > 256) {
 				this->buckets = 256;
 			}
-			bucketInput= this->buckets;
 			result |= true;
 		}
 
@@ -533,19 +516,19 @@ void JobCreatePlotMax::initActivity()
 				mad::phase1::input_t params;
 				params.id = param.plot_id;
 				params.memo = param.memo_data;
-				params.plot_name = param.plot_name;
+				params.plot_name = s2ws(param.plot_name);
 				params.log_num_buckets = int(log2(param.buckets));
-				params.tempDir = param.tempPathStr;
-				params.tempDir2 = param.temp2PathStr;
+				params.tempDir = s2ws(param.tempPath);
+				params.tempDir2 = s2ws(param.temp2Path);
 				params.num_threads = param.threads;
 
 				mad::DiskPlotterContext context;
 				context.job = this->shared_from_this();
 
-				context.log("plotname   "+ws2s(param.plot_name));
-				context.log("target dir "+param.destPath.string());
-				context.log("temp dir   "+param.tempPath.string());
-				context.log("temp2 dir  "+param.temp2Path.string());
+				context.log("plotname   "+param.plot_name);
+				context.log("target dir "+param.destPath);
+				context.log("temp dir   "+param.tempPath);
+				context.log("temp2 dir  "+param.temp2Path);
 				context.log("threads    "+std::to_string(param.threads));
 
 				if (context.job->activity) {
@@ -598,14 +581,14 @@ void JobCreatePlotMax::initActivity()
 							+ std::to_string((get_wall_time_micros() - total_begin) / 1e6) + " sec");
 
 						context.getCurrentTask()->start();
-						if(param.tempPathStr != param.destPathStr)
+						if(param.tempPath != param.destPath)
 						{
-							context.log("Started copy to " + param.destFile.string());
+							context.log("Started copy to " + param.destFile);
 							const auto total_begin = get_wall_time_micros();
 							std::filesystem::copy(out_4.plot_file_name, param.destFile);
 							_wremove(out_4.plot_file_name.c_str());
 							const auto time = (get_wall_time_micros() - total_begin) / 1e6;	
-							context.log("Move to " + param.destFile.string() +" finished, took " + std::to_string(time) +" sec ");
+							context.log("Move to " + param.destFile +" finished, took " + std::to_string(time) +" sec ");
 						}
 						context.popTask();
 						plottingJob->finishEvent->trigger(context.job);

@@ -60,13 +60,13 @@ int cli_create(
 	param.bitfield = !nobitfield;
 	param.buckets = num_buckets;
 	param.buffer = bufferSz;
-	param.destPath = finaldir;
-	param.tempPath = tempdir;
-	param.temp2Path = tempdir2;
+	param.destPath = finaldir.string();
+	param.tempPath = tempdir.string();
+	param.temp2Path = tempdir2.string();
 	param.poolKey = pool_key;
 	param.farmKey = farmer_key;
 	param.id = id;
-	param.filename = filename;
+	param.filename = ws2s(filename);
 	param.memo = memo;
 
 	std::shared_ptr<JobCreatePlotRef> job = std::make_shared<JobCreatePlotRef>("cli","cli",param);
@@ -213,9 +213,9 @@ int cli_create_mad(
 	uint8_t num_threads)
 {
 	JobCreatePlotMaxParam param;
-	param.destPath = finaldir;
-	param.tempPath = tempdir;
-	param.temp2Path = tempdir2;
+	param.destPath = finaldir.string();
+	param.tempPath = tempdir.string();
+	param.temp2Path = tempdir2.string();
 	param.poolKey = pool_key;
 	param.farmKey = farmer_key;
 	param.threads = num_threads;
