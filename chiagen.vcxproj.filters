@@ -142,6 +142,9 @@
     <Filter Include="common\b3">
       <UniqueIdentifier>{dfe6af10-8ef5-4b79-8836-b0263063f1f8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\bech32">
+      <UniqueIdentifier>{8edb7fad-a0ba-4ebd-9344-1fe64747d37a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cli.cpp">
@@ -596,6 +599,9 @@
     </ClCompile>
     <ClCompile Include="src\common\b3\blake3_sse41.c">
       <Filter>common\b3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\libs\libech32\bech32.cpp">
+      <Filter>libs\bech32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1228,6 +1234,9 @@
     </ClInclude>
     <ClInclude Include="src\common\b3\blake3_impl.h">
       <Filter>common\b3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libs\libech32\libbech32.h">
+      <Filter>libs\bech32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

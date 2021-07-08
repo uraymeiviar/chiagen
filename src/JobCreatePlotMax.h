@@ -13,6 +13,8 @@ public:
 	std::string poolKey;
 	std::string farmKey;
 	std::string puzzleHash;
+	std::string poolContract;
+	std::string contractAddr;
 	
 	int threads {2};
 	int buckets {256};
@@ -30,6 +32,8 @@ public:
 	std::filesystem::path destFileTempPath;
 	std::string id;
 	std::string destFile;
+
+	std::vector<uint8_t> poolContractDecode(const std::string& addr);
 };
 
 class JobCreatePlotMax : public JobCreatePlot {

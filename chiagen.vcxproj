@@ -283,6 +283,7 @@
     <ClCompile Include="src\libs\Implot\implot.cpp" />
     <ClCompile Include="src\libs\Implot\implot_demo.cpp" />
     <ClCompile Include="src\libs\Implot\implot_items.cpp" />
+    <ClCompile Include="src\libs\libech32\bech32.cpp" />
     <ClCompile Include="src\libs\relic\arch\relic_arch_x64.c" />
     <ClCompile Include="src\libs\relic\bn\relic_bn_add.c" />
     <ClCompile Include="src\libs\relic\bn\relic_bn_cmp.c" />
@@ -492,6 +493,7 @@
     <ClInclude Include="src\libs\Imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="src\libs\Implot\implot.h" />
     <ClInclude Include="src\libs\Implot\implot_internal.h" />
+    <ClInclude Include="src\libs\libech32\libbech32.h" />
     <ClInclude Include="src\libs\pthreads\pthread.h" />
     <ClInclude Include="src\libs\pthreads\sched.h" />
     <ClInclude Include="src\libs\pthreads\semaphore.h" />

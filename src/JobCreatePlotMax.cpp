@@ -4,6 +4,7 @@
 #include "chiapos/pos_constants.hpp"
 #include "chiapos/entry_sizes.hpp"
 #include "Imgui/misc/cpp/imgui_stdlib.h"
+#include "libech32/libbech32.h"
 #include <thread>
 #include "Keygen.hpp"
 #include "util.hpp"
@@ -57,12 +58,27 @@ bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
 		result = false;
 	}
 
-	if (this->poolKey.empty() && this->puzzleHash.empty()) {
-		errs.push_back("pool public key or puzzle hash must be specified");
+	if (this->poolKey.empty() && this->puzzleHash.empty() && this->poolContract.empty()) {
+		errs.push_back("pool public key, pool contract or puzzle hash must be specified");
 		result = false;
 	}
 	else {
-		if(!this->puzzleHash.empty()){
+		if (!this->poolContract.empty()) {
+			const auto res = bech32::decode(this->poolContract);
+			if(res.encoding != bech32::Bech32m) {
+				errs.push_back("invalid contract address (!Bech32m)");
+				result = false;
+			}
+			if(res.hrp != "xch" && res.hrp != "txch") {
+				errs.push_back("invalid contract address (" + res.hrp + " != xch)");
+				result = false;
+			}
+			if(res.dp.size() != 52) {
+				errs.push_back("invalid contract address (size != 52)");
+				result = false;
+			}
+		}
+		else if(!this->puzzleHash.empty()){
 			if (this->puzzleHash.length() < 2*32) {
 				errs.push_back("puzzle hash must be atleast 32 bytes (64 hex characters)");
 				result = false;
@@ -84,6 +100,31 @@ bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
 		}
 	}
 	return result;
+}
+
+std::vector<uint8_t> JobCreatePlotMaxParam::poolContractDecode(const std::string& addr)
+{
+	const auto res = bech32::decode(addr);
+	if(res.encoding != bech32::Bech32m) {
+		throw std::logic_error("invalid contract address (!Bech32m): " + addr);
+	}
+	if(res.hrp != "xch" && res.hrp != "txch") {
+		throw std::logic_error("invalid contract address (" + res.hrp + " != xch): " + addr);
+	}
+	if(res.dp.size() != 52) {
+		throw std::logic_error("invalid contract address (size != 52): " + addr);
+	}
+	Bits bits;
+	for(int i = 0; i < 51; ++i) {
+		bits.AppendValue(res.dp[i], 5);
+	}
+	bits.AppendValue(res.dp[51] >> 4, 1);
+	if(bits.GetSize() != 32 * 8) {
+		throw std::logic_error("invalid contract address (bits != 256): " + addr);
+	}
+	std::vector<uint8_t> hash(32);
+	bits.ToBytes(hash.data());
+	return hash;
 }
 
 bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
@@ -114,6 +155,17 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 	std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
 	std::vector<uint8_t> farm_key_bytes = farmer_pk.Serialize();
 	std::vector<uint8_t> mstr_key_bytes = sk.Serialize();
+
+	if (!this->contractAddr.empty()) {
+		try {
+			std::vector<uint8_t> pzHashFromContract = this->poolContractDecode(this->poolContract);
+			this->puzzleHash = hexStr(pzHashFromContract);
+		}
+		catch (...) {
+			err.push_back("failed to decode pool contract");
+			result = false;
+		}
+	}
 			
 	std::vector<uint8_t> plid_key_bytes;
 	if (!this->puzzleHash.empty()) {
@@ -252,11 +304,11 @@ bool JobCreatePlotMaxParam::drawEditor()
 	bool result = false;
 	float fieldWidth = ImGui::GetWindowContentRegionWidth();
 
-	ImGui::PushItemWidth(90.0f);
+	ImGui::PushItemWidth(100.0f);
 	ImGui::Text("Pool Key");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(90.0f);
-	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
+	ImGui::SameLine(100.0f);
+	ImGui::PushItemWidth(fieldWidth-(100.0f + 55.0f));
 	result |= ImGui::InputText("##poolkey", &this->poolKey,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->poolKey.empty()) {
 		ImGui::BeginTooltip();
@@ -272,11 +324,11 @@ bool JobCreatePlotMaxParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(90.0f);
+	ImGui::PushItemWidth(100.0f);
 	ImGui::Text("PuzzleHash");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(90.0f);
-	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
+	ImGui::SameLine(100.0f);
+	ImGui::PushItemWidth(fieldWidth-(100.0f + 55.0f));
 	result |= ImGui::InputText("##puzzleHash", &this->puzzleHash,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->puzzleHash.empty()) {
 		ImGui::BeginTooltip();
@@ -292,11 +344,33 @@ bool JobCreatePlotMaxParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(90.0f);
+	ImGui::PushItemWidth(100.0f);
+	ImGui::Text("PoolContract");
+	ImGui::PopItemWidth();
+	ImGui::SameLine(100.0f);
+	ImGui::PushItemWidth(fieldWidth-(100.0f + 55.0f));
+	result |= ImGui::InputText("##poolContract", &this->poolContract,ImGuiInputTextFlags_CharsHexadecimal);
+	if (ImGui::IsItemHovered() && !this->poolContract.empty()) {
+		ImGui::BeginTooltip();
+		tooltiipText(this->poolContract.c_str());
+		ImGui::EndTooltip();
+	}
+	ImGui::PopItemWidth();
+	ImGui::SameLine();
+	ImGui::PushItemWidth(55.0f);
+	if (ImGui::Button("Paste##poolContract")) {
+		this->contractAddr = strFilterHexStr(ImGui::GetClipboardText());
+		result |= true;
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::ScopedSeparator();
+
+	ImGui::PushItemWidth(100.0f);
 	ImGui::Text("Farm Key");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(90.0f);
-	ImGui::PushItemWidth(fieldWidth-(90.0f + 55.0f));
+	ImGui::SameLine(100.0f);
+	ImGui::PushItemWidth(fieldWidth-(100.0f + 55.0f));
 	ImGui::InputText("##farmkey", &this->farmKey,ImGuiInputTextFlags_CharsHexadecimal);
 	if (ImGui::IsItemHovered() && !this->farmKey.empty()) {
 		ImGui::BeginTooltip();
@@ -312,11 +386,11 @@ bool JobCreatePlotMaxParam::drawEditor()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PushItemWidth(90.0f);
+	ImGui::PushItemWidth(100.0f);
 	ImGui::Text("Temp Dir");
 	ImGui::PopItemWidth();
-	ImGui::SameLine(90.0f);
-	ImGui::PushItemWidth(fieldWidth-(90.0f + 105.0f));
+	ImGui::SameLine(100.0f);
+	ImGui::PushItemWidth(fieldWidth-(100.0f + 105.0f));
 	result |= ImGui::InputText("##tempDir", &this->tempPath);
 	if (ImGui::IsItemHovered() && !this->tempPath.empty()) {
 		ImGui::BeginTooltip();

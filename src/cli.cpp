@@ -207,6 +207,7 @@ int cli_create_mad(
 	std::string farmer_key, 
 	std::string pool_key, 
 	std::string puzzle_hash, 
+	std::string pool_contract,
 	std::filesystem::path finaldir, 
 	std::filesystem::path tempdir, 
 	std::filesystem::path tempdir2, 
@@ -220,6 +221,7 @@ int cli_create_mad(
 	param.poolKey = pool_key;
 	param.farmKey = farmer_key;
 	param.puzzleHash = puzzle_hash;
+	param.poolContract = pool_contract;
 	param.threads = num_threads;
 	param.buckets = num_buckets;
 

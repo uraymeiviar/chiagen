@@ -192,8 +192,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						std::cout << "options :" << std::endl;
 						std::cout << "  -f  --farmkey     : farmer public key in hex (48 bytes)" << std::endl;
 						std::cout << "                      if not specified, plot id must be given" << std::endl;
-						std::cout << "  -c  --pool-puzzle : pool puzzle hash in hex (32 bytes)" << std::endl;
+						std::cout << "  -z  --pool-puzzle : pool puzzle hash in hex (32 bytes)" << std::endl;
 						std::cout << "                      if not specified, plot id or pool key must be given" << std::endl;
+						std::cout << "  -c  --pool-contract : pool contract address (62 chars)" << std::endl;
+						std::cout << "                      if not specified, plot id or pool key or pool puzzle must be given" << std::endl;
 						std::cout << "  -p  --poolkey     : pool public key in hex (48 bytes)" << std::endl;
 						std::cout << "                      if not specified, plot id or poolPuzle must be given" << std::endl;
 						std::cout << "  -d  --dest        : plot destination path" << std::endl;
@@ -223,6 +225,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						std::string farmkey;
 						std::string poolkey;
 						std::string puzzleHash;
+						std::string poolContract;
 						std::wstring dest;
 						std::wstring temp;
 						std::wstring temp2;
@@ -250,11 +253,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 									farmkey = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
-								else if (lastArg == "-p" || lastArg == "--pool-puzzle") {
+								else if (lastArg == "-z" || lastArg == "--pool-puzzle") {
+									poolContract = lowercase(ws2s(std::wstring(args[i])));
+									lastArg = "";
+								}
+								else if (lastArg == "-x" || lastArg == "--pool-contracr") {
 									puzzleHash = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
-								else if (lastArg == "-c" || lastArg == "--poolkey") {
+								else if (lastArg == "-p" || lastArg == "--poolkey") {
 									poolkey = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
@@ -363,8 +370,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						if (farmkey.empty() && id.empty()) {
 							std::cerr << "error: either farmkey or id need to be specified";
 						}
-						if (poolkey.empty() && id.empty()) {
-							std::cerr << "error: either poolkey or id need to be specified";
+						if (poolkey.empty() && id.empty() && poolContract.empty() && puzzleHash.empty()) {
+							std::cerr << "error: either poolkey, poolContract, puzzleHash or id need to be specified";
 						}
 						if (dest.empty()) {
 							std::cout << "destination path will be using current directory" << std::endl;
@@ -418,7 +425,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
 						try {
 							if (useMadMax) {
-								cli_create_mad(farmkey,poolkey,puzzleHash,dest,temp,temp2,buckets,nthreads);
+								cli_create_mad(farmkey,poolkey,puzzleHash,poolContract, dest,temp,temp2,buckets,nthreads);
 							}
 							else {
 								cli_create(farmkey,poolkey,dest,temp,temp2,filename,memo,id,ksize,buckets,stripes,nthreads,mem,!bitfield);

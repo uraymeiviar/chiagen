@@ -27,6 +27,7 @@ int cli_create_mad(
 	std::string farmer_key,
 	std::string pool_key,
 	std::string puzzle_hash,
+	std::string pool_contract,
 	std::filesystem::path finaldir = std::filesystem::path(),
 	std::filesystem::path tempdir = std::filesystem::path(),
 	std::filesystem::path tempdir2 = std::filesystem::path(), 
