@@ -63,7 +63,7 @@ bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
 	}
 	else {
 		if(!this->puzzleHash.empty()){
-			if (this->poolKey.length() < 2*32) {
+			if (this->puzzleHash.length() < 2*32) {
 				errs.push_back("puzzle hash must be atleast 32 bytes (64 hex characters)");
 				result = false;
 			}
@@ -111,46 +111,44 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 	G1Element plot_pk = local_pk + farmer_pk;
 	err.push_back("plot pk   = " + hexStr(plot_pk.Serialize()));
 
-	std::vector<uint8_t> pool_key_data(48);
-	HexToBytes(this->poolKey,pool_key_data.data());
-	G1Element pool_pk = G1Element::FromByteVector(pool_key_data);
-	err.push_back("pool pk   = " + hexStr(pool_pk.Serialize()));
-
-	std::vector<uint8_t> pzhs_key_bytes(32);
-	if (!this->puzzleHash.empty()) {		
-		HexToBytes(this->puzzleHash,pzhs_key_bytes.data());
-		err.push_back("puzzle hash = " + hexStr(pool_pk.Serialize()));
-	}
-
-	std::vector<uint8_t> pool_key_bytes = pool_pk.Serialize();
 	std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
 	std::vector<uint8_t> farm_key_bytes = farmer_pk.Serialize();
 	std::vector<uint8_t> mstr_key_bytes = sk.Serialize();
 			
 	std::vector<uint8_t> plid_key_bytes;
 	if (!this->puzzleHash.empty()) {
+		std::vector<uint8_t> pzhs_key_bytes(32);
+		if (!this->puzzleHash.empty()) {		
+			HexToBytes(this->puzzleHash,pzhs_key_bytes.data());
+			err.push_back("puzzle hash = " + hexStr(pzhs_key_bytes));
+		}
+
 		plid_key_bytes.insert(plid_key_bytes.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
 		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
-	}
-	else {
-		plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
-		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
-	}
 
-	Hash256(this->plot_id.data(),plid_key_bytes.data(),plid_key_bytes.size());
-	id = hexStr(std::vector<uint8_t>(this->plot_id.begin(), this->plot_id.end()));
-	err.push_back("plot id   = " + id);
-
-	if (!this->puzzleHash.empty()) {
 		this->memo_data.insert(this->memo_data.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
 		this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
 		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
 	}
 	else {
+		std::vector<uint8_t> pool_key_data(48);
+		HexToBytes(this->poolKey,pool_key_data.data());
+		G1Element pool_pk = G1Element::FromByteVector(pool_key_data);
+		err.push_back("pool pk   = " + hexStr(pool_pk.Serialize()));
+
+		std::vector<uint8_t> pool_key_bytes = pool_pk.Serialize();
+
+		plid_key_bytes.insert(plid_key_bytes.end(), pool_key_bytes.begin(), pool_key_bytes.end());
+		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
+
 		this->memo_data.insert(this->memo_data.end(), pool_key_bytes.begin(), pool_key_bytes.end());
 		this->memo_data.insert(this->memo_data.end(), farm_key_bytes.begin(), farm_key_bytes.end());
-		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
+		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());
 	}
+
+	Hash256(this->plot_id.data(),plid_key_bytes.data(),plid_key_bytes.size());
+	id = hexStr(std::vector<uint8_t>(this->plot_id.begin(), this->plot_id.end()));
+	err.push_back("plot id   = " + id);
 
 	time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);

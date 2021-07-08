@@ -192,8 +192,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						std::cout << "options :" << std::endl;
 						std::cout << "  -f  --farmkey     : farmer public key in hex (48 bytes)" << std::endl;
 						std::cout << "                      if not specified, plot id must be given" << std::endl;
+						std::cout << "  -c  --pool-puzzle : pool puzzle hash in hex (32 bytes)" << std::endl;
+						std::cout << "                      if not specified, plot id or pool key must be given" << std::endl;
 						std::cout << "  -p  --poolkey     : pool public key in hex (48 bytes)" << std::endl;
-						std::cout << "                      if not specified, plot id must be given" << std::endl;
+						std::cout << "                      if not specified, plot id or poolPuzle must be given" << std::endl;
 						std::cout << "  -d  --dest        : plot destination path" << std::endl;
 						std::cout << "                      if not specified will use current path" << std::endl;
 						std::cout << "  -t  --temp        : plotting temporary path" << std::endl;
@@ -220,6 +222,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 					else {
 						std::string farmkey;
 						std::string poolkey;
+						std::string puzzleHash;
 						std::wstring dest;
 						std::wstring temp;
 						std::wstring temp2;
@@ -247,7 +250,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 									farmkey = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
-								else if (lastArg == "-p" || lastArg == "--poolkey") {
+								else if (lastArg == "-p" || lastArg == "--pool-puzzle") {
+									puzzleHash = lowercase(ws2s(std::wstring(args[i])));
+									lastArg = "";
+								}
+								else if (lastArg == "-c" || lastArg == "--poolkey") {
 									poolkey = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
@@ -411,7 +418,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
 						try {
 							if (useMadMax) {
-								cli_create_mad(farmkey,poolkey,dest,temp,temp2,buckets,nthreads);
+								cli_create_mad(farmkey,poolkey,puzzleHash,dest,temp,temp2,buckets,nthreads);
 							}
 							else {
 								cli_create(farmkey,poolkey,dest,temp,temp2,filename,memo,id,ksize,buckets,stripes,nthreads,mem,!bitfield);

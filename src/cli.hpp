@@ -26,6 +26,7 @@ int cli_proof(std::string challenge, std::wstring filename);
 int cli_create_mad(
 	std::string farmer_key,
 	std::string pool_key,
+	std::string puzzle_hash,
 	std::filesystem::path finaldir = std::filesystem::path(),
 	std::filesystem::path tempdir = std::filesystem::path(),
 	std::filesystem::path tempdir2 = std::filesystem::path(), 

@@ -206,6 +206,7 @@ int cli_proof(std::string challenge, std::wstring filename) {
 int cli_create_mad(
 	std::string farmer_key, 
 	std::string pool_key, 
+	std::string puzzle_hash, 
 	std::filesystem::path finaldir, 
 	std::filesystem::path tempdir, 
 	std::filesystem::path tempdir2, 
@@ -218,6 +219,7 @@ int cli_create_mad(
 	param.temp2Path = tempdir2.string();
 	param.poolKey = pool_key;
 	param.farmKey = farmer_key;
+	param.puzzleHash = puzzle_hash;
 	param.threads = num_threads;
 	param.buckets = num_buckets;
 

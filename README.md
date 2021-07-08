@@ -11,7 +11,23 @@ this program does not wrap those plotter program, it compile those plotter code 
 
 this app also will add functionality as plot manager, where user can make a schedule or arrangement when to launch new process, each job launching can be triggered by an event sent by another job
 
-you can also start the program in CLI mode, just run it on command prompt and add extra parameter `D:\chiagen.exe create --help`
+you can also start the program in CLI mode, just run it on command prompt and add extra parameter `D:\chiagen.exe help`
+
+![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/cli-help.jpg)
+
+to get help for each command, continue with `D:\chiagen.exe create help
+
+![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/cli-create.jpg)
+
+also the green rectangle are hints, those are the only parameters you need to specify for creating plot for pool using madmax plotter
+
+for those who want to create pool plot using madmax by GUI, here are the parameters you need to specify
+
+![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/pool-plot-ui.jpg)
+
+just leave pool key empty, but fill the puzzle hash field
+
+----
 
 these are planned feature
 * **(done)** integrated CLI/GUI 
