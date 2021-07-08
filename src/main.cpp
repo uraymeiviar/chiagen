@@ -206,7 +206,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 						std::cout << "                      if not specified will use temp path" << std::endl;
 						std::cout << "  -o  --output      : output file name" << std::endl;
 						std::cout << "                      if not specified will be named plot-[k]-[date]-[id].plot" << std::endl;
-						std::cout << "  -z  --memo        : plot memo bytes in hex" << std::endl;
+						std::cout << "  -e  --memo        : plot memo bytes in hex" << std::endl;
 						std::cout << "                      if not specified will generated from farm and pool public key" << std::endl;
 						std::cout << "  -i  --id          : plot id in hex" << std::endl;
 						std::cout << "                      if specified farmkey and pool key will be ignored" << std::endl;
@@ -254,11 +254,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 									lastArg = "";
 								}
 								else if (lastArg == "-z" || lastArg == "--pool-puzzle") {
-									poolContract = lowercase(ws2s(std::wstring(args[i])));
+									puzzleHash = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
-								else if (lastArg == "-x" || lastArg == "--pool-contracr") {
-									puzzleHash = lowercase(ws2s(std::wstring(args[i])));
+								else if (lastArg == "-c" || lastArg == "--pool-contract") {
+									poolContract = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}
 								else if (lastArg == "-p" || lastArg == "--poolkey") {
@@ -281,7 +281,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 									filename = std::wstring(args[i]);
 									lastArg = "";
 								}
-								else if (lastArg == "-z" || lastArg == "--memo") {
+								else if (lastArg == "-e" || lastArg == "--memo") {
 									memo = lowercase(ws2s(std::wstring(args[i])));
 									lastArg = "";
 								}

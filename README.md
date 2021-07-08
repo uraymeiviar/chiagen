@@ -25,7 +25,7 @@ for those who want to create pool plot using madmax by GUI, here are the paramet
 
 ![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/pool-plot-gui.jpg)
 
-just leave pool key empty, but fill the puzzle hash field
+just leave pool key empty, but fill the puzzle hash field or pool contract field
 
 ----
 

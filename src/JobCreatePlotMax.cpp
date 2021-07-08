@@ -77,6 +77,15 @@ bool JobCreatePlotMaxParam::isValid(std::vector<std::string>& errs) const
 				errs.push_back("invalid contract address (size != 52)");
 				result = false;
 			}
+			Bits bits;
+			for(int i = 0; i < 51; ++i) {
+				bits.AppendValue(res.dp[i], 5);
+			}
+			bits.AppendValue(res.dp[51] >> 4, 1);
+			if(bits.GetSize() != 32 * 8) {
+				errs.push_back("invalid contract address (bits != 256)");
+				result = false;
+			}
 		}
 		else if(!this->puzzleHash.empty()){
 			if (this->puzzleHash.length() < 2*32) {
@@ -149,17 +158,16 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 	G1Element farmer_pk = G1Element::FromByteVector(farmer_key_data);
 	err.push_back("farmer pk = " + hexStr(farmer_pk.Serialize()));
 
-	G1Element plot_pk = local_pk + farmer_pk;
-	err.push_back("plot pk   = " + hexStr(plot_pk.Serialize()));
 
-	std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
 	std::vector<uint8_t> farm_key_bytes = farmer_pk.Serialize();
 	std::vector<uint8_t> mstr_key_bytes = sk.Serialize();
 
-	if (!this->contractAddr.empty()) {
+	if (!this->poolContract.empty()) {
 		try {
+			err.push_back("pool con. = " + this->poolContract);
 			std::vector<uint8_t> pzHashFromContract = this->poolContractDecode(this->poolContract);
 			this->puzzleHash = hexStr(pzHashFromContract);
+			err.push_back("pzhs con. = " + this->puzzleHash);
 		}
 		catch (...) {
 			err.push_back("failed to decode pool contract");
@@ -169,11 +177,28 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 			
 	std::vector<uint8_t> plid_key_bytes;
 	if (!this->puzzleHash.empty()) {
-		std::vector<uint8_t> pzhs_key_bytes(32);
-		if (!this->puzzleHash.empty()) {		
-			HexToBytes(this->puzzleHash,pzhs_key_bytes.data());
-			err.push_back("puzzle hash = " + hexStr(pzhs_key_bytes));
+		std::vector<uint8_t> pzhs_key_bytes(32);	
+		HexToBytes(this->puzzleHash,pzhs_key_bytes.data());
+		err.push_back("pz hash   = " + hexStr(pzhs_key_bytes));
+
+///
+		std::vector<uint8_t> bytes = (local_pk + farmer_pk).Serialize();
+		{
+			const auto more_bytes = local_pk.Serialize();
+			bytes.insert(bytes.end(), more_bytes.begin(), more_bytes.end());
 		}
+		{
+			const auto more_bytes = farmer_pk.Serialize();
+			bytes.insert(bytes.end(), more_bytes.begin(), more_bytes.end());
+		}
+		std::vector<uint8_t> hash(32);
+		Hash256(hash.data(), bytes.data(), bytes.size());
+		
+		const auto taproot_sk = KeyGen(Bytes(hash));
+		G1Element plot_pk = local_pk + farmer_pk + taproot_sk.GetG1Element();
+///
+
+		std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
 
 		plid_key_bytes.insert(plid_key_bytes.end(), pzhs_key_bytes.begin(), pzhs_key_bytes.end());
 		plid_key_bytes.insert(plid_key_bytes.end(), plot_key_bytes.begin(), plot_key_bytes.end());
@@ -183,6 +208,11 @@ bool JobCreatePlotMaxParam::updateDerivedParams(std::vector<std::string>& err)
 		this->memo_data.insert(this->memo_data.end(), mstr_key_bytes.begin(), mstr_key_bytes.end());	
 	}
 	else {
+		G1Element plot_pk = local_pk + farmer_pk;
+		err.push_back("plot pk   = " + hexStr(plot_pk.Serialize()));
+
+		std::vector<uint8_t> plot_key_bytes = plot_pk.Serialize();
+
 		std::vector<uint8_t> pool_key_data(48);
 		HexToBytes(this->poolKey,pool_key_data.data());
 		G1Element pool_pk = G1Element::FromByteVector(pool_key_data);
@@ -359,7 +389,7 @@ bool JobCreatePlotMaxParam::drawEditor()
 	ImGui::SameLine();
 	ImGui::PushItemWidth(55.0f);
 	if (ImGui::Button("Paste##poolContract")) {
-		this->contractAddr = strFilterHexStr(ImGui::GetClipboardText());
+		this->poolContract = strFilterHexStr(ImGui::GetClipboardText());
 		result |= true;
 	}
 	ImGui::PopItemWidth();

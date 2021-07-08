@@ -14,7 +14,6 @@ public:
 	std::string farmKey;
 	std::string puzzleHash;
 	std::string poolContract;
-	std::string contractAddr;
 	
 	int threads {2};
 	int buckets {256};
