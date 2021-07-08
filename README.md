@@ -23,7 +23,7 @@ also the green rectangle are hints, those are the only parameters you need to sp
 
 for those who want to create pool plot using madmax by GUI, here are the parameters you need to specify
 
-![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/pool-plot-ui.jpg)
+![alt text](https://raw.githubusercontent.com/uraymeiviar/chiagen/master/img/pool-plot-gui.jpg)
 
 just leave pool key empty, but fill the puzzle hash field
 
